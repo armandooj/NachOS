@@ -69,7 +69,7 @@ WriteDone (int arg)
 }
 
 //----------------------------------------------------------------------
-// ConsoleTest
+// ConsoleTes
 //      Test the console by echoing characters typed at the input onto
 //      the output.  Stop when the user types a 'q'.
 //----------------------------------------------------------------------
@@ -87,8 +87,20 @@ ConsoleTest (char *in, char *out)
       {
 	  readAvail->P ();	// wait for character to arrive
 	  ch = console->GetChar ();
+
+      if (ch != '\n') {
+        console->PutChar ('<');    // echo it!
+        writeDone->P ();
+      }
+
 	  console->PutChar (ch);	// echo it!
 	  writeDone->P ();	// wait for write to finish
+
+      if (ch != '\n') {
+        console->PutChar ('>');    // echo it!
+        writeDone->P ();
+      }
+
 	  if (ch == 'q')
 	      return;		// if q, quit
       }
