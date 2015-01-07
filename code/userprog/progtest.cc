@@ -101,7 +101,7 @@ ConsoleTest (char *in, char *out)
         writeDone->P ();
       }
 
-	  if (ch == 'q')
+	  if (ch == 'q' || ch == EOF)
 	      return;		// if q, quit
       }
 }
