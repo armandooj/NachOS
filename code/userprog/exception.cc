@@ -89,9 +89,7 @@ ExceptionHandler (ExceptionType which)
                int int_c = machine->ReadRegister(4);
                char c = (char) int_c;
                DEBUG('a', "PutChar\n");
-               printf("LOL %c", c);
-
-               synchconsole->PutChar(c);
+               synchconsole->SynchPutChar(c);
                break;
              }
              default: {

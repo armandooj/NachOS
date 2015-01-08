@@ -160,9 +160,10 @@ Initialize (int argc, char **argv)
 
 #ifdef USER_PROGRAM
     machine = new Machine (debugUserProg);	// this must come first
-    #ifdef CHANGED
+#endif
+
+#ifdef CHANGED
     synchconsole = new SynchConsole(NULL, NULL);
-    #endif
 #endif
 
 #ifdef FILESYS

@@ -31,6 +31,7 @@ extern Timer *timer;		// the hardware alarm clock
 
 #ifdef CHANGED
 #include "synchconsole.h"
+extern SynchConsole *synchconsole;
 #endif
 
 #ifdef USER_PROGRAM
