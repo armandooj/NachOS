@@ -29,6 +29,11 @@ extern Interrupt *interrupt;	// interrupt status
 extern Statistics *stats;	// performance metrics
 extern Timer *timer;		// the hardware alarm clock
 
+#ifdef CHANGED
+#include "synchconsole.h"
+extern SynchConsole *synchconsole;
+#endif
+
 #ifdef USER_PROGRAM
 #include "machine.h"
 extern Machine *machine;	// user program memory and registers

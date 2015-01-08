@@ -18,17 +18,18 @@
 /* system call codes -- used by the stubs to tell the kernel which system call
  * is being asked for
  */
-#define SC_Halt		0
-#define SC_Exit		1
-#define SC_Exec		2
-#define SC_Join		3
-#define SC_Create	4
-#define SC_Open		5
-#define SC_Read		6
-#define SC_Write	7
-#define SC_Close	8
-#define SC_Fork		9
-#define SC_Yield	10
+#define SC_Halt		 0
+#define SC_Exit		 1
+#define SC_Exec		 2
+#define SC_Join		 3
+#define SC_Create	 4
+#define SC_Open		 5
+#define SC_Read		 6
+#define SC_Write	 7
+#define SC_Close	 8
+#define SC_Fork		 9
+#define SC_Yield	 10
+#define SC_PutChar 11
 
 #ifdef IN_USER_MODE
 
@@ -127,6 +128,11 @@ void Fork (void (*func) ());
  * or not. 
  */
 void Yield ();
+
+/*
+* Write a character to the simulated display
+*/
+void PutChar(char c);
 
 #endif // IN_USER_MODE
 
