@@ -202,6 +202,10 @@ Cleanup ()
     delete synchDisk;
 #endif
 
+#ifdef CHANGED
+    delete synchconsole;
+#endif
+
     delete timer;
     delete scheduler;
     delete interrupt;
