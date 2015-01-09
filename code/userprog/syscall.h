@@ -30,6 +30,8 @@
 #define SC_Fork		 9
 #define SC_Yield	 10
 #define SC_PutChar 11
+#define SC_UserThreadCreate 12
+#define SC_UserThreadExit 13
 
 #ifdef IN_USER_MODE
 
