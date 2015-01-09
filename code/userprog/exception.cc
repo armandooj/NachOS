@@ -40,6 +40,61 @@ UpdatePC ()
     machine->WriteRegister (NextPCReg, pc);
 }
 
+#ifdef CHANGED
+
+//------------------------------------------------------------
+// copyStringFromMachine
+//
+// Copies a string from the MIPS mode to the Linux mode.
+//   from: the address of the string
+//   to: the buffer
+//   size: the number of character to read from the address
+//------------------------------------------------------------
+unsigned int copyStringFromMachine( int from, char *to, unsigned size) {
+    
+    bool stop = false;
+    int iteration = 0;
+    unsigned int bytesRead = 0;
+    int buffer[4];
+    
+    do {
+        machine -> ReadMem(from + iteration * 4, 4, buffer);
+
+        printf("From position %d\n", from + iteration * 4);
+
+        //check condition to stop
+        for (int i = 0; i < 4; i ++ ) {
+            if (buffer[i] == '\0') {
+                stop = true;
+                break;
+            }
+            
+            if (bytesRead < size) {
+                char test = ((char*)buffer) [i];
+                to[bytesRead] = test;
+            }
+            else {
+                stop = true;
+                break;
+            }
+            
+            bytesRead ++;
+        }
+        iteration++;
+                
+    } while (!stop);   
+    
+    if (bytesRead == size) {
+        //WARNING: Replace the last character with \0
+        to[size-1] = '\0';
+        bytesRead --;
+    }
+    else 
+        to[bytesRead ] = '\0';
+    
+    return bytesRead;
+}
+#endif
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -94,6 +149,47 @@ ExceptionHandler (ExceptionType which)
                synchconsole->SynchPutChar(c);
                break;
              }
+             case SC_PutString: {
+                          
+                int startPosition = machine->ReadRegister(4);
+                
+                bool stop = false;
+                char buffer[MAX_STRING_SIZE] = {};
+                int iteration = 0;
+                do {
+                    unsigned int bytesRead = copyStringFromMachine(
+                                                    startPosition + MAX_STRING_SIZE * iteration - iteration,
+                                                    buffer, MAX_STRING_SIZE);
+
+                    printf("Debug buffer: %s\n", buffer);
+
+                    //check condition to stop. Maximum read size is Max_size_length - 1. 
+                    // The last item must be \0
+                    if (bytesRead < MAX_STRING_SIZE - 1) {
+                        stop = true;
+                    }
+
+                    printf("Entering writing string \n");
+                    synchconsole->SynchPutString(buffer);
+
+                    iteration ++;
+
+                } while (!stop);
+ 
+ /*
+                char buffer[MAX_STRING_SIZE] = {};
+                int startPosition = machine->ReadRegister(4);
+                copyStringFromMachine(startPosition, buffer, 5);
+                
+                printf("Debug buffer: %s", buffer);
+//                buffer[MAX_STRING_SIZE - 1] = '\0';                
+//                synchconsole -> SynchPutString(buffer)   ;
+
+*/
+                break;
+                
+                
+             }
              default: {
                printf("Unexpected user mode exception %d %d\n", which, type);
                ASSERT(FALSE);
@@ -103,3 +199,5 @@ ExceptionHandler (ExceptionType which)
         }
      #endif // CHANGED
 }
+
+
