@@ -24,50 +24,50 @@
 void
 StartProcess (char *filename)
 {
-    OpenFile *executable = fileSystem->Open (filename);
-    AddrSpace *space;
+  OpenFile *executable = fileSystem->Open (filename);
+  AddrSpace *space;
 
-    if (executable == NULL)
-      {
-	  printf ("Unable to open file %s\n", filename);
-	  return;
-      }
-    space = new AddrSpace (executable);
-    currentThread->space = space;
+  if (executable == NULL)
+  {
+   printf ("Unable to open file %s\n", filename);
+   return;
+  }
+  space = new AddrSpace (executable);
+  currentThread->space = space;
 
-    delete executable;		// close file
+  delete executable;		// close file
 
-    space->InitRegisters ();	// set the initial register values
-    space->RestoreState ();	// load page table register
+  space->InitRegisters ();	// set the initial register values
+  space->RestoreState ();	// load page table register
 
-    machine->Run ();		// jump to the user progam
-    ASSERT (FALSE);		// machine->Run never returns;
-    // the address space exits
-    // by doing the syscall "exit"
+  machine->Run ();		// jump to the user progam
+  ASSERT (FALSE);		// machine->Run never returns;
+  // the address space exits
+  // by doing the syscall "exit"
 }
 
 // Data structures needed for the console test.  Threads making
 // I/O requests wait on a Semaphore to delay until the I/O completes.
 
-static Console *console;
-static Semaphore *readAvail;
-static Semaphore *writeDone;
+  static Console *console;
+  static Semaphore *readAvail;
+  static Semaphore *writeDone;
 
 //----------------------------------------------------------------------
 // ConsoleInterruptHandlers
 //      Wake up the thread that requested the I/O.
 //----------------------------------------------------------------------
 
-static void
-ReadAvail (int arg)
-{
+  static void
+  ReadAvail (int arg)
+  {
     readAvail->V ();
-}
-static void
-WriteDone (int arg)
-{
+  }
+  static void
+  WriteDone (int arg)
+  {
     writeDone->V ();
-}
+  }
 
 //----------------------------------------------------------------------
 // ConsoleTest
@@ -75,9 +75,9 @@ WriteDone (int arg)
 //      the output.  Stop when the user types a 'q'.
 //----------------------------------------------------------------------
 
-void
-ConsoleTest (char *in, char *out)
-{
+  void
+  ConsoleTest (char *in, char *out)
+  {
     char ch;
     
     console = new Console (in, out, ReadAvail, WriteDone, 0);
@@ -85,11 +85,11 @@ ConsoleTest (char *in, char *out)
     writeDone = new Semaphore ("write done", 0);
 
     for (;;)
-      {
+    {
 	  readAvail->P ();	// wait for character to arrive
 	  ch = console->GetChar ();
 
-      if (ch != '\n') {
+    if (ch != '\n') {
         console->PutChar ('<');    // echo it!
         writeDone->P ();
       }
@@ -97,27 +97,27 @@ ConsoleTest (char *in, char *out)
 	  console->PutChar (ch);	// echo it!
 	  writeDone->P ();	// wait for write to finish
 
-      if (ch != '\n') {
+    if (ch != '\n') {
         console->PutChar ('>');    // echo it!
         writeDone->P ();
       }
 
-	  if (ch == 'q' || ch == EOF)        
+      if (ch == 'q' || ch == EOF)        
 	      return;		// if q, quit
-      }
-}
+    }
+  }
 
 #ifdef CHANGED
-void 
-SynchConsoleTest (char *in, char *out)
-{
+  void 
+  SynchConsoleTest (char *in, char *out)
+  {
     char ch;
     
     while ((ch = synchconsole->SynchGetChar()) != EOF)
-        synchconsole->SynchPutChar(ch);
+      synchconsole->SynchPutChar(ch);
     
     fprintf(stderr, "Solaris: EOF detected in SynchConsole!\n");
-}
+  }
 #endif
 
 
