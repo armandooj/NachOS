@@ -55,30 +55,38 @@ unsigned int copyStringFromMachine( int from, char *to, unsigned size) {
     bool stop = false;
     int iteration = 0;
     unsigned int bytesRead = 0;
-    int buffer[4];
+    int buffer;
+    
+    //Must read from an address divisible by 4
+    int fromPosition = from;
+    if (from % 4 != 0 )
+        fromPosition = from - (from%4);
     
     do {
-        machine -> ReadMem(from + iteration * 4, 4, buffer);
-
-        printf("From position %d\n", from + iteration * 4);
+        machine -> ReadMem(fromPosition + iteration * 4, 4, &buffer);
+        unsigned char* charArray = (unsigned char*) &buffer;
 
         //check condition to stop
         for (int i = 0; i < 4; i ++ ) {
-            if (buffer[i] == '\0') {
+        
+            //Skip some of the first element due to alignment issue :D
+            if (iteration == 0 && fromPosition + i < from)
+                continue;
+        
+            if (charArray[i] == '\0') {
                 stop = true;
                 break;
             }
             
             if (bytesRead < size) {
-                char test = ((char*)buffer) [i];
-                to[bytesRead] = test;
+                to[bytesRead] = charArray [i];
+                bytesRead ++;
             }
             else {
                 stop = true;
                 break;
             }
             
-            bytesRead ++;
         }
         iteration++;
                 
@@ -161,8 +169,6 @@ ExceptionHandler (ExceptionType which)
                                                     startPosition + (MAX_STRING_SIZE-1) * iteration,
                                                     buffer, MAX_STRING_SIZE);
 
-                    printf("Debug buffer: %s\n", buffer);
-
                     //check condition to stop. Maximum read size is Max_size_length - 1. 
                     // The last item must be \0
                     if (bytesRead < MAX_STRING_SIZE - 1) {
@@ -174,19 +180,8 @@ ExceptionHandler (ExceptionType which)
                     iteration ++;
 
                 } while (!stop);
- 
- /*
-                char buffer[MAX_STRING_SIZE] = {};
-                int startPosition = machine->ReadRegister(4);
-                copyStringFromMachine(startPosition, buffer, 5);
-                
-                printf("Debug buffer: %s", buffer);
-//                buffer[MAX_STRING_SIZE - 1] = '\0';                
-//                synchconsole -> SynchPutString(buffer)   ;
 
-*/
                 break;
-                
                 
              }
              default: {

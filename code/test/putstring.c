@@ -5,6 +5,6 @@ void print (char* c)
 }
 
 int main() {
-  print("Hello World. Here comes the robots");
+  print("Hello World. Here Come The Robots. This was a pleasure to work with you. ");
   Halt(); 
 }
