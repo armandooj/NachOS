@@ -17,7 +17,7 @@
 #include "timer.h"
 
 #ifdef CHANGED
-#define MAX_STRING_SIZE 11
+#define MAX_STRING_SIZE 256
 #endif
 
 // Initialization and cleanup routines

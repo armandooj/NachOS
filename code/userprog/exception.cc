@@ -50,7 +50,7 @@ UpdatePC ()
 //   to: the buffer
 //   size: the number of character to read from the address
 //------------------------------------------------------------
-unsigned int copyStringFromMachine( int from, char *to, unsigned size) {
+unsigned int copyStringFromMachine(int from, char *to, unsigned size) {
     
     bool stop = false;
     int iteration = 0;
@@ -60,14 +60,14 @@ unsigned int copyStringFromMachine( int from, char *to, unsigned size) {
     //Must read from an address divisible by 4
     int fromPosition = from;
     if (from % 4 != 0 )
-        fromPosition = from - (from%4);
+        fromPosition = from - (from % 4);
     
     do {
         machine -> ReadMem(fromPosition + iteration * 4, 4, &buffer);
         unsigned char* charArray = (unsigned char*) &buffer;
 
         //check condition to stop
-        for (int i = 0; i < 4; i ++ ) {
+        for (int i = 0; i < 4; i ++) {
         
             //Skip some of the first element due to alignment issue :D
             if (iteration == 0 && fromPosition + i < from)
@@ -94,11 +94,11 @@ unsigned int copyStringFromMachine( int from, char *to, unsigned size) {
     
     if (bytesRead == size) {
         //WARNING: Replace the last character with \0
-        to[size-1] = '\0';
+        to[size - 1] = '\0';
         bytesRead --;
     }
     else 
-        to[bytesRead ] = '\0';
+        to[bytesRead] = '\0';
     
     return bytesRead;
 }
