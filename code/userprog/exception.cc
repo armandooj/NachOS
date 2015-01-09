@@ -158,7 +158,7 @@ ExceptionHandler (ExceptionType which)
                 int iteration = 0;
                 do {
                     unsigned int bytesRead = copyStringFromMachine(
-                                                    startPosition + MAX_STRING_SIZE * iteration - iteration,
+                                                    startPosition + (MAX_STRING_SIZE-1) * iteration,
                                                     buffer, MAX_STRING_SIZE);
 
                     printf("Debug buffer: %s\n", buffer);
@@ -169,7 +169,6 @@ ExceptionHandler (ExceptionType which)
                         stop = true;
                     }
 
-                    printf("Entering writing string \n");
                     synchconsole->SynchPutString(buffer);
 
                     iteration ++;
