@@ -130,7 +130,7 @@ unsigned int copyStringFromMachine(int from, char *to, unsigned size) {
 void
 ExceptionHandler (ExceptionType which)
 {
-    int type = machine->ReadRegister(4);
+    int type = machine->ReadRegister(2);
     #ifndef CHANGED // Noter le if*n*def
          if ((which == SyscallException) && (type == SC_Halt)) {
              DEBUG('a', "Shutdown, initiated by user program.\n");
@@ -146,7 +146,7 @@ ExceptionHandler (ExceptionType which)
          if (which == SyscallException) {
            switch (type) {
              case SC_Exit: {
-              int value = machine->ReadRegister(4);
+              int value = machine->ReadRegister(4);          
               DEBUG('a', "Exit program, return value: %d.\n", value);
               interrupt->Halt();
               break;
