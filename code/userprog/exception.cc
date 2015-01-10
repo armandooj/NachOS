@@ -130,7 +130,7 @@ unsigned int copyStringFromMachine(int from, char *to, unsigned size) {
 void
 ExceptionHandler (ExceptionType which)
 {
-    int type = machine->ReadRegister (2);
+    int type = machine->ReadRegister(2);
     #ifndef CHANGED // Noter le if*n*def
          if ((which == SyscallException) && (type == SC_Halt)) {
              DEBUG('a', "Shutdown, initiated by user program.\n");
@@ -145,6 +145,12 @@ ExceptionHandler (ExceptionType which)
      #else // CHANGED
          if (which == SyscallException) {
            switch (type) {
+             case SC_Exit: {
+              int value = machine->ReadRegister(4);          
+              DEBUG('a', "Exit program, return value: %d.\n", value);
+              interrupt->Halt();
+              break;
+             }
              case SC_Halt: {
                DEBUG('a', "Shutdown, initiated by user program.\n");
                interrupt->Halt();
@@ -169,20 +175,17 @@ ExceptionHandler (ExceptionType which)
                                                     startPosition + (MAX_STRING_SIZE-1) * iteration,
                                                     buffer, MAX_STRING_SIZE);
 
-                    //check condition to stop. Maximum read size is Max_size_length - 1. 
+                    // check condition to stop. Maximum read size is Max_size_length - 1. 
                     // The last item must be \0
                     if (bytesRead < MAX_STRING_SIZE - 1) {
                         stop = true;
                     }
 
                     synchconsole->SynchPutString(buffer);
-
                     iteration ++;
 
                 } while (!stop);
-
-                break;
-                
+                break;                
              }
              default: {
                printf("Unexpected user mode exception %d %d\n", which, type);

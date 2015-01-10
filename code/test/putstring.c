@@ -6,5 +6,5 @@ void print (char* c)
 
 int main() {
   print("Hello World. Here Come The Robots. This was a pleasure to work with you. \n");
-  Halt(); 
+  return 0; 
 }
