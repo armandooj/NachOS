@@ -180,10 +180,27 @@ ExceptionHandler (ExceptionType which)
                     iteration ++;
 
                 } while (!stop);
-
-                break;
-                
+                break;            
              }
+
+            case SC_GetChar:
+            {
+	//	printf("\n\nhiiiii\n\n");
+                char ch = synchconsole->SynchGetChar();
+                machine->WriteRegister(2, int(ch));
+                break;
+            }
+
+           case SC_GetString:
+            {
+              int phy_addr = machine->ReadRegister(4);
+              int size = machine->ReadRegister(5);
+	      char *buffer = new char[MAX_STRING_SIZE];
+              buffer = &(machine->mainMemory[phy_addr]);
+              synchconsole->SynchGetString(buffer, size);
+                break;
+
+            }
              default: {
                printf("Unexpected user mode exception %d %d\n", which, type);
                ASSERT(FALSE);
