@@ -29,10 +29,13 @@
 #define SC_Close	 8
 #define SC_Fork		 9
 #define SC_Yield	 10
-#define SC_PutChar   11
-#define SC_PutString 12
-#define SC_GetChar   13
+
+#ifdef CHANGED
+#define SC_PutChar     11
+#define SC_PutString   12
+#define SC_GetChar     13
 #define SC_GetString   14
+#endif
 
 #ifdef IN_USER_MODE
 

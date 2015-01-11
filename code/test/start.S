@@ -52,6 +52,7 @@ Halt:
 	.globl Exit
 	.ent	Exit
 Exit:
+	move $4, $2
 	addiu $2,$0,SC_Exit
 	syscall
 	j	$31
