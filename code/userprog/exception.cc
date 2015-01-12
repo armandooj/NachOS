@@ -210,7 +210,7 @@ ExceptionHandler (ExceptionType which)
                             break;
                         }
                     }
-                }            
+                }
 
                 // End the String at the end
                 machine->WriteMem(phy_addr + i, 1, '\0');

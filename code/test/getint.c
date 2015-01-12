@@ -1,8 +1,7 @@
 #include "syscall.h"
 int main() {
-    char n;
+    int n;
     GetInt(&n);
     PutInt(n);
-    Halt();
+    return 0;
 }
-

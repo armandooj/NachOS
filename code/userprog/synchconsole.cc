@@ -70,10 +70,19 @@ void SynchConsole::SynchPutInt(int n)
 }
 
 int SynchConsole::SynchGetInt() {
-    char BUF[MAX_INT_SIZE + 1];
-    this->SynchGetString(BUF, MAX_INT_SIZE + 1);
+    char buffer[MAX_INT_SIZE + 1];
+
+    int i = 0; 
+    while(i < MAX_INT_SIZE + 1) { 
+      buffer[i] = SynchGetChar();
+      if (buffer[i] == '\n' || buffer[i] == EOF || buffer[i] == '\0') {        
+        break;
+      }
+      i++;
+    }
+
     int val;
-    sscanf(BUF, "%d", &val);
+    sscanf(buffer, "%d", &val);
     return val;
 }
 #endif // CHANGED

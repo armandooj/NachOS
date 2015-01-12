@@ -10,4 +10,3 @@ int main(int argc, char **argv)
     PutChar('\n');
     return 0;
 }
-
