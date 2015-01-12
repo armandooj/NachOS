@@ -18,6 +18,7 @@
 
 #ifdef CHANGED
 #define MAX_STRING_SIZE 256
+#define MAX_INT_SIZE 10 // lenght(2^32)
 #endif
 
 // Initialization and cleanup routines

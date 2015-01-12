@@ -19,7 +19,7 @@ static void WriteAvail(int arg) {
 
 SynchConsole::SynchConsole(char *readFile, char *writeFile)
 {
-    pointer = 0;
+  pointer = 0;
 
 	readAvail = new Semaphore("read avail", 0);
 	writeDone = new Semaphore("write done", 0);
@@ -42,7 +42,7 @@ void SynchConsole::SynchPutChar(const char ch)
 char SynchConsole::SynchGetChar()
 {
 	readAvail->P();
-	return console->GetChar();
+	return (console->GetChar());
 }
 
 void SynchConsole::SynchPutString(const char s[])
@@ -55,7 +55,34 @@ void SynchConsole::SynchPutString(const char s[])
 
 void SynchConsole::SynchGetString(char *s, int n)
 {
-
+  int i = 0; 
+  while(s[i] != '\n' && i < n - 1 && s[i] != EOF) {	
+	  s[i] = SynchGetChar();
+	  i++;
+  }
 }
 
+void SynchConsole::SynchPutInt(int n)
+{
+    char buffer[MAX_INT_SIZE + 1] ;
+    snprintf(buffer, MAX_INT_SIZE + 1, "%d", n);
+    this->SynchPutString(buffer);
+}
+
+int SynchConsole::SynchGetInt() {
+    char buffer[MAX_INT_SIZE + 1];
+
+    int i = 0; 
+    while(i < MAX_INT_SIZE + 1) { 
+      buffer[i] = SynchGetChar();
+      if (buffer[i] == '\n' || buffer[i] == EOF || buffer[i] == '\0') {        
+        break;
+      }
+      i++;
+    }
+
+    int val;
+    sscanf(buffer, "%d", &val);
+    return val;
+}
 #endif // CHANGED
