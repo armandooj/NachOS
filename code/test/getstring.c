@@ -39,10 +39,10 @@ int atoi(char *str)
 #include "syscall.h"
 int main(int argc, char **argv) 
 {
-//int count;
-//count = atoi (argv[3]);
-char s[20];
-GetString(s, 20);
+int count;
+count = atoi (argv[3]);
+char s[count];
+GetString(s, count);
 PutString(s);
 Halt();
 //return 0;
