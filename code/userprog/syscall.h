@@ -29,11 +29,12 @@
 #define SC_Close	 8
 #define SC_Fork		 9
 #define SC_Yield	 10
-#define SC_PutChar   11
-#define SC_PutString 12
-#define SC_GetChar   13
-#define SC_GetString   14
-
+#define SC_PutChar       11
+#define SC_PutString     12
+#define SC_GetChar       13
+#define SC_GetString     14
+#define SC_PutInt        15
+#define SC_GetInt   	 16
 #ifdef IN_USER_MODE
 
 // LB: This part is read only on compiling the test/*.c files.
@@ -143,6 +144,9 @@ char GetChar();
 
 void GetString(char *s, int n);
 
+void PutInt(int n);
+
+int GetInt();
 
 #endif // IN_USER_MODE
 

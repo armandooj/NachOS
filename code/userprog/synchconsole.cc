@@ -63,4 +63,18 @@ void SynchConsole::SynchGetString(char *s, int n)
 	}
 }
 
+void SynchConsole::SynchPutInt(int n)
+{
+    char buffer[MAX_INT_SIZE + 1] ;
+    snprintf(buffer, MAX_INT_SIZE + 1, "%d", n);
+    this->SynchPutString(buffer);
+}
+
+int SynchConsole::SynchGetInt() {
+    char BUF[MAX_INT_SIZE + 1];
+    this->SynchGetString(BUF, MAX_INT_SIZE + 1);
+    int val;
+    sscanf(BUF, "%d", &val);
+    return val;
+}
 #endif // CHANGED
