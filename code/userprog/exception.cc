@@ -40,6 +40,69 @@ UpdatePC ()
     machine->WriteRegister (NextPCReg, pc);
 }
 
+#ifdef CHANGED
+
+//------------------------------------------------------------
+// copyStringFromMachine
+//
+// Copies a string from the MIPS mode to the Linux mode.
+//   from: the address of the string
+//   to: the buffer
+//   size: the number of character to read from the address
+//------------------------------------------------------------
+unsigned int copyStringFromMachine(int from, char *to, unsigned size) {
+    
+    bool stop = false;
+    int iteration = 0;
+    unsigned int bytesRead = 0;
+    int buffer;
+    
+    //Must read from an address divisible by 4
+    int fromPosition = from;
+    if (from % 4 != 0 )
+        fromPosition = from - (from % 4);
+    
+    do {
+        machine -> ReadMem(fromPosition + iteration * 4, 4, &buffer);
+        unsigned char* charArray = (unsigned char*) &buffer;
+
+        //check condition to stop
+        for (int i = 0; i < 4; i ++) {
+        
+            //Skip some of the first element due to alignment issue :D
+            if (iteration == 0 && fromPosition + i < from)
+                continue;
+        
+            if (charArray[i] == '\0') {
+                stop = true;
+                break;
+            }
+            
+            if (bytesRead < size) {
+                to[bytesRead] = charArray [i];
+                bytesRead ++;
+            }
+            else {
+                stop = true;
+                break;
+            }
+            
+        }
+        iteration++;
+                
+    } while (!stop);   
+    
+    if (bytesRead == size) {
+        //WARNING: Replace the last character with \0
+        to[size - 1] = '\0';
+        bytesRead --;
+    }
+    else 
+        to[bytesRead] = '\0';
+    
+    return bytesRead;
+}
+#endif
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -67,7 +130,7 @@ UpdatePC ()
 void
 ExceptionHandler (ExceptionType which)
 {
-    int type = machine->ReadRegister (2);
+    int type = machine->ReadRegister(2);
     #ifndef CHANGED // Noter le if*n*def
          if ((which == SyscallException) && (type == SC_Halt)) {
              DEBUG('a', "Shutdown, initiated by user program.\n");
@@ -82,6 +145,12 @@ ExceptionHandler (ExceptionType which)
      #else // CHANGED
          if (which == SyscallException) {
            switch (type) {
+             case SC_Exit: {
+              int value = machine->ReadRegister(4);          
+              DEBUG('a', "Exit program, return value: %d.\n", value);
+              interrupt->Halt();
+              break;
+             }
              case SC_Halt: {
                DEBUG('a', "Shutdown, initiated by user program.\n");
                interrupt->Halt();
@@ -94,6 +163,30 @@ ExceptionHandler (ExceptionType which)
                synchconsole->SynchPutChar(c);
                break;
              }
+             case SC_PutString: {
+                          
+                int startPosition = machine->ReadRegister(4);
+                
+                bool stop = false;
+                char buffer[MAX_STRING_SIZE] = {};
+                int iteration = 0;
+                do {
+                    unsigned int bytesRead = copyStringFromMachine(
+                                                    startPosition + (MAX_STRING_SIZE-1) * iteration,
+                                                    buffer, MAX_STRING_SIZE);
+
+                    // check condition to stop. Maximum read size is Max_size_length - 1. 
+                    // The last item must be \0
+                    if (bytesRead < MAX_STRING_SIZE - 1) {
+                        stop = true;
+                    }
+
+                    synchconsole->SynchPutString(buffer);
+                    iteration ++;
+
+                } while (!stop);
+                break;                
+             }
              default: {
                printf("Unexpected user mode exception %d %d\n", which, type);
                ASSERT(FALSE);
@@ -103,3 +196,5 @@ ExceptionHandler (ExceptionType which)
         }
      #endif // CHANGED
 }
+
+

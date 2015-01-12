@@ -29,9 +29,11 @@
 #define SC_Close	 8
 #define SC_Fork		 9
 #define SC_Yield	 10
-#define SC_PutChar 11
-#define SC_UserThreadCreate 12
-#define SC_UserThreadExit 13
+
+#ifdef CHANGED
+#define SC_PutChar   11
+#define SC_PutString 12
+#endif
 
 #ifdef IN_USER_MODE
 
@@ -135,6 +137,8 @@ void Yield ();
 * Write a character to the simulated display
 */
 void PutChar(char c);
+
+void PutString(char *c);
 
 #endif // IN_USER_MODE
 
