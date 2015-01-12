@@ -29,12 +29,13 @@
 #define SC_Close	 8
 #define SC_Fork		 9
 #define SC_Yield	 10
-#define SC_UserThreadCreate 11
-#define SC_UserThreadExit   12
 
 #ifdef CHANGED
 #define SC_PutChar   11
 #define SC_PutString 12
+#define SC_UserThreadCreate 13
+#define SC_UserThreadExit   14
+
 #endif
 
 #ifdef IN_USER_MODE

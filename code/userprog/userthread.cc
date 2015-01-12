@@ -11,7 +11,12 @@
 #include "userthread.h"
 
 int do_UserThreadCreate(int f, int arg) {
+
+
     
+    Thread *t = new Thread(  );
+    
+    t->Fork(  , f);
 }
 
 #endif
