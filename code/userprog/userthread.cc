@@ -8,15 +8,25 @@
 
 #ifdef CHANGED
 
+#include "system.h"
 #include "userthread.h"
 
 int do_UserThreadCreate(int f, int arg) {
 
-
-    
+    /*  
     Thread *t = new Thread(  );
     
     t->Fork(  , f);
+    
+    
+    long t; 
+    
+    t = combine(f, avg);
+    
+    thread -> Fork(StartUserThread, &t);
+    */
+    
+    return 0;
 }
 
 #endif
