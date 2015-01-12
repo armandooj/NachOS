@@ -41,8 +41,8 @@ int main(int argc, char **argv)
 {
 //int count;
 //count = atoi (argv[3]);
-char s[10];
-GetString(s, 10);
+char s[20];
+GetString(s, 20);
 PutString(s);
 Halt();
 //return 0;
