@@ -40,69 +40,6 @@ UpdatePC ()
     machine->WriteRegister (NextPCReg, pc);
 }
 
-#ifdef CHANGED
-
-//------------------------------------------------------------
-// copyStringFromMachine
-//
-// Copies a string from the MIPS mode to the Linux mode.
-//   from: the address of the string
-//   to: the buffer
-//   size: the number of character to read from the address
-//------------------------------------------------------------
-unsigned int copyStringFromMachine(int from, char *to, unsigned size) {
-    
-    bool stop = false;
-    int iteration = 0;
-    unsigned int bytesRead = 0;
-    int buffer;
-    
-    //Must read from an address divisible by 4
-    int fromPosition = from;
-    if (from % 4 != 0 )
-        fromPosition = from - (from % 4);
-    
-    do {
-        machine -> ReadMem(fromPosition + iteration * 4, 4, &buffer);
-        unsigned char* charArray = (unsigned char*) &buffer;
-
-        //check condition to stop
-        for (int i = 0; i < 4; i ++) {
-        
-            //Skip some of the first element due to alignment issue :D
-            if (iteration == 0 && fromPosition + i < from)
-                continue;
-        
-            if (charArray[i] == '\0') {
-                stop = true;
-                break;
-            }
-            
-            if (bytesRead < size) {
-                to[bytesRead] = charArray [i];
-                bytesRead ++;
-            }
-            else {
-                stop = true;
-                break;
-            }
-            
-        }
-        iteration++;
-                
-    } while (!stop);   
-    
-    if (bytesRead == size) {
-        //WARNING: Replace the last character with \0
-        to[size - 1] = '\0';
-        bytesRead --;
-    }
-    else 
-        to[bytesRead] = '\0';
-    
-    return bytesRead;
-}
-#endif
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -130,71 +67,140 @@ unsigned int copyStringFromMachine(int from, char *to, unsigned size) {
 void
 ExceptionHandler (ExceptionType which)
 {
-    int type = machine->ReadRegister(2);
-    #ifndef CHANGED // Noter le if*n*def
-         if ((which == SyscallException) && (type == SC_Halt)) {
-             DEBUG('a', "Shutdown, initiated by user program.\n");
-             interrupt->Halt();
-         } else {
-             printf("Unexpected user mode exception %d %d\n", which, type);
-             ASSERT(FALSE);
-         }
+    int type = machine->ReadRegister (2);
 
-         UpdatePC();
-     
-     #else // CHANGED
-         if (which == SyscallException) {
-           switch (type) {
-             case SC_Exit: {
-              int value = machine->ReadRegister(4);          
-              DEBUG('a', "Exit program, return value: %d.\n", value);
+#ifndef CHANGED //
+
+    if ((which == SyscallException) && (type == SC_Halt))
+      {
+	  DEBUG ('a', "Shutdown, initiated by user program.\n");
+	  interrupt->Halt ();
+      }
+    else
+      {
+	  printf ("Unexpected user mode exception %d %d\n", which, type);
+	  ASSERT (FALSE);
+      }
+    UpdatePC();
+
+#else // CHANGED
+
+    if (which == SyscallException) 
+     {
+          switch (type) {
+             
+            case SC_Halt: {
+              DEBUG('a', "Shutdown, initiated by user program.\n");
               interrupt->Halt();
               break;
-             }
-             case SC_Halt: {
-               DEBUG('a', "Shutdown, initiated by user program.\n");
-               interrupt->Halt();
-               break;
-              }
-             case SC_PutChar: {
-               int int_c = machine->ReadRegister(4);
-               char c = (char) int_c;
-               DEBUG('a', "PutChar\n");
-               synchconsole->SynchPutChar(c);
-               break;
-             }
-             case SC_PutString: {
-                          
-                int startPosition = machine->ReadRegister(4);
-                
-                bool stop = false;
-                char buffer[MAX_STRING_SIZE] = {};
-                int iteration = 0;
-                do {
-                    unsigned int bytesRead = copyStringFromMachine(
-                                                    startPosition + (MAX_STRING_SIZE-1) * iteration,
-                                                    buffer, MAX_STRING_SIZE);
+            }
 
-                    // check condition to stop. Maximum read size is Max_size_length - 1. 
-                    // The last item must be \0
-                    if (bytesRead < MAX_STRING_SIZE - 1) {
-                        stop = true;
-                    }
+            case SC_PutChar: {
+              int rg4 = machine->ReadRegister (4);
+              char ch = (char)rg4;
+              DEBUG('a', "putchar, initiated by user program.\n");
+              synchconsole->SynchPutChar(ch);
+              break;
+            }
 
-                    synchconsole->SynchPutString(buffer);
-                    iteration ++;
+            case SC_GetChar: {
+              DEBUG('a', "getchar, initiated by user program.\n");
+              int rg2 = (int)synchconsole->SynchGetChar();
+              machine->WriteRegister (2, rg2);
+              break;
+            }
 
-                } while (!stop);
-                break;                
+            case SC_GetString: {
+              DEBUG('a', "getstring, initiated by user program.\n");
+              int rg4 = machine->ReadRegister (4);
+              int rg5 = machine->ReadRegister (5);
+              char *buffer;
+              buffer = &machine->mainMemory[rg4];
+              synchconsole->SynchGetString(buffer,rg5);
+              break;
              }
-             default: {
-               printf("Unexpected user mode exception %d %d\n", which, type);
-               ASSERT(FALSE);
-             }
-           }
-           UpdatePC();
-        }
-     #endif // CHANGED
+
+            case SC_PutString: {
+              DEBUG('a', "putstring, initiated by user program.\n");
+              int rg4 = machine->ReadRegister (4);
+              unsigned int size, round = 0;
+              char buffer[MAX_STRING_SIZE] = {};
+              bool status = false;
+              do {
+               if((size = copyStringFromMachine(rg4+MAX_STRING_SIZE*round,buffer,MAX_STRING_SIZE)) == MAX_STRING_SIZE) {
+                synchconsole->SynchPutString(buffer);
+                round++;
+               }
+               else {
+                status = true;
+                if(size != 0) 
+                 synchconsole->SynchPutString(buffer);
+               }
+              } while(status == false);
+              break;
+            }
+
+            case SC_PutInt: {
+              DEBUG('a', "putint, initiated by user program.\n");
+              int n = machine->ReadRegister (4);
+              synchconsole->SynchPutInt(n);
+              break;
+            }
+
+            case SC_GetInt: {
+              DEBUG('a', "getint, initiated by user program.\n");
+              int n = machine->ReadRegister (4);
+              int *buffer = (int*)(&machine->mainMemory[n]);
+              synchconsole->SynchGetInt(buffer);
+              break;
+            }
+
+            default: {
+              DEBUG('a', "Shutdown, initiated by user program.\n");
+              interrupt->Halt();
+            }
+              
+          }
+         // LB: Do not forget to increment the pc before returning!
+     }
+    // End of addition
+     UpdatePC ();
+#endif
 }
 
-
+#ifdef CHANGED
+int copyStringFromMachine(int from, char *to, unsigned size) {
+ int count = 0, i = 0, startfrom = from, buffer;
+ unsigned int totalbyte = 0;
+ bool status = false;
+ if(from % 4) 
+  startfrom = from - (from % 4);
+ do {
+  machine->ReadMem(startfrom+4*count,4,&buffer);
+  unsigned char* point = (unsigned char*) &buffer;
+  for(i=0;i<4;i++) { 
+   if(startfrom + i < from && count == 0) continue;
+   if(*(point+i) == '\0') {
+     status = true;
+     break;
+   }
+   if(totalbyte > size) {
+     status = true;
+     break;
+   }
+   else {
+     to[totalbyte] = *(point+i);
+     totalbyte++;
+   }
+  }
+  count++;
+ } while(status == false);
+ if(totalbyte == size) {
+  to[size-1] = '\0';
+  totalbyte--;
+ }
+ else
+  to[totalbyte] = '\0';
+ return totalbyte;
+}
+#endif

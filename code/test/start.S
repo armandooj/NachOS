@@ -49,10 +49,59 @@ Halt:
 	j	$31
 	.end Halt
 
+#ifdef CHANGED
+	.globl PutChar
+	.ent	PutChar
+PutChar:
+	addiu $2,$0,SC_PutChar
+	syscall
+	j	$31
+	.end PutChar
+
+	.globl PutString
+	.ent	PutString
+PutString:
+	addiu $2,$0,SC_PutString
+	syscall
+	j	$31
+	.end PutString
+
+	.globl GetChar
+	.ent	GetChar
+GetChar:
+	addiu $2,$0,SC_GetChar
+	syscall
+	j	$31
+	.end GetChar
+
+	.globl GetString
+	.ent	GetString
+GetString:
+	addiu $2,$0,SC_GetString
+	syscall
+	j	$31
+	.end GetString
+
+	.globl PutInt
+	.ent	PutInt
+PutInt:
+	addiu $2,$0,SC_PutInt
+	syscall
+	j	$31
+	.end PutInt
+
+	.globl GetInt
+	.ent	GetInt
+GetInt:
+	addiu $2,$0,SC_GetInt
+	syscall
+	j	$31
+	.end GetInt
+#endif
+
 	.globl Exit
 	.ent	Exit
 Exit:
-	move $4, $2
 	addiu $2,$0,SC_Exit
 	syscall
 	j	$31
@@ -129,25 +178,6 @@ Yield:
 	syscall
 	j	$31
 	.end Yield
-
-#ifdef CHANGED
-	.globl PutChar
-	.ent	PutChar
-PutChar:
-	addiu $2,$0,SC_PutChar
-	syscall
-	j	$31
-	.end PutChar
-
-	.globl PutString
-	.ent	PutString
-PutString:
-	addiu $2,$0,SC_PutString
-	syscall
-	j	$31
-	.end PutString
-
-#endif
 
 /* dummy function to keep gcc happy */
         .globl  __main

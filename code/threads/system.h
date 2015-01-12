@@ -16,10 +16,6 @@
 #include "stats.h"
 #include "timer.h"
 
-#ifdef CHANGED
-#define MAX_STRING_SIZE 256
-#endif
-
 // Initialization and cleanup routines
 extern void Initialize (int argc, char **argv);	// Initialization,
 						// called before anything else
@@ -34,8 +30,10 @@ extern Statistics *stats;	// performance metrics
 extern Timer *timer;		// the hardware alarm clock
 
 #ifdef CHANGED
+#define MAX_STRING_SIZE 256
+int copyStringFromMachine(int from, char *to, unsigned size);
 #include "synchconsole.h"
-extern SynchConsole *synchconsole;
+extern SynchConsole *synchconsole;		
 #endif
 
 #ifdef USER_PROGRAM
