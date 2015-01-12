@@ -29,6 +29,8 @@
 #define SC_Close	 8
 #define SC_Fork		 9
 #define SC_Yield	 10
+#define SC_UserThreadCreate 11
+#define SC_UserThreadExit   12
 
 #ifdef CHANGED
 #define SC_PutChar   11
@@ -139,6 +141,12 @@ void Yield ();
 void PutChar(char c);
 
 void PutString(char *c);
+
+
+
+// Function for User Thread 
+int UserThreadCreate(void f(void *arg), void *arg);
+void UserThreadExit();
 
 #endif // IN_USER_MODE
 
