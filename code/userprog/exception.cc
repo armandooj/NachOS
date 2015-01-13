@@ -193,14 +193,10 @@ ExceptionHandler (ExceptionType which)
                 int f = machine->ReadRegister(4);
                 int arg = machine->ReadRegister(5);
                 
-                //test the long interger
-                printf("Debug: f=%d\n", f);
-                printf("Dedug: arg=%d\n", arg);
+                // void (*func) (void*) = (void(*) (void*)) f;                
+                // func ((void*)arg);
                 
-                void (*func) (void*) = (void(*) (void*)) f;                
-                func ((void*)arg);
-                
-                //do_UserThreadCreate(f, arg);
+                do_UserThreadCreate(f, arg);
                 
                 break;
              }

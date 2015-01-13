@@ -1,17 +1,20 @@
 #include "syscall.h"
-void print (void* c)
+void print(void *c)
 {
-    PutString("Thread ");
-    PutChar( *((char*) c) );
-    PutString("is executing");
+  PutChar('$');
+  // PutString("Thread ");
+  // PutChar(*((char *) c) );
+  // PutString(" is executing\n");
 }
 
 int main() {
   
   char ch = '2';
   char* c = &ch;
-  
-  UserThreadCreate(print, (void*) c );
 
+  // print(c);
+  
+  UserThreadCreate(print, (void *) c);
+  PutChar('N');
   return 0;
 }
