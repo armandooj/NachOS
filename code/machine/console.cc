@@ -101,7 +101,7 @@ Console::CheckCharAvail()
     n = ReadPartial(readFileNo, &c, sizeof(char));
     incoming = (n == 1 ? c : EOF);
     stats->numConsoleCharsRead++;
-    (*readHandler)(handlerArg);	
+    (*readHandler)(handlerArg);
 }
 
 //----------------------------------------------------------------------
@@ -114,6 +114,7 @@ Console::CheckCharAvail()
 void
 Console::WriteDone()
 {
+    DEBUG('t', "Finish Write.\n");
     putBusy = FALSE;
     stats->numConsoleCharsWritten++;
     (*writeHandler)(handlerArg);
@@ -143,6 +144,8 @@ Console::GetChar()
 void
 Console::PutChar(char ch)
 {
+    DEBUG('t', "Begin Write in Put Char \n"); 
+
     ASSERT(putBusy == FALSE);
     WriteFile(writeFileNo, &ch, sizeof(char));
     putBusy = TRUE;

@@ -22,7 +22,7 @@ SynchConsole::SynchConsole(char *readFile, char *writeFile)
   pointer = 0;
 
 	readAvail = new Semaphore("read avail", 0);
-	writeDone = new Semaphore("write done", 0);
+	writeDone = new Semaphore("write done", 1);
 	console = new Console(readFile, writeFile, ReadAvail, WriteAvail, 0);
 }
 
@@ -35,8 +35,9 @@ SynchConsole::~SynchConsole()
 
 void SynchConsole::SynchPutChar(const char ch)
 {
+    writeDone->P();
 	console->PutChar(ch);
-	writeDone->P();
+
 }
 
 char SynchConsole::SynchGetChar()

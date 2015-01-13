@@ -158,6 +158,7 @@ ExceptionHandler (ExceptionType which)
                break;
               }
              case SC_PutChar: {
+             
                int int_c = machine->ReadRegister(4);
                char c = (char) int_c;
                DEBUG('a', "PutChar\n");

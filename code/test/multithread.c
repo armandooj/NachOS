@@ -15,6 +15,7 @@ int main() {
   // print(c);
   
   UserThreadCreate(print, (void *) c);
-  PutChar('N');
+  PutChar('*');
+  //PutChar('$');
   return 0;
 }

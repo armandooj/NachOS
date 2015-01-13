@@ -16,25 +16,20 @@ Initialises backups of registers of a new copy of the MIPS interpreter in the sa
 (Machine::InitRegisters\ and \ |Machine::RestoreState\ functions), and starts the interpreter (\| Machine::Run).
 */
 static void StartUserThread(int f) {
-  // call f ??? 
   printf("StartUserThread\n");
 
   currentThread->space->InitRegisters();
-  currentThread->space->RestoreState();
-
-  //machine->WriteRegister (4, f);
+  currentThread->space->RestoreState(); // TODO: Check if this need to reverse
+  
   // Initial program counter -- must be location of "Start"
   machine->WriteRegister (PCReg, f);
-  // Need to also tell MIPS where next instruction is, because
-  // of branch delay possibility
   machine->WriteRegister (NextPCReg, f + 4);
-  // Set the stack register
-  // machine->WriteRegister (StackReg, 0);
-  // machine->WriteRegister (RetAddrReg, 12);
+  // Set the stack pointer
+//  machine->WriteRegister (StackReg, (numPages-3)*PageSize - 16);
+  currentThread->space->MultiThreadSetStackPointer(3*PageSize);
+  
   machine->Run();
-    // int lol;    
-    // int lol = UserStackSize ?? / MaxThread * thread_id + 16;
-    // machine->WriteRegister (StackReg, (numPages*PageSize) - lol);
+  
 }
 
 int do_UserThreadCreate(int f, int arg) {
