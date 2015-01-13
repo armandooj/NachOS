@@ -34,7 +34,7 @@
 
 #define SC_PutChar          11
 #define SC_PutString        12
-#define SC_GetChar          13
+#disclaimerefine SC_GetChar          13
 #define SC_GetString        14
 #define SC_PutInt           15
 #define SC_GetInt   	    16
