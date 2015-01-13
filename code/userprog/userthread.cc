@@ -13,8 +13,8 @@
 
 int do_UserThreadCreate(int f, int arg) {
 
-    /*  
-    Thread *t = new Thread(  );
+    /*
+    Thread *t = new Thread("New Thread");
     
     t->Fork(  , f);
     
@@ -24,8 +24,8 @@ int do_UserThreadCreate(int f, int arg) {
     t = combine(f, avg);
     
     thread -> Fork(StartUserThread, &t);
-    */
     
+    */
     return 0;
 }
 
