@@ -1,7 +1,7 @@
 #include "syscall.h"
 void print(void *c)
 {
-  PutChar('$');
+  PutChar(* ((char *) c));
   // PutString("Thread ");
   // PutChar(*((char *) c) );
   // PutString(" is executing\n");
@@ -9,13 +9,11 @@ void print(void *c)
 
 int main() {
   
-  char ch = '2';
+  char ch = 'm';
   char* c = &ch;
-
-  // print(c);
   
   UserThreadCreate(print, (void *) c);
   PutChar('*');
-  //PutChar('$');
+  
   return 0;
 }
