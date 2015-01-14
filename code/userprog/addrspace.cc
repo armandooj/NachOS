@@ -169,6 +169,20 @@ AddrSpace::InitRegisters ()
 }
 
 //----------------------------------------------------------------------
+// AddrSpace::MultiThreadSetStackPointer
+//      Use in multithread function to set the new stack pointer to
+//      new position
+//----------------------------------------------------------------------
+
+void
+AddrSpace::MultiThreadSetStackPointer ( unsigned int newPositionOffset )
+{
+    machine->WriteRegister (StackReg, (numPages * PageSize - newPositionOffset) - 16);
+    DEBUG ('a', "Initializing stack register to %d\n",
+       (numPages * PageSize - newPositionOffset) - 16);
+}
+
+//----------------------------------------------------------------------
 // AddrSpace::SaveState
 //      On a context switch, save any machine state, specific
 //      to this address space, that needs saving.

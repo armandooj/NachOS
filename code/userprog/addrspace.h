@@ -31,6 +31,8 @@ class AddrSpace
 
     void SaveState ();		// Save/restore address space-specific
     void RestoreState ();	// info on a context switch 
+    
+    void MultiThreadSetStackPointer(unsigned int newPositionOffset); 
 
   private:
       TranslationEntry * pageTable;	// Assume linear page table translation
