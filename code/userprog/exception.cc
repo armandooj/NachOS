@@ -146,29 +146,30 @@ ExceptionHandler (ExceptionType which)
      #else // CHANGED
          if (which == SyscallException) {
            switch (type) {
-             case SC_Exit: {
+            case SC_Exit: 
+            {
               int value = machine->ReadRegister(4);          
               DEBUG('a', "Exit program, return value: %d.\n", value);
               interrupt->Halt();
               break;
-             }
-             case SC_Halt: {
+            }
+            case SC_Halt: 
+            {
                DEBUG('a', "Shutdown, initiated by user program.\n");
                interrupt->Halt();
                break;
-              }
-             case SC_PutChar: {
-             
+            }
+            case SC_PutChar: 
+            {  
                int int_c = machine->ReadRegister(4);
                char c = (char) int_c;
                DEBUG('a', "PutChar\n");
                synchconsole->SynchPutChar(c);
                break;
-             }
-             case SC_PutString: {
-                          
-                int startPosition = machine->ReadRegister(4);
-                
+            }
+            case SC_PutString: 
+            {                          
+                int startPosition = machine->ReadRegister(4);                
                 bool stop = false;
                 char buffer[MAX_STRING_SIZE] = {};
                 int iteration = 0;
@@ -185,23 +186,16 @@ ExceptionHandler (ExceptionType which)
 
                     synchconsole->SynchPutString(buffer);
                     iteration ++;
-
                 } while (!stop);
                 break;            
-             }
-            
-             case SC_UserThreadCreate: {
+            }            
+            case SC_UserThreadCreate: 
+            {
                 int f = machine->ReadRegister(4);
-                int arg = machine->ReadRegister(5);
-                
-                // void (*func) (void*) = (void(*) (void*)) f;                
-                // func ((void*)arg);
-                
-                do_UserThreadCreate(f, arg);
-                
+                int arg = machine->ReadRegister(5);                
+                do_UserThreadCreate(f, arg);                
                 break;
-             }
-             
+            }             
             case SC_GetChar:
             {
                 char ch = synchconsole->SynchGetChar();
