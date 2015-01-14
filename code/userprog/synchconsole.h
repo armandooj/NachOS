@@ -24,6 +24,7 @@ class SynchConsole {
 		int SynchGetInt();
 	private:
 		Console *console;
+		
 };
 #endif // SYNCHCONSOLE_H
 #endif // CHANGED 

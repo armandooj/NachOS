@@ -1,6 +1,7 @@
 #include "syscall.h"
 void print(void *c)
 {
+	//PutChar('k');
   PutChar(* ((char *) c));
   // PutString("Thread ");
   // PutChar(*((char *) c) );
@@ -9,7 +10,7 @@ void print(void *c)
 
 int main() {
   
-  char ch = 'm';
+  char ch = 'a';
   char* c = &ch;
   
   UserThreadCreate(print, (void *) c);
@@ -17,3 +18,4 @@ int main() {
   
   return 0;
 }
+
