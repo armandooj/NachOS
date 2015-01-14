@@ -41,16 +41,23 @@ int do_UserThreadCreate(int f, int arg) {
 
   printf("do_UserThreadCreate\n");
 
+  Thread *newThread = new Thread("New Thread");
+
   // Use a struct to pass both the function and argument to the fork function
   ParamFunction *paramFunction = new ParamFunction();
   paramFunction->function = f;
   paramFunction->arg = arg;
 
-  Thread *newThread = new Thread("New Thread");
+
   newThread->Fork(StartUserThread, (int) paramFunction);
   currentThread->Yield();
-  
+
   return 0;
 }
+
+
+
+
+
 
 #endif

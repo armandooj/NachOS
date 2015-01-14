@@ -2,9 +2,9 @@
 #ifndef SYNCHCONSOLE_H
 #define SYNCHCONSOLE_H
 
-#include "copyright.h"
-#include "utility.h"
-#include "console.h"
+#include "../threads/copyright.h"
+#include "../threads/utility.h"
+#include "../machine/console.h"
 
 class SynchConsole {
 
@@ -24,6 +24,7 @@ class SynchConsole {
 		int SynchGetInt();
 	private:
 		Console *console;
+		
 };
 #endif // SYNCHCONSOLE_H
 #endif // CHANGED 

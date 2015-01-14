@@ -1,6 +1,6 @@
 #include "syscall.h"
 
-#define BUFFER_SIZE 20
+#define BUFFER_SIZE 10
 
 int main(int argc, char **argv) 
 {
