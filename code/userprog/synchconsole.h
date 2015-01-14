@@ -2,9 +2,9 @@
 #ifndef SYNCHCONSOLE_H
 #define SYNCHCONSOLE_H
 
-#include "../threads/copyright.h"
-#include "../threads/utility.h"
-#include "../machine/console.h"
+#include "copyright.h"
+#include "utility.h"
+#include "console.h"
 
 class SynchConsole {
 
