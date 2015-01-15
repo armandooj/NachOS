@@ -31,7 +31,7 @@ static void StartUserThread(int data) {
   machine->WriteRegister(PCReg, paramFunction->function);
   machine->WriteRegister(NextPCReg, paramFunction->function + 4);
   // Set the stack pointer
-  currentThread->space->MultiThreadSetStackPointer(3 * PageSize);
+  currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (paramFunction->stack_position + 1));
   
   machine->Run();  
 }
@@ -49,11 +49,15 @@ int do_UserThreadCreate(int f, int arg) {
   newThread->space = currentThread->space; 
 
   newThread->SetStackLocation(&paramFunction->stack_position);
+  // If something fails just return an error for now
+  if (paramFunction->stack_position < 0) {
+    return -1;
+  }
 
   // TODO ID?
-  //  printf("ID: %d\n", paramFunction->id);  
+  // printf("ID: %d\n", paramFunction->id);  
   newThread->Fork(StartUserThread, (int) paramFunction);
-  currentThread->Yield();
+  //currentThread->Yield();
   
   return 8;
 }
