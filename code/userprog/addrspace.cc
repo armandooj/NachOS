@@ -198,9 +198,7 @@ int AddrSpace::GetAndSetFreeStackLocation () {
 
 void AddrSpace::FreeStackLocation (int position) {
     DEBUG('a', "Freeing stack location %d\n", position);
-    stackBitMap->Print();
     stackBitMap->Clear(position);
-    stackBitMap->Print();
 }
 
 //----------------------------------------------------------------------
