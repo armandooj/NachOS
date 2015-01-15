@@ -101,7 +101,7 @@ ExceptionHandler (ExceptionType which)
             case SC_Exit: {
               int rg4 = machine->ReadRegister (4);
               DEBUG('a', "exit initiated by user program %d.\n",rg4);
-              interrupt->Halt();
+              currentThread->Finish();
               break;
             }
 

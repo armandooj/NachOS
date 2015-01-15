@@ -202,8 +202,8 @@ AddrSpace::RestoreState ()
 
 #ifdef CHANGED
 void
-AddrSpace::SetStackPointer ()
+AddrSpace::SetStackPointer (int offset)
 {
-    machine->WriteRegister(StackReg, PageSize * (numPages - 3) - 16);
+    machine->WriteRegister(StackReg, PageSize * (numPages - offset) - 16);
 }
 #endif

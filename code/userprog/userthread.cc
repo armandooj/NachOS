@@ -4,7 +4,8 @@
 
 extern int do_UserThreadCreate(int f, int arg)
 {
-        Thread *yourthread = new Thread("test");
+        char name = (char)f;
+        Thread *yourthread = new Thread(&name);
         parameter *pass = new parameter();
         pass->function = f;
         pass->argument = arg;
@@ -24,7 +25,7 @@ void StartUserThread(int f)
         machine->WriteRegister(PCReg, func);
         machine->WriteRegister(NextPCReg, func+4);
         machine->WriteRegister(PrevPCReg, func-4);
-        currentThread->space->SetStackPointer();
+        currentThread->space->SetStackPointer(3);
         machine->Run();
 }
 #endif

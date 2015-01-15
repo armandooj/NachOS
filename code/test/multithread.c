@@ -1,17 +1,20 @@
 #include "syscall.h"
 
-void print(void *num)
+void print1(void *num)
 {
      int n = (int)num;
-     //PutString("Thread ");
      PutInt(n);
-     //PutString(" Created !\n");
+     PutString(" thread created !");
+     PutChar('\n');
+     Exit(1);
 }
 
 int main()
 {
-     UserThreadCreate(print, (void*)1);
-     UserThreadCreate(print, (void*)2);
-     PutChar('m');
+     UserThreadCreate(print1, (void*)1);
+     UserThreadCreate(print1, (void*)2);
+     PutString("main end.\n");
+     UserThreadCreate(print1, (void*)3);
+         
      return 0;
 }
