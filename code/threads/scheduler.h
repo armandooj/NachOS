@@ -28,10 +28,15 @@ class Scheduler
     // list, if any, and return thread.
     void Run (Thread * nextThread);	// Cause nextThread to start running
     void Print ();		// Print contents of ready list
-
+    bool IsRunningQueueEmpty(); // Return how many threads are 
+                                             // scheduled to run in readList.
+    void increaseUserProcesses();
+    void decreaseUserProcesses();
+    int getNumberOfUserProcesses();
   private:
       List * readyList;		// queue of threads that are ready to run,
     // but not running
+      int numberOfUserProcesses;
 };
 
 #endif // SCHEDULER_H

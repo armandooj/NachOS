@@ -107,6 +107,9 @@ Thread::Fork (VoidFunctionPtr func, int arg)
     // LB: Observe that currentThread->space may be NULL at that time.
     this->space = currentThread->space;
 
+    // // We need to set it's address space first so that we can access the stack!
+    stackLocation = space->GetAndSetFreeStackLocation();
+
 #endif // USER_PROGRAM
 
     IntStatus oldLevel = interrupt->SetLevel (IntOff);
@@ -242,6 +245,7 @@ Thread::Sleep ()
     DEBUG ('t', "Sleeping thread \"%s\"\n", getName ());
 
     status = BLOCKED;
+    
     while ((nextThread = scheduler->FindNextToRun ()) == NULL)
 	interrupt->Idle ();	// no one to run, wait for an interrupt
 
@@ -409,5 +413,18 @@ Thread::RestoreUserState ()
 	machine->WriteRegister (i, userRegisters[i]);
 }
 #endif
+
+
+// Stack BitMap
+
+void
+Thread::FreeStackLocation() {
+  space->FreeStackLocation(stackLocation);
+}
+
+int
+Thread::GetStackLocation() {
+  return stackLocation;
+}
 
 
