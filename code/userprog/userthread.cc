@@ -18,12 +18,14 @@ Initialises backups of registers of a new copy of the MIPS interpreter in the sa
 (Machine::InitRegisters\ and \ |Machine::RestoreState\ functions), and starts the interpreter (\| Machine::Run).
 */
 static void StartUserThread(int data) {
-  
-  currentThread->space->InitRegisters();
-  currentThread->space->RestoreState(); // TODO: Check if this need to reverse
 
   // Retrieve the function and arg
   ParamFunction *paramFunction = (ParamFunction *) data;
+  
+  printf("StartUserThread with Stack Position: %d\n", paramFunction->stack_position);
+
+  currentThread->space->InitRegisters();
+  currentThread->space->RestoreState(); // TODO: Check if this need to reverse
   
   // Write the argument in the register 4
   machine->WriteRegister(4, paramFunction->arg);
@@ -31,8 +33,7 @@ static void StartUserThread(int data) {
   machine->WriteRegister(PCReg, paramFunction->function);
   machine->WriteRegister(NextPCReg, paramFunction->function + 4);
   // Set the stack pointer
-  // machine->WriteRegister (StackReg, (numPages-3)*PageSize - 16);
-  currentThread->space->MultiThreadSetStackPointer(3 * PageSize);
+  currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (paramFunction->stack_position + 1));
   
   scheduler->increaseUserProcesses();
   
@@ -41,22 +42,29 @@ static void StartUserThread(int data) {
 
 int do_UserThreadCreate(int f, int arg) {
 
-  printf("do_UserThreadCreate\n");
-  Thread *newThread = new Thread("New Thread");
-
   // Use a struct to pass both the function and argument to the fork function
   ParamFunction *paramFunction = new ParamFunction();
   paramFunction->function = f;
   paramFunction->arg = arg;
 
+  Thread *newThread = new Thread("New Thread");
+  // We need to set it's address space first so that we can access the stack!
+  // TODO Does this always guarantee currentThread's space is not NULL?
+  newThread->space = currentThread->space; 
+
+  newThread->SetStackLocation(&paramFunction->stack_position);
+  // If something fails just return an error for now
+  if (paramFunction->stack_position < 0) {
+    return -1;
+  }
+
+  // TODO ID?
+  // printf("ID: %d\n", paramFunction->id);  
   newThread->Fork(StartUserThread, (int) paramFunction);
   //currentThread->Yield();
-
-  printf("finish UserThreadCreate\n");
-  return 0;
+  
+  return 8;
 }
-
-//void do_UserThreadJoin()
 
 void do_UserThreadExit() {
 
@@ -68,4 +76,5 @@ void do_UserThreadExit() {
 //    if (!scheduler->IsRunningQueueEmpty() )
     currentThread->Finish();
 }
+
 #endif
