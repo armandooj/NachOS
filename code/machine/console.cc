@@ -145,7 +145,6 @@ void
 Console::PutChar(char ch)
 {
     DEBUG('t', "Thread %s Begin Write in Put Char \n", currentThread->getName()); 
-
     ASSERT(putBusy == FALSE);
     WriteFile(writeFileNo, &ch, sizeof(char));
     putBusy = TRUE;

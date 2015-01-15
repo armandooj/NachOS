@@ -1,7 +1,7 @@
 #ifdef CHANGED
 
-extern int do_UserThreadCreate(int f, int arg);
-extern void do_UserThreadExit();
+int do_UserThreadCreate(int f, int arg);
+void do_UserThreadExit();
 
 typedef struct {  
   int function;

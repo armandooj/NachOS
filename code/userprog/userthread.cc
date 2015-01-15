@@ -10,6 +10,8 @@
 
 #include "system.h"
 #include "userthread.h"
+#include "thread.h"
+#include "scheduler.h"
 
 /*
 Initialises backups of registers of a new copy of the MIPS interpreter in the same way as the primitive interpreter 
@@ -32,7 +34,9 @@ static void StartUserThread(int data) {
   // Set the stack pointer
   currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetStackLocation() + 1));
   
-  machine->Run();  
+  scheduler->increaseUserProcesses();
+  
+  machine->Run();
 }
 
 int do_UserThreadCreate(int f, int arg) {
@@ -42,7 +46,7 @@ int do_UserThreadCreate(int f, int arg) {
   paramFunction->function = f;
   paramFunction->arg = arg;
 
-  Thread *newThread = new Thread("New Thread");
+  Thread *newThread = new Thread("new Thread");
   // Note, Fork() now sets the stack location
   newThread->Fork(StartUserThread, (int) paramFunction);
 
@@ -50,16 +54,20 @@ int do_UserThreadCreate(int f, int arg) {
     DEBUG('t', "Error creating the thread.");
     return -1;
   }
-  
-  currentThread->Yield();
 
   // TODO use a real ID
   return newThread->GetStackLocation();
 }
 
 void do_UserThreadExit() {
-  currentThread->FreeStackLocation();  
-  currentThread->Finish();
+
+    DEBUG('t', "Thread \"%s\"\n Exit", currentThread->getName() );
+    DEBUG('t', "Status: number of current userthreads: %d\n", scheduler->getNumberOfUserProcesses());
+    scheduler->decreaseUserProcesses();
+    
+    currentThread->FreeStackLocation();  
+
+    currentThread->Finish();
 }
 
 #endif

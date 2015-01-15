@@ -113,6 +113,7 @@ class Interrupt {
     
     void OneTick();       		// Advance simulated time
 
+    bool IsBlockingQueueEmpty(); // check if there is any process blocking
   private:
     IntStatus level;		// are interrupts enabled or disabled?
     List *pending;		// the list of interrupts scheduled
