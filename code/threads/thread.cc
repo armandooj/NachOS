@@ -411,3 +411,20 @@ Thread::RestoreUserState ()
 #endif
 
 
+//----------------------------------------------------------------------
+// Thread::SetStackLocation
+//      Finds and sets the next available stack location in location. 
+//      Sets location to -1 if no more room is available and -2 if something
+//      went wrong.
+//----------------------------------------------------------------------
+
+void 
+Thread::SetStackLocation(int *location) {
+  if (space == NULL) {
+    *location = -2;
+  } else {
+    *location = space->GetAndSetFreeStackPosition();
+  }
+}
+
+

@@ -1,11 +1,9 @@
 #include "syscall.h"
 void print(void *c)
 {
-	//PutChar('k');
   PutChar(* ((char *) c));
-  // PutString("Thread ");
-  // PutChar(*((char *) c) );
-  // PutString(" is executing\n");
+
+  // TODO exit the thread!
 }
 
 int main() {
@@ -13,8 +11,15 @@ int main() {
   char ch = 'a';
   char* c = &ch;
   
-  UserThreadCreate(print, (void *) c);
-  PutChar('*');
+  int id = UserThreadCreate(print, (void *) c);
+  if (id >= 0) {
+    //PutInt(id);
+    PutChar('*');
+  } else {
+    PutString("Error creating a Thread.");
+  }
+
+  // UserThreadCreate(print, (void *) c);
   
   return 0;
 }

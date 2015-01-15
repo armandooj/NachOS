@@ -98,6 +98,9 @@ class Thread
     // relinquish the processor
     void Finish ();		// The thread is done executing
 
+    // Finds the next available location and sets it in arg
+    void SetStackLocation(int *location);
+
     void CheckOverflow ();	// Check if thread has 
     // overflowed its stack
     void setStatus (ThreadStatus st)

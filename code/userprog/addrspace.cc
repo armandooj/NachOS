@@ -120,6 +120,8 @@ AddrSpace::AddrSpace (OpenFile * executable)
 			      noffH.initData.size, noffH.initData.inFileAddr);
       }
 
+      // Initialize the bitmap
+      stackBitMap = new BitMap(GetMaxNumThreads());
 }
 
 //----------------------------------------------------------------------
@@ -180,6 +182,19 @@ AddrSpace::MultiThreadSetStackPointer ( unsigned int newPositionOffset )
     machine->WriteRegister (StackReg, (numPages * PageSize - newPositionOffset) - 16);
     DEBUG ('a', "Initializing stack register to %d\n",
        (numPages * PageSize - newPositionOffset) - 16);
+}
+
+// Returns how many threads the system can handle
+int AddrSpace::GetMaxNumThreads() {
+    return UserStackSize / (PageSize * 3);
+}
+
+/*
+Stack BitMap Operations
+*/
+
+int AddrSpace::GetAndSetFreeStackPosition () {
+    return stackBitMap->Find();
 }
 
 //----------------------------------------------------------------------
