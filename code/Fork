@@ -1,0 +1,1439 @@
+filesys/directory.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc:// 	De-allocate directory data structure.
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc://	"file" -- file containing the directory contents
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc:    (void) file->ReadAt((char *)table, tableSize * sizeof(DirectoryEntry), 0);
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc://	"file" -- file to contain the new directory contents
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc:    (void) file->WriteAt((char *)table, tableSize * sizeof(DirectoryEntry), 0);
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc://	directory entries.  Return -1 if the name isn't in the directory.
+filesys/directory.cc://	"name" -- the file name to look up
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc:    return -1;		// name not in directory
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc://	where the file's header is stored. Return -1 if the name isn't 
+filesys/directory.cc://	"name" -- the file name to look up
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc:    if (i != -1)
+filesys/directory.cc:    return -1;
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc://	"name" -- the name of the file being added
+filesys/directory.cc://	"newSector" -- the disk sector containing the added file's header
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc:    if (FindIndex(name) != -1)
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc://	"name" -- the file name to be removed
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc:    if (i == -1)
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc://----------------------------------------------------------------------
+filesys/directory.cc:	    hdr->FetchFrom(table[i].sector);
+filesys/directory.cc:	    hdr->Print();
+filesys/filehdr.cc://	would be called the i-node).
+filesys/filehdr.cc://	table of pointers -- each entry in the table points to the 
+filesys/filehdr.cc://	   for a new file, by modifying the in-memory data structure
+filesys/filehdr.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+filesys/filehdr.cc://----------------------------------------------------------------------
+filesys/filehdr.cc://----------------------------------------------------------------------
+filesys/filehdr.cc:    if (freeMap->NumClear() < numSectors)
+filesys/filehdr.cc:	dataSectors[i] = freeMap->Find();
+filesys/filehdr.cc://----------------------------------------------------------------------
+filesys/filehdr.cc:// 	De-allocate all the space allocated for data blocks for this file.
+filesys/filehdr.cc://----------------------------------------------------------------------
+filesys/filehdr.cc:	ASSERT(freeMap->Test((int) dataSectors[i]));  // ought to be marked!
+filesys/filehdr.cc:	freeMap->Clear((int) dataSectors[i]);
+filesys/filehdr.cc://----------------------------------------------------------------------
+filesys/filehdr.cc://----------------------------------------------------------------------
+filesys/filehdr.cc:    synchDisk->ReadSector(sector, (char *)this);
+filesys/filehdr.cc://----------------------------------------------------------------------
+filesys/filehdr.cc://----------------------------------------------------------------------
+filesys/filehdr.cc:    synchDisk->WriteSector(sector, (char *)this); 
+filesys/filehdr.cc://----------------------------------------------------------------------
+filesys/filehdr.cc://----------------------------------------------------------------------
+filesys/filehdr.cc://----------------------------------------------------------------------
+filesys/filehdr.cc://----------------------------------------------------------------------
+filesys/filehdr.cc://----------------------------------------------------------------------
+filesys/filehdr.cc://----------------------------------------------------------------------
+filesys/filehdr.cc:	synchDisk->ReadSector(dataSectors[i], data);
+filesys/filesys.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+filesys/filesys.cc:// and the directory of files.  These file headers are placed in well-known 
+filesys/filesys.cc:// sectors, so that they can be located on boot-up.
+filesys/filesys.cc://----------------------------------------------------------------------
+filesys/filesys.cc://	"format" -- should we initialize the disk?
+filesys/filesys.cc://----------------------------------------------------------------------
+filesys/filesys.cc:	freeMap->Mark(FreeMapSector);	    
+filesys/filesys.cc:	freeMap->Mark(DirectorySector);
+filesys/filesys.cc:	ASSERT(mapHdr->Allocate(freeMap, FreeMapFileSize));
+filesys/filesys.cc:	ASSERT(dirHdr->Allocate(freeMap, DirectoryFileSize));
+filesys/filesys.cc:	mapHdr->WriteBack(FreeMapSector);    
+filesys/filesys.cc:	dirHdr->WriteBack(DirectorySector);
+filesys/filesys.cc:	freeMap->WriteBack(freeMapFile);	 // flush changes to disk
+filesys/filesys.cc:	directory->WriteBack(directoryFile);
+filesys/filesys.cc:	    freeMap->Print();
+filesys/filesys.cc:	    directory->Print();
+filesys/filesys.cc://----------------------------------------------------------------------
+filesys/filesys.cc://	"name" -- name of file to be created
+filesys/filesys.cc://	"initialSize" -- size of file to be created
+filesys/filesys.cc://----------------------------------------------------------------------
+filesys/filesys.cc:    directory->FetchFrom(directoryFile);
+filesys/filesys.cc:    if (directory->Find(name) != -1)
+filesys/filesys.cc:        freeMap->FetchFrom(freeMapFile);
+filesys/filesys.cc:        sector = freeMap->Find();	// find a sector to hold the file header
+filesys/filesys.cc:    	if (sector == -1) 		
+filesys/filesys.cc:        else if (!directory->Add(name, sector))
+filesys/filesys.cc:	    if (!hdr->Allocate(freeMap, initialSize))
+filesys/filesys.cc:    	    	hdr->WriteBack(sector); 		
+filesys/filesys.cc:    	    	directory->WriteBack(directoryFile);
+filesys/filesys.cc:    	    	freeMap->WriteBack(freeMapFile);
+filesys/filesys.cc://----------------------------------------------------------------------
+filesys/filesys.cc://	"name" -- the text name of the file to be opened
+filesys/filesys.cc://----------------------------------------------------------------------
+filesys/filesys.cc:    directory->FetchFrom(directoryFile);
+filesys/filesys.cc:    sector = directory->Find(name); 
+filesys/filesys.cc://----------------------------------------------------------------------
+filesys/filesys.cc://	"name" -- the text name of the file to be removed
+filesys/filesys.cc://----------------------------------------------------------------------
+filesys/filesys.cc:    directory->FetchFrom(directoryFile);
+filesys/filesys.cc:    sector = directory->Find(name);
+filesys/filesys.cc:    if (sector == -1) {
+filesys/filesys.cc:    fileHdr->FetchFrom(sector);
+filesys/filesys.cc:    freeMap->FetchFrom(freeMapFile);
+filesys/filesys.cc:    fileHdr->Deallocate(freeMap);  		// remove data blocks
+filesys/filesys.cc:    freeMap->Clear(sector);			// remove header block
+filesys/filesys.cc:    directory->Remove(name);
+filesys/filesys.cc:    freeMap->WriteBack(freeMapFile);		// flush to disk
+filesys/filesys.cc:    directory->WriteBack(directoryFile);        // flush to disk
+filesys/filesys.cc://----------------------------------------------------------------------
+filesys/filesys.cc://----------------------------------------------------------------------
+filesys/filesys.cc:    directory->FetchFrom(directoryFile);
+filesys/filesys.cc:    directory->List();
+filesys/filesys.cc://----------------------------------------------------------------------
+filesys/filesys.cc://----------------------------------------------------------------------
+filesys/filesys.cc:    bitHdr->FetchFrom(FreeMapSector);
+filesys/filesys.cc:    bitHdr->Print();
+filesys/filesys.cc:    dirHdr->FetchFrom(DirectorySector);
+filesys/filesys.cc:    dirHdr->Print();
+filesys/filesys.cc:    freeMap->FetchFrom(freeMapFile);
+filesys/filesys.cc:    freeMap->Print();
+filesys/filesys.cc:    directory->FetchFrom(directoryFile);
+filesys/filesys.cc:    directory->Print();
+filesys/fstest.cc://	   Copy -- copy a file from UNIX to Nachos
+filesys/fstest.cc://	   Print -- cat the contents of a Nachos file 
+filesys/fstest.cc://	   Perftest -- a stress test for the Nachos file system
+filesys/fstest.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+filesys/fstest.cc://----------------------------------------------------------------------
+filesys/fstest.cc://----------------------------------------------------------------------
+filesys/fstest.cc:    if (!fileSystem->Create(to, fileLength)) {	 // Create Nachos file
+filesys/fstest.cc:    openFile = fileSystem->Open(to);
+filesys/fstest.cc:	openFile->Write(buffer, amountRead);	
+filesys/fstest.cc://----------------------------------------------------------------------
+filesys/fstest.cc://----------------------------------------------------------------------
+filesys/fstest.cc:    if ((openFile = fileSystem->Open(name)) == NULL) {
+filesys/fstest.cc:    while ((amountRead = openFile->Read(buffer, TransferSize)) > 0)
+filesys/fstest.cc://----------------------------------------------------------------------
+filesys/fstest.cc://	  FileWrite -- write the file
+filesys/fstest.cc://	  FileRead -- read the file
+filesys/fstest.cc://	  PerformanceTest -- overall control, and print out performance #'s
+filesys/fstest.cc://----------------------------------------------------------------------
+filesys/fstest.cc:    if (!fileSystem->Create(FileName, 0)) {
+filesys/fstest.cc:    openFile = fileSystem->Open(FileName);
+filesys/fstest.cc:        numBytes = openFile->Write(Contents, ContentSize);
+filesys/fstest.cc:    if ((openFile = fileSystem->Open(FileName)) == NULL) {
+filesys/fstest.cc:        numBytes = openFile->Read(buffer, ContentSize);
+filesys/fstest.cc:    stats->Print();
+filesys/fstest.cc:    if (!fileSystem->Remove(FileName)) {
+filesys/fstest.cc:    stats->Print();
+filesys/openfile.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+filesys/openfile.cc://----------------------------------------------------------------------
+filesys/openfile.cc://	"sector" -- the location on disk of the file header for this file
+filesys/openfile.cc://----------------------------------------------------------------------
+filesys/openfile.cc:    hdr->FetchFrom(sector);
+filesys/openfile.cc://----------------------------------------------------------------------
+filesys/openfile.cc:// 	Close a Nachos file, de-allocating any in-memory data structures.
+filesys/openfile.cc://----------------------------------------------------------------------
+filesys/openfile.cc://----------------------------------------------------------------------
+filesys/openfile.cc:// 	Change the current location within the open file -- the point at
+filesys/openfile.cc://	"position" -- the location within the file for the next Read/Write
+filesys/openfile.cc://----------------------------------------------------------------------
+filesys/openfile.cc://----------------------------------------------------------------------
+filesys/openfile.cc://	"into" -- the buffer to contain the data to be read from disk 
+filesys/openfile.cc://	"from" -- the buffer containing the data to be written to disk 
+filesys/openfile.cc://	"numBytes" -- the number of bytes to transfer
+filesys/openfile.cc://----------------------------------------------------------------------
+filesys/openfile.cc://----------------------------------------------------------------------
+filesys/openfile.cc://	"into" -- the buffer to contain the data to be read from disk 
+filesys/openfile.cc://	"from" -- the buffer containing the data to be written to disk 
+filesys/openfile.cc://	"numBytes" -- the number of bytes to transfer
+filesys/openfile.cc://	"position" -- the offset within the file of the first byte to be
+filesys/openfile.cc://----------------------------------------------------------------------
+filesys/openfile.cc:    int fileLength = hdr->FileLength();
+filesys/openfile.cc:	numBytes = fileLength - position;
+filesys/openfile.cc:    lastSector = divRoundDown(position + numBytes - 1, SectorSize);
+filesys/openfile.cc:    numSectors = 1 + lastSector - firstSector;
+filesys/openfile.cc:        synchDisk->ReadSector(hdr->ByteToSector(i * SectorSize), 
+filesys/openfile.cc:					&buf[(i - firstSector) * SectorSize]);
+filesys/openfile.cc:    bcopy(&buf[position - (firstSector * SectorSize)], into, numBytes);
+filesys/openfile.cc:    int fileLength = hdr->FileLength();
+filesys/openfile.cc:	numBytes = fileLength - position;
+filesys/openfile.cc:    lastSector = divRoundDown(position + numBytes - 1, SectorSize);
+filesys/openfile.cc:    numSectors = 1 + lastSector - firstSector;
+filesys/openfile.cc:        ReadAt(&buf[(lastSector - firstSector) * SectorSize], 
+filesys/openfile.cc:    bcopy(from, &buf[position - (firstSector * SectorSize)], numBytes);
+filesys/openfile.cc:        synchDisk->WriteSector(hdr->ByteToSector(i * SectorSize), 
+filesys/openfile.cc:					&buf[(i - firstSector) * SectorSize]);
+filesys/openfile.cc://----------------------------------------------------------------------
+filesys/openfile.cc://----------------------------------------------------------------------
+filesys/openfile.cc:    return hdr->FileLength(); 
+filesys/synchdisk.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+filesys/synchdisk.cc://----------------------------------------------------------------------
+filesys/synchdisk.cc://----------------------------------------------------------------------
+filesys/synchdisk.cc:    disk->RequestDone();
+filesys/synchdisk.cc://----------------------------------------------------------------------
+filesys/synchdisk.cc://	"name" -- UNIX file name to be used as storage for the disk data
+filesys/synchdisk.cc://----------------------------------------------------------------------
+filesys/synchdisk.cc://----------------------------------------------------------------------
+filesys/synchdisk.cc:// 	De-allocate data structures needed for the synchronous disk
+filesys/synchdisk.cc://----------------------------------------------------------------------
+filesys/synchdisk.cc://----------------------------------------------------------------------
+filesys/synchdisk.cc://	"sectorNumber" -- the disk sector to read
+filesys/synchdisk.cc://	"data" -- the buffer to hold the contents of the disk sector
+filesys/synchdisk.cc://----------------------------------------------------------------------
+filesys/synchdisk.cc:    lock->Acquire();			// only one disk I/O at a time
+filesys/synchdisk.cc:    disk->ReadRequest(sectorNumber, data);
+filesys/synchdisk.cc:    semaphore->P();			// wait for interrupt
+filesys/synchdisk.cc:    lock->Release();
+filesys/synchdisk.cc://----------------------------------------------------------------------
+filesys/synchdisk.cc://	"sectorNumber" -- the disk sector to be written
+filesys/synchdisk.cc://	"data" -- the new contents of the disk sector
+filesys/synchdisk.cc://----------------------------------------------------------------------
+filesys/synchdisk.cc:    lock->Acquire();			// only one disk I/O at a time
+filesys/synchdisk.cc:    disk->WriteRequest(sectorNumber, data);
+filesys/synchdisk.cc:    semaphore->P();			// wait for interrupt
+filesys/synchdisk.cc:    lock->Release();
+filesys/synchdisk.cc://----------------------------------------------------------------------
+filesys/synchdisk.cc://----------------------------------------------------------------------
+filesys/synchdisk.cc:    semaphore->V();
+machine/console.cc://  DO NOT CHANGE -- part of the machine emulation
+machine/console.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/console.cc:{ Console *console = (Console *)c; console->CheckCharAvail(); }
+machine/console.cc:{ Console *console = (Console *)c; console->WriteDone(); }
+machine/console.cc://----------------------------------------------------------------------
+machine/console.cc://	"readFile" -- UNIX file simulating the keyboard (NULL -> use stdin)
+machine/console.cc://	"writeFile" -- UNIX file simulating the display (NULL -> use stdout)
+machine/console.cc://----------------------------------------------------------------------
+machine/console.cc:    	readFileNo = OpenForReadWrite(readFile, TRUE);	// should be read-only
+machine/console.cc:    interrupt->Schedule(ConsoleReadPoll, (int)this, ConsoleTime, ConsoleReadInt);
+machine/console.cc://----------------------------------------------------------------------
+machine/console.cc://----------------------------------------------------------------------
+machine/console.cc://----------------------------------------------------------------------
+machine/console.cc://----------------------------------------------------------------------
+machine/console.cc:    interrupt->Schedule(ConsoleReadPoll, (int)this, ConsoleTime, 
+machine/console.cc:    stats->numConsoleCharsRead++;
+machine/console.cc://----------------------------------------------------------------------
+machine/console.cc://----------------------------------------------------------------------
+machine/console.cc:    stats->numConsoleCharsWritten++;
+machine/console.cc://----------------------------------------------------------------------
+machine/console.cc://----------------------------------------------------------------------
+machine/console.cc://----------------------------------------------------------------------
+machine/console.cc://----------------------------------------------------------------------
+machine/console.cc:    interrupt->Schedule(ConsoleWriteDone, (int)this, ConsoleTime,
+machine/disk.cc://  DO NOT CHANGE -- part of the machine emulation
+machine/disk.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/disk.cc:static void DiskDone(int arg) { ((Disk *)arg)->HandleInterrupt(); }
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc://	"name" -- text name of the file simulating the Nachos disk
+machine/disk.cc://	"callWhenDone" -- interrupt handler to be called when disk read/write
+machine/disk.cc://	"callArg" -- argument to pass the interrupt handler
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc:        Lseek(fileno, DiskSize - sizeof(int), 0);	
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc://	"sectorNumber" -- the disk sector to read/write
+machine/disk.cc://	"data" -- the bytes to be written, the buffer to hold the incoming bytes
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc:    stats->numDiskReads++;
+machine/disk.cc:    interrupt->Schedule(DiskDone, (int) this, ticks, DiskInt);
+machine/disk.cc:    stats->numDiskWrites++;
+machine/disk.cc:    interrupt->Schedule(DiskDone, (int) this, ticks, DiskInt);
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc:    int seek = abs(newTrack - oldTrack) * SeekTime;
+machine/disk.cc:    int over = (stats->totalTicks + seek) % RotationTime; 
+machine/disk.cc:   	*rotation = RotationTime - over;
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc:    return ((toOffset - fromOffset) + SectorsPerTrack) % SectorsPerTrack;
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc:    int timeAfter = stats->totalTicks + seek + rotation;
+machine/disk.cc:		&& (((timeAfter - bufferInit) / RotationTime) 
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc://----------------------------------------------------------------------
+machine/disk.cc:	bufferInit = stats->totalTicks + seek + rotate;
+machine/interrupt.cc://		interrupts are re-enabled
+machine/interrupt.cc://  DO NOT CHANGE -- part of the machine emulation
+machine/interrupt.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc:// 	De-allocate the data structures needed by the interrupt simulation.
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc:    while (!pending->IsEmpty())
+machine/interrupt.cc:      //delete pending->Remove(); 
+machine/interrupt.cc:       delete (PendingInterrupt *)(pending->Remove());
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://	"old" -- the old interrupt status
+machine/interrupt.cc://	"now" -- the new interrupt status
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc:    DEBUG('i',"\tinterrupts: %s -> %s\n",intLevelNames[old],intLevelNames[now]);
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://	"now" -- the new interrupt status
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://		interrupts are re-enabled
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc:        stats->totalTicks += SystemTick;
+machine/interrupt.cc:	stats->systemTicks += SystemTick;
+machine/interrupt.cc:	stats->totalTicks += UserTick;
+machine/interrupt.cc:	stats->userTicks += UserTick;
+machine/interrupt.cc:    DEBUG('i', "\n== Tick %d ==\n", stats->totalTicks);
+machine/interrupt.cc:    ChangeLevel(IntOff, IntOn);		// re-enable interrupts
+machine/interrupt.cc:	currentThread->Yield();
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc:    stats->Print();
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc:    long long when = stats->totalTicks + fromNow;
+machine/interrupt.cc:    pending->SortedInsert(toOccur, when);
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://	"advanceClock" -- if TRUE, there is nothing in the ready queue,
+machine/interrupt.cc://		interrupt is just the time-slice daemon, however, then 
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc:		(PendingInterrupt *)pending->SortedRemove(&when);
+machine/interrupt.cc:    if (advanceClock && when > stats->totalTicks) {	// advance the clock
+machine/interrupt.cc:	stats->idleTicks += (when - stats->totalTicks);
+machine/interrupt.cc:	stats->totalTicks = when;
+machine/interrupt.cc:    } else if (when > stats->totalTicks) {	// not time yet, put it back
+machine/interrupt.cc:	pending->SortedInsert(toOccur, when);
+machine/interrupt.cc:    if ((status == IdleMode) && (toOccur->type == TimerInt) 
+machine/interrupt.cc:				&& pending->IsEmpty()) {
+machine/interrupt.cc:	 pending->SortedInsert(toOccur, when);
+machine/interrupt.cc:			intTypeNames[toOccur->type], toOccur->when);
+machine/interrupt.cc:    	machine->DelayedLoad(0, 0);
+machine/interrupt.cc:    (*(toOccur->handler))(toOccur->arg);	// call the interrupt handler
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc:	intTypeNames[pend->type], pend->when);
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc:// 	Print the complete interrupt state - the status, and all interrupts
+machine/interrupt.cc://----------------------------------------------------------------------
+machine/interrupt.cc:  // printf("Time: %d, interrupts %s\n", stats->totalTicks, 
+machine/interrupt.cc:  printf("Time: %lld, interrupts %s\n", stats->totalTicks, 
+machine/interrupt.cc:    pending->Mapcar(PrintPending);
+machine/machine.cc://  DO NOT CHANGE -- part of the machine emulation
+machine/machine.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/machine.cc://----------------------------------------------------------------------
+machine/machine.cc://----------------------------------------------------------------------
+machine/machine.cc://----------------------------------------------------------------------
+machine/machine.cc://	"debug" -- if TRUE, drop into the debugger after each user instruction
+machine/machine.cc://----------------------------------------------------------------------
+machine/machine.cc://----------------------------------------------------------------------
+machine/machine.cc:// 	De-allocate the data structures used to simulate user program execution.
+machine/machine.cc://----------------------------------------------------------------------
+machine/machine.cc://----------------------------------------------------------------------
+machine/machine.cc://	"which" -- the cause of the kernel trap
+machine/machine.cc://	"badVaddr" -- the virtual address causing the trap, if appropriate
+machine/machine.cc://----------------------------------------------------------------------
+machine/machine.cc://  ASSERT(interrupt->getStatus() == UserMode);
+machine/machine.cc:    interrupt->setStatus(SystemMode);
+machine/machine.cc:    interrupt->setStatus(UserMode);
+machine/machine.cc://----------------------------------------------------------------------
+machine/machine.cc://	So just allow single-stepping, and printing the contents of memory.
+machine/machine.cc://----------------------------------------------------------------------
+machine/machine.cc:    interrupt->DumpState();
+machine/machine.cc:    //    printf("%d> ", stats->totalTicks);
+machine/machine.cc:    printf("%lld> ", stats->totalTicks);
+machine/machine.cc://----------------------------------------------------------------------
+machine/machine.cc://----------------------------------------------------------------------
+machine/machine.cc://----------------------------------------------------------------------
+machine/machine.cc://----------------------------------------------------------------------
+machine/mipssim.cc:// mipssim.cc -- simulate a MIPS R2/3000 processor
+machine/mipssim.cc://   Byte ordering is little-endian, so we can be compatible with
+machine/mipssim.cc://   DO NOT CHANGE -- part of the machine emulation
+machine/mipssim.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/mipssim.cc://----------------------------------------------------------------------
+machine/mipssim.cc:// 	Simulate the execution of a user-level program on Nachos.
+machine/mipssim.cc://	This routine is re-entrant, in that it can be called multiple
+machine/mipssim.cc://	times concurrently -- one for each thread executing user code.
+machine/mipssim.cc://----------------------------------------------------------------------
+machine/mipssim.cc:    //       currentThread->getName(), stats->totalTicks);
+machine/mipssim.cc:	     currentThread->getName(), stats->totalTicks);
+machine/mipssim.cc:    interrupt->setStatus(UserMode);
+machine/mipssim.cc:	interrupt->OneTick();
+machine/mipssim.cc:	if (singleStep && (runUntilTime <= stats->totalTicks))
+machine/mipssim.cc://----------------------------------------------------------------------
+machine/mipssim.cc://----------------------------------------------------------------------
+machine/mipssim.cc:	return instr->rs;
+machine/mipssim.cc:	return instr->rt;
+machine/mipssim.cc:	return instr->rd;
+machine/mipssim.cc:	return instr->extra;
+machine/mipssim.cc:	return -1;
+machine/mipssim.cc://----------------------------------------------------------------------
+machine/mipssim.cc:// 	Execute one instruction from a user-level program
+machine/mipssim.cc://	will re-invoke us in a loop.  This allows us to
+machine/mipssim.cc://	re-start the instruction execution from the beginning, in
+machine/mipssim.cc://	This routine is re-entrant, in that it can be called multiple
+machine/mipssim.cc://	times concurrently -- one for each thread executing user code.
+machine/mipssim.cc://	We get re-entrancy by never caching any data -- we always re-start the
+machine/mipssim.cc://----------------------------------------------------------------------
+machine/mipssim.cc:    if (!machine->ReadMem(registers[PCReg], 4, &raw))
+machine/mipssim.cc:    instr->value = raw;
+machine/mipssim.cc:    instr->Decode();
+machine/mipssim.cc:       struct OpString *str = &opStrings[instr->opCode];
+machine/mipssim.cc:       ASSERT(instr->opCode <= MaxOpcode);
+machine/mipssim.cc:       printf(str->string, TypeToReg(str->args[0], instr), 
+machine/mipssim.cc:		TypeToReg(str->args[1], instr), TypeToReg(str->args[2], instr));
+machine/mipssim.cc:    switch (instr->opCode) {
+machine/mipssim.cc:	sum = registers[instr->rs] + registers[instr->rt];
+machine/mipssim.cc:	if (!((registers[instr->rs] ^ registers[instr->rt]) & SIGN_BIT) &&
+machine/mipssim.cc:	    ((registers[instr->rs] ^ sum) & SIGN_BIT)) {
+machine/mipssim.cc:	registers[instr->rd] = sum;
+machine/mipssim.cc:	sum = registers[instr->rs] + instr->extra;
+machine/mipssim.cc:	if (!((registers[instr->rs] ^ instr->extra) & SIGN_BIT) &&
+machine/mipssim.cc:	    ((instr->extra ^ sum) & SIGN_BIT)) {
+machine/mipssim.cc:	registers[instr->rt] = sum;
+machine/mipssim.cc:	registers[instr->rt] = registers[instr->rs] + instr->extra;
+machine/mipssim.cc:	registers[instr->rd] = registers[instr->rs] + registers[instr->rt];
+machine/mipssim.cc:	registers[instr->rd] = registers[instr->rs] & registers[instr->rt];
+machine/mipssim.cc:	registers[instr->rt] = registers[instr->rs] & (instr->extra & 0xffff);
+machine/mipssim.cc:	if (registers[instr->rs] == registers[instr->rt])
+machine/mipssim.cc:	    pcAfter = registers[NextPCReg] + IndexToAddr(instr->extra);
+machine/mipssim.cc:	if (!(registers[instr->rs] & SIGN_BIT))
+machine/mipssim.cc:	    pcAfter = registers[NextPCReg] + IndexToAddr(instr->extra);
+machine/mipssim.cc:	if (registers[instr->rs] > 0)
+machine/mipssim.cc:	    pcAfter = registers[NextPCReg] + IndexToAddr(instr->extra);
+machine/mipssim.cc:	if (registers[instr->rs] <= 0)
+machine/mipssim.cc:	    pcAfter = registers[NextPCReg] + IndexToAddr(instr->extra);
+machine/mipssim.cc:	if (registers[instr->rs] & SIGN_BIT)
+machine/mipssim.cc:	    pcAfter = registers[NextPCReg] + IndexToAddr(instr->extra);
+machine/mipssim.cc:	if (registers[instr->rs] != registers[instr->rt])
+machine/mipssim.cc:	    pcAfter = registers[NextPCReg] + IndexToAddr(instr->extra);
+machine/mipssim.cc:	if (registers[instr->rt] == 0) {
+machine/mipssim.cc:	    registers[LoReg] =  registers[instr->rs] / registers[instr->rt];
+machine/mipssim.cc:	    registers[HiReg] = registers[instr->rs] % registers[instr->rt];
+machine/mipssim.cc:	  rs = (unsigned int) registers[instr->rs];
+machine/mipssim.cc:	  rt = (unsigned int) registers[instr->rt];
+machine/mipssim.cc:	pcAfter = (pcAfter & 0xf0000000) | IndexToAddr(instr->extra);
+machine/mipssim.cc:	registers[instr->rd] = registers[NextPCReg] + 4;
+machine/mipssim.cc:	pcAfter = registers[instr->rs];
+machine/mipssim.cc:	tmp = registers[instr->rs] + instr->extra;
+machine/mipssim.cc:	if (!machine->ReadMem(tmp, 1, &value))
+machine/mipssim.cc:	if ((value & 0x80) && (instr->opCode == OP_LB))
+machine/mipssim.cc:	nextLoadReg = instr->rt;
+machine/mipssim.cc:	tmp = registers[instr->rs] + instr->extra;
+machine/mipssim.cc:	if (!machine->ReadMem(tmp, 2, &value))
+machine/mipssim.cc:	if ((value & 0x8000) && (instr->opCode == OP_LH))
+machine/mipssim.cc:	nextLoadReg = instr->rt;
+machine/mipssim.cc:	DEBUG('m', "Executing: LUI r%d,%d\n", instr->rt, instr->extra);
+machine/mipssim.cc:	registers[instr->rt] = instr->extra << 16;
+machine/mipssim.cc:	tmp = registers[instr->rs] + instr->extra;
+machine/mipssim.cc:	if (!machine->ReadMem(tmp, 4, &value))
+machine/mipssim.cc:	nextLoadReg = instr->rt;
+machine/mipssim.cc:	tmp = registers[instr->rs] + instr->extra;
+machine/mipssim.cc:	if (!machine->ReadMem(tmp, 4, &value))
+machine/mipssim.cc:	if (registers[LoadReg] == instr->rt)
+machine/mipssim.cc:	    nextLoadValue = registers[instr->rt];
+machine/mipssim.cc:	nextLoadReg = instr->rt;
+machine/mipssim.cc:	tmp = registers[instr->rs] + instr->extra;
+machine/mipssim.cc:	if (!machine->ReadMem(tmp, 4, &value))
+machine/mipssim.cc:	if (registers[LoadReg] == instr->rt)
+machine/mipssim.cc:	    nextLoadValue = registers[instr->rt];
+machine/mipssim.cc:	nextLoadReg = instr->rt;
+machine/mipssim.cc:	registers[instr->rd] = registers[HiReg];
+machine/mipssim.cc:	registers[instr->rd] = registers[LoReg];
+machine/mipssim.cc:	registers[HiReg] = registers[instr->rs];
+machine/mipssim.cc:	registers[LoReg] = registers[instr->rs];
+machine/mipssim.cc:	Mult(registers[instr->rs], registers[instr->rt], TRUE,
+machine/mipssim.cc:	Mult(registers[instr->rs], registers[instr->rt], FALSE,
+machine/mipssim.cc:	registers[instr->rd] = ~(registers[instr->rs] | registers[instr->rt]);
+machine/mipssim.cc:	// registers[instr->rd] = registers[instr->rs] | registers[instr->rs];
+machine/mipssim.cc:	registers[instr->rd] = registers[instr->rs] | registers[instr->rt];
+machine/mipssim.cc:	registers[instr->rt] = registers[instr->rs] | (instr->extra & 0xffff);
+machine/mipssim.cc:	if (!machine->WriteMem((unsigned) 
+machine/mipssim.cc:		(registers[instr->rs] + instr->extra), 1, registers[instr->rt]))
+machine/mipssim.cc:	if (!machine->WriteMem((unsigned) 
+machine/mipssim.cc:		(registers[instr->rs] + instr->extra), 2, registers[instr->rt]))
+machine/mipssim.cc:	registers[instr->rd] = registers[instr->rt] << instr->extra;
+machine/mipssim.cc:	registers[instr->rd] = registers[instr->rt] <<
+machine/mipssim.cc:	    (registers[instr->rs] & 0x1f);
+machine/mipssim.cc:	if (registers[instr->rs] < registers[instr->rt])
+machine/mipssim.cc:	    registers[instr->rd] = 1;
+machine/mipssim.cc:	    registers[instr->rd] = 0;
+machine/mipssim.cc:	if (registers[instr->rs] < instr->extra)
+machine/mipssim.cc:	    registers[instr->rt] = 1;
+machine/mipssim.cc:	    registers[instr->rt] = 0;
+machine/mipssim.cc:	rs = registers[instr->rs];
+machine/mipssim.cc:	imm = instr->extra;
+machine/mipssim.cc:	    registers[instr->rt] = 1;
+machine/mipssim.cc:	    registers[instr->rt] = 0;
+machine/mipssim.cc:	rs = registers[instr->rs];
+machine/mipssim.cc:	rt = registers[instr->rt];
+machine/mipssim.cc:	    registers[instr->rd] = 1;
+machine/mipssim.cc:	    registers[instr->rd] = 0;
+machine/mipssim.cc:	registers[instr->rd] = registers[instr->rt] >> instr->extra;
+machine/mipssim.cc:	registers[instr->rd] = registers[instr->rt] >>
+machine/mipssim.cc:	    (registers[instr->rs] & 0x1f);
+machine/mipssim.cc:	//------------------------------------------------------------
+machine/mipssim.cc:	// implementation-dependent if the argument is a negative
+machine/mipssim.cc:	// tmp = registers[instr->rt];
+machine/mipssim.cc:	// tmp >>= instr->extra;
+machine/mipssim.cc:	// registers[instr->rd] = tmp;
+machine/mipssim.cc:	tmp_unsigned = registers[instr->rt];
+machine/mipssim.cc:	tmp_unsigned >>= instr->extra;
+machine/mipssim.cc:	registers[instr->rd] = tmp_unsigned;
+machine/mipssim.cc:	//------------------------------------------------------------
+machine/mipssim.cc:	//------------------------------------------------------------
+machine/mipssim.cc:	// tmp = registers[instr->rt];
+machine/mipssim.cc:	// tmp >>= (registers[instr->rs] & 0x1f);
+machine/mipssim.cc:	// registers[instr->rd] = tmp;
+machine/mipssim.cc:	tmp_unsigned = registers[instr->rt];
+machine/mipssim.cc:	tmp_unsigned >>= (registers[instr->rs] & 0x1f);
+machine/mipssim.cc:	registers[instr->rd] = tmp_unsigned;
+machine/mipssim.cc:	//------------------------------------------------------------
+machine/mipssim.cc:	diff = registers[instr->rs] - registers[instr->rt];
+machine/mipssim.cc:	if (((registers[instr->rs] ^ registers[instr->rt]) & SIGN_BIT) &&
+machine/mipssim.cc:	    ((registers[instr->rs] ^ diff) & SIGN_BIT)) {
+machine/mipssim.cc:	registers[instr->rd] = diff;
+machine/mipssim.cc:	registers[instr->rd] = registers[instr->rs] - registers[instr->rt];
+machine/mipssim.cc:	if (!machine->WriteMem((unsigned) 
+machine/mipssim.cc:		(registers[instr->rs] + instr->extra), 4, registers[instr->rt]))
+machine/mipssim.cc:	tmp = registers[instr->rs] + instr->extra;
+machine/mipssim.cc:	if (!machine->ReadMem((tmp & ~0x3), 4, &value))
+machine/mipssim.cc:	    value = registers[instr->rt];
+machine/mipssim.cc:	    value = (value & 0xff000000) | ((registers[instr->rt] >> 8) &
+machine/mipssim.cc:	    value = (value & 0xffff0000) | ((registers[instr->rt] >> 16) &
+machine/mipssim.cc:	    value = (value & 0xffffff00) | ((registers[instr->rt] >> 24) &
+machine/mipssim.cc:	if (!machine->WriteMem((tmp & ~0x3), 4, value))
+machine/mipssim.cc:	tmp = registers[instr->rs] + instr->extra;
+machine/mipssim.cc:	if (!machine->ReadMem((tmp & ~0x3), 4, &value))
+machine/mipssim.cc:	    value = (value & 0xffffff) | (registers[instr->rt] << 24);
+machine/mipssim.cc:	    value = (value & 0xffff) | (registers[instr->rt] << 16);
+machine/mipssim.cc:	    value = (value & 0xff) | (registers[instr->rt] << 8);
+machine/mipssim.cc:	    value = registers[instr->rt];
+machine/mipssim.cc:	if (!machine->WriteMem((tmp & ~0x3), 4, value))
+machine/mipssim.cc:	registers[instr->rd] = registers[instr->rs] ^ registers[instr->rt];
+machine/mipssim.cc:	registers[instr->rt] = registers[instr->rs] ^ (instr->extra & 0xffff);
+machine/mipssim.cc:						// are jumping into lala-land
+machine/mipssim.cc://----------------------------------------------------------------------
+machine/mipssim.cc:// 	NOTE -- RaiseException/CheckInterrupts must also call DelayedLoad,
+machine/mipssim.cc://----------------------------------------------------------------------
+machine/mipssim.cc://----------------------------------------------------------------------
+machine/mipssim.cc://----------------------------------------------------------------------
+machine/mipssim.cc:    opCode = opPtr->opCode;
+machine/mipssim.cc:    if (opPtr->format == IFMT) {
+machine/mipssim.cc:    } else if (opPtr->format == RFMT) {
+machine/mipssim.cc://----------------------------------------------------------------------
+machine/mipssim.cc:// 	double-length result of the multiplication.
+machine/mipssim.cc://----------------------------------------------------------------------
+machine/mipssim.cc:	    a = -a;
+machine/mipssim.cc:	    b = -b;
+machine/mipssim.cc:    // complement of the double-word result.
+machine/network.cc://  DO NOT CHANGE -- part of the machine emulation
+machine/network.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/network.cc:{ Network *net = (Network *)arg; net->CheckPktAvail(); }
+machine/network.cc:{ Network *net = (Network *)arg; net->SendDone(); }
+machine/network.cc://   readAvail, writeDone, callArg -- analogous to console
+machine/network.cc:    interrupt->Schedule(NetworkReadPoll, (int)this, NetworkTime, NetworkRecvInt);
+machine/network.cc:    interrupt->Schedule(NetworkReadPoll, (int)this, NetworkTime, NetworkRecvInt);
+machine/network.cc:    stats->numPacketsRecvd++;
+machine/network.cc:    stats->numPacketsSent++;
+machine/network.cc:    interrupt->Schedule(NetworkSendDone, (int)this, NetworkTime, NetworkSendInt);
+machine/stats.cc:// DO NOT CHANGE -- these stats are maintained by the machine emulation.
+machine/stats.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/stats.cc://----------------------------------------------------------------------
+machine/stats.cc://----------------------------------------------------------------------
+machine/stats.cc://----------------------------------------------------------------------
+machine/stats.cc://----------------------------------------------------------------------
+machine/sysdep.cc://	Implementation of system-dependent interface.  Nachos uses the 
+machine/sysdep.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/sysdep.cc:// void signal(int sig, VoidFunctionPtr func); -- this may work now!
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://	(otherwise, we'll go really slowly, since UNIX time-slices
+machine/sysdep.cc://	infrequently, and this would be like busy-waiting).  So we
+machine/sysdep.cc://	re-scheduled (sort of like a Yield, but cast in terms of UNIX).
+machine/sysdep.cc://	"fd" -- the file descriptor of the file to be polled
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc:    if (interrupt->getStatus() == IdleMode)
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://	"name" -- file name
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://	"name" -- file name
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc:// 	Initialize a UNIX socket address -- magical!
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc:    uname->sun_family = AF_UNIX;
+machine/sysdep.cc:    strcpy(uname->sun_path, name);
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc:    // rather ad-hoc...
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://	hitting ctl-C.
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc:// 	Initialize the pseudo-random number generator.  We use the
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc:// 	Return a pseudo-random number.
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://	beyond fixed-size thread execution stacks.
+machine/sysdep.cc://	"size" -- amount of useful space needed (in bytes)
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc://	"ptr" -- the array to be deallocated
+machine/sysdep.cc://	"size" -- amount of useful space in the array (in bytes)
+machine/sysdep.cc://----------------------------------------------------------------------
+machine/sysdep.cc:    mprotect(ptr - pgSize, pgSize, PROT_READ | PROT_WRITE | PROT_EXEC);
+machine/sysdep.cc:    delete [] (ptr - pgSize);
+machine/timer.cc://      This means it can be used for implementing time-slicing.
+machine/timer.cc://      every time stats->totalTicks has increased by TimerTicks.
+machine/timer.cc://      In order to introduce some randomness into time-slicing, if "doRandom"
+machine/timer.cc://	Remember -- nothing in here is part of Nachos.  It is just
+machine/timer.cc://  DO NOT CHANGE -- part of the machine emulation
+machine/timer.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/timer.cc:{ Timer *p = (Timer *)arg; p->TimerExpired(); }
+machine/timer.cc://----------------------------------------------------------------------
+machine/timer.cc://      "doRandom" -- if true, arrange for the interrupts to occur
+machine/timer.cc://----------------------------------------------------------------------
+machine/timer.cc:    interrupt->Schedule(TimerHandler, (int) this, TimeOfNextInterrupt(), 
+machine/timer.cc://----------------------------------------------------------------------
+machine/timer.cc://----------------------------------------------------------------------
+machine/timer.cc:    interrupt->Schedule(TimerHandler, (int) this, TimeOfNextInterrupt(), 
+machine/timer.cc://----------------------------------------------------------------------
+machine/timer.cc://	If randomize is turned on, make it a (pseudo-)random delay.
+machine/timer.cc://----------------------------------------------------------------------
+machine/translate.cc://	Linear page table -- the virtual page # is used as an index
+machine/translate.cc://	Translation lookaside buffer -- associative lookup in the table
+machine/translate.cc:// DO NOT CHANGE -- part of the machine emulation
+machine/translate.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/translate.cc://----------------------------------------------------------------------
+machine/translate.cc://	"addr" -- the virtual address to read from
+machine/translate.cc://	"size" -- the number of bytes to read (1, 2, or 4)
+machine/translate.cc://	"value" -- the place to write the result
+machine/translate.cc://----------------------------------------------------------------------
+machine/translate.cc:	machine->RaiseException(exception, addr);
+machine/translate.cc:	data = machine->mainMemory[physicalAddress];
+machine/translate.cc:	data = *(unsigned short *) &machine->mainMemory[physicalAddress];
+machine/translate.cc:	data = *(unsigned int *) &machine->mainMemory[physicalAddress];
+machine/translate.cc://----------------------------------------------------------------------
+machine/translate.cc://	"addr" -- the virtual address to write to
+machine/translate.cc://	"size" -- the number of bytes to be written (1, 2, or 4)
+machine/translate.cc://	"value" -- the data to be written
+machine/translate.cc://----------------------------------------------------------------------
+machine/translate.cc:	machine->RaiseException(exception, addr);
+machine/translate.cc:	machine->mainMemory[physicalAddress] = (unsigned char) (value & 0xff);
+machine/translate.cc:	*(unsigned short *) &machine->mainMemory[physicalAddress]
+machine/translate.cc:	*(unsigned int *) &machine->mainMemory[physicalAddress]
+machine/translate.cc://----------------------------------------------------------------------
+machine/translate.cc://	"virtAddr" -- the virtual address to translate
+machine/translate.cc://	"physAddr" -- the place to store the physical address
+machine/translate.cc://	"size" -- the amount of memory being read or written
+machine/translate.cc:// 	"writing" -- if TRUE, check the "read-only" bit in the TLB
+machine/translate.cc://----------------------------------------------------------------------
+machine/translate.cc:    if (entry->readOnly && writing) {	// trying to write to a read-only page
+machine/translate.cc:	DEBUG('a', "%d mapped read-only at %d in TLB!\n", virtAddr, i);
+machine/translate.cc:    pageFrame = entry->physicalPage;
+machine/translate.cc:    entry->use = TRUE;		// set the use, dirty bits
+machine/translate.cc:	entry->dirty = TRUE;
+network/nettest.cc://		./nachos -m 0 -o 1 &
+network/nettest.cc://		./nachos -m 1 -o 0 &
+network/nettest.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+network/nettest.cc:    postOffice->Send(outPktHdr, outMailHdr, data); 
+network/nettest.cc:    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+network/nettest.cc:    postOffice->Send(outPktHdr, outMailHdr, ack); 
+network/nettest.cc:    postOffice->Receive(1, &inPktHdr, &inMailHdr, buffer);
+network/nettest.cc:    interrupt->Halt();
+network/post.cc://	"address" -- a mailbox, or a holding area for incoming messages.
+network/post.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://	"pktH" -- source, destination machine ID's
+network/post.cc://	"mailH" -- source, destination mailbox ID's
+network/post.cc://	"data" -- payload data
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://      De-allocate a single mail box within the post office.
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://----------------------------------------------------------------------
+network/post.cc:// 	Print the message header -- the destination machine ID and mailbox
+network/post.cc://	"pktHdr" -- source, destination machine ID's
+network/post.cc://	"mailHdr" -- source, destination mailbox ID's
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://	"pktHdr" -- source, destination machine ID's
+network/post.cc://	"mailHdr" -- source, destination mailbox ID's
+network/post.cc://	"data" -- payload message data
+network/post.cc://----------------------------------------------------------------------
+network/post.cc:    messages->Append((void *)mail);	// put on the end of the list of 
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://	"pktHdr" -- address to put: source, destination machine ID's
+network/post.cc://	"mailHdr" -- address to put: source, destination mailbox ID's
+network/post.cc://	"data" -- address to put: payload message data
+network/post.cc://----------------------------------------------------------------------
+network/post.cc:    Mail *mail = (Mail *) messages->Remove();	// remove message from list;
+network/post.cc:    *pktHdr = mail->pktHdr;
+network/post.cc:    *mailHdr = mail->mailHdr;
+network/post.cc:    bcopy(mail->data, data, mail->mailHdr.length);
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://	"arg" -- pointer to the Post Office managing the Network
+network/post.cc://----------------------------------------------------------------------
+network/post.cc:{ PostOffice* po = (PostOffice *) arg; po->PostalDelivery(); }
+network/post.cc:{ PostOffice* po = (PostOffice *) arg; po->IncomingPacket(); }
+network/post.cc:{ PostOffice* po = (PostOffice *) arg; po->PacketSent(); }
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://----------------------------------------------------------------------
+network/post.cc:    t->Fork(PostalHelper, (int) this);
+network/post.cc://----------------------------------------------------------------------
+network/post.cc:// 	De-allocate the post office data structures.
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://----------------------------------------------------------------------
+network/post.cc:        messageAvailable->P();	
+network/post.cc:        pktHdr = network->Receive(buffer);
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://	"pktHdr" -- source, destination machine ID's
+network/post.cc://	"mailHdr" -- source, destination mailbox ID's
+network/post.cc://	"data" -- payload message data
+network/post.cc://----------------------------------------------------------------------
+network/post.cc:    sendLock->Acquire();   		// only one message can be sent
+network/post.cc:    network->Send(pktHdr, buffer);
+network/post.cc:    messageSent->P();			// wait for interrupt to tell us
+network/post.cc:    sendLock->Release();
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://	"box" -- mailbox ID in which to look for message
+network/post.cc://	"pktHdr" -- address to put: source, destination machine ID's
+network/post.cc://	"mailHdr" -- address to put: source, destination mailbox ID's
+network/post.cc://	"data" -- address to put: payload message data
+network/post.cc://----------------------------------------------------------------------
+network/post.cc:    ASSERT(mailHdr->length <= MaxMailSize);
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://----------------------------------------------------------------------
+network/post.cc:    messageAvailable->V(); 
+network/post.cc://----------------------------------------------------------------------
+network/post.cc://----------------------------------------------------------------------
+network/post.cc:    messageSent->V();
+threads/list.cc://      Routines to manage a singly-linked list of "things".
+threads/list.cc://      list; it is de-allocated when the item is removed. This means
+threads/list.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc://      ListElements, de-allocate them.  However, note that we do *not*
+threads/list.cc://      de-allocate the "items" on the list -- this module allocates
+threads/list.cc://      and de-allocates the ListElements to keep track of each item,
+threads/list.cc://      de-allocate them here.
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc:	  last->next = element;
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc:	  element->next = first;
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc:    for (ListElement * ptr = first; ptr != NULL; ptr = ptr->next)
+threads/list.cc:	  DEBUG ('l', "In mapcar, about to invoke %x(%x)\n", func, ptr->item);
+threads/list.cc:	  (*func) ((int) ptr->item);
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc:    else if (sortKey < first->key)
+threads/list.cc:	  element->next = first;
+threads/list.cc:	  for (ptr = first; ptr->next != NULL; ptr = ptr->next)
+threads/list.cc:		if (sortKey < ptr->next->key)
+threads/list.cc:		      element->next = ptr->next;
+threads/list.cc:		      ptr->next = element;
+threads/list.cc:	  last->next = element;	// item goes at end of list
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc://----------------------------------------------------------------------
+threads/list.cc:    thing = first->item;
+threads/list.cc:	  first = element->next;
+threads/list.cc:	*keyPtr = element->key;
+threads/main.cc:// Usage: nachos -d <debugflags> -rs <random seed #>
+threads/main.cc://              -s -x <nachos file> -c <consoleIn> <consoleOut>
+threads/main.cc://              -f -cp <unix file> <nachos file>
+threads/main.cc://              -p <nachos file> -r <nachos file> -l -D -t
+threads/main.cc://              -n <network reliability> -m <machine id>
+threads/main.cc://              -o <other machine id>
+threads/main.cc://              -z
+threads/main.cc://    -d causes certain debugging messages to be printed (cf. utility.h)
+threads/main.cc://    -rs causes Yield to occur at random (but repeatable) spots
+threads/main.cc://    -z prints the copyright message
+threads/main.cc://    -s causes user programs to be executed in single-step mode
+threads/main.cc://    -x runs a user program
+threads/main.cc://    -c tests the console
+threads/main.cc://    -f causes the physical disk to be formatted
+threads/main.cc://    -cp copies a file from UNIX to Nachos
+threads/main.cc://    -p prints a Nachos file to stdout
+threads/main.cc://    -r removes a Nachos file from the file system
+threads/main.cc://    -l lists the contents of the Nachos directory
+threads/main.cc://    -D prints the contents of the entire file system 
+threads/main.cc://    -t tests the performance of the Nachos file system
+threads/main.cc://    -n sets the network reliability
+threads/main.cc://    -m sets this machine's host id (needed for the network)
+threads/main.cc://    -o runs a simple test of the Nachos network software
+threads/main.cc://  NOTE -- flags are ignored until the relevant assignment.
+threads/main.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+threads/main.cc://----------------------------------------------------------------------
+threads/main.cc://              of the command) -- ex: "nachos -d +" -> argc = 3 
+threads/main.cc://              ex: "nachos -d +" -> argv = {"nachos", "-d", "+"}
+threads/main.cc://----------------------------------------------------------------------
+threads/main.cc:    for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount)
+threads/main.cc:	  if (!strcmp (*argv, "-z"))	// print copyright
+threads/main.cc:	  if (!strcmp (*argv, "-x"))
+threads/main.cc:	  else if (!strcmp (*argv, "-c"))
+threads/main.cc:		interrupt->Halt ();	// once we start the console, then 
+threads/main.cc:        else if (!strcmp (*argv, "-sc")) 
+threads/main.cc:          interrupt->Halt ();
+threads/main.cc:	  if (!strcmp (*argv, "-cp"))
+threads/main.cc:	  else if (!strcmp (*argv, "-p"))
+threads/main.cc:	  else if (!strcmp (*argv, "-r"))
+threads/main.cc:		fileSystem->Remove (*(argv + 1));
+threads/main.cc:	  else if (!strcmp (*argv, "-l"))
+threads/main.cc:		fileSystem->List ();
+threads/main.cc:	  else if (!strcmp (*argv, "-D"))
+threads/main.cc:		fileSystem->Print ();
+threads/main.cc:	  else if (!strcmp (*argv, "-t"))
+threads/main.cc:	  if (!strcmp (*argv, "-o"))
+threads/main.cc:    currentThread->Finish ();	// NOTE: if the procedure "main" 
+threads/scheduler.cc://      Very simple implementation -- no priorities, straight FIFO.
+threads/scheduler.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+threads/scheduler.cc://----------------------------------------------------------------------
+threads/scheduler.cc://----------------------------------------------------------------------
+threads/scheduler.cc://----------------------------------------------------------------------
+threads/scheduler.cc://      De-allocate the list of ready threads.
+threads/scheduler.cc://----------------------------------------------------------------------
+threads/scheduler.cc://----------------------------------------------------------------------
+threads/scheduler.cc://----------------------------------------------------------------------
+threads/scheduler.cc:    DEBUG ('t', "Putting thread %s on ready list.\n", thread->getName ());
+threads/scheduler.cc:    thread->setStatus (READY);
+threads/scheduler.cc:    readyList->Append ((void *) thread);
+threads/scheduler.cc://----------------------------------------------------------------------
+threads/scheduler.cc://----------------------------------------------------------------------
+threads/scheduler.cc:    return (Thread *) readyList->Remove ();
+threads/scheduler.cc://----------------------------------------------------------------------
+threads/scheduler.cc://----------------------------------------------------------------------
+threads/scheduler.cc:    ASSERT (interrupt->getLevel () == IntOff);
+threads/scheduler.cc:    if (currentThread->space != NULL)
+threads/scheduler.cc:	  currentThread->SaveUserState ();	// save the user's CPU registers
+threads/scheduler.cc:	  currentThread->space->SaveState ();
+threads/scheduler.cc:    oldThread->CheckOverflow ();	// check if the old thread
+threads/scheduler.cc:    currentThread->setStatus (RUNNING);	// nextThread is now running
+threads/scheduler.cc:	   oldThread->getName (), nextThread->getName ());
+threads/scheduler.cc:    // This is a machine-dependent assembly language routine defined 
+threads/scheduler.cc:    DEBUG ('t', "Now in thread \"%s\"\n", currentThread->getName ());
+threads/scheduler.cc:    if (currentThread->space != NULL)
+threads/scheduler.cc:	  currentThread->RestoreUserState ();	// to restore, do it.
+threads/scheduler.cc:	  currentThread->space->RestoreState ();
+threads/scheduler.cc://----------------------------------------------------------------------
+threads/scheduler.cc://      Print the scheduler state -- in other words, the contents of
+threads/scheduler.cc://----------------------------------------------------------------------
+threads/scheduler.cc:    readyList->Mapcar ((VoidFunctionPtr) ThreadPrint);
+threads/synch.cc:// re-set the interrupt state back to its original value (whether
+threads/synch.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+threads/synch.cc://----------------------------------------------------------------------
+threads/synch.cc://----------------------------------------------------------------------
+threads/synch.cc://----------------------------------------------------------------------
+threads/synch.cc://      De-allocate semaphore, when no longer needed.  Assume no one
+threads/synch.cc://----------------------------------------------------------------------
+threads/synch.cc://----------------------------------------------------------------------
+threads/synch.cc://----------------------------------------------------------------------
+threads/synch.cc:    IntStatus oldLevel = interrupt->SetLevel (IntOff);	// disable interrupts
+threads/synch.cc:	  queue->Append ((void *) currentThread);	// so go to sleep
+threads/synch.cc:	  currentThread->Sleep ();
+threads/synch.cc:    value--;			// semaphore available, 
+threads/synch.cc:    (void) interrupt->SetLevel (oldLevel);	// re-enable interrupts
+threads/synch.cc://----------------------------------------------------------------------
+threads/synch.cc://----------------------------------------------------------------------
+threads/synch.cc:    IntStatus oldLevel = interrupt->SetLevel (IntOff);
+threads/synch.cc:    thread = (Thread *) queue->Remove ();
+threads/synch.cc:	scheduler->ReadyToRun (thread);
+threads/synch.cc:    (void) interrupt->SetLevel (oldLevel);
+threads/synch.cc:// Dummy functions -- so we can compile our later assignments 
+threads/synch.cc:// Note -- without a correct implementation of Condition::Wait(), 
+threads/synchlist.cc://      Implemented in "monitor"-style -- surround each procedure with a
+threads/synchlist.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+threads/synchlist.cc://----------------------------------------------------------------------
+threads/synchlist.cc://----------------------------------------------------------------------
+threads/synchlist.cc://----------------------------------------------------------------------
+threads/synchlist.cc://      De-allocate the data structures created for synchronizing a list. 
+threads/synchlist.cc://----------------------------------------------------------------------
+threads/synchlist.cc://----------------------------------------------------------------------
+threads/synchlist.cc://----------------------------------------------------------------------
+threads/synchlist.cc:    lock->Acquire ();		// enforce mutual exclusive access to the list 
+threads/synchlist.cc:    list->Append (item);
+threads/synchlist.cc:    listEmpty->Signal (lock);	// wake up a waiter, if any
+threads/synchlist.cc:    lock->Release ();
+threads/synchlist.cc://----------------------------------------------------------------------
+threads/synchlist.cc://----------------------------------------------------------------------
+threads/synchlist.cc:    lock->Acquire ();		// enforce mutual exclusion
+threads/synchlist.cc:    while (list->IsEmpty ())
+threads/synchlist.cc:	listEmpty->Wait (lock);	// wait until list isn't empty
+threads/synchlist.cc:    item = list->Remove ();
+threads/synchlist.cc:    lock->Release ();
+threads/synchlist.cc://----------------------------------------------------------------------
+threads/synchlist.cc://----------------------------------------------------------------------
+threads/synchlist.cc:    lock->Acquire ();
+threads/synchlist.cc:    list->Mapcar (func);
+threads/synchlist.cc:    lock->Release ();
+threads/system.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+threads/system.cc:// These are all initialized and de-allocated by this file.
+threads/system.cc://----------------------------------------------------------------------
+threads/system.cc://----------------------------------------------------------------------
+threads/system.cc:    if (interrupt->getStatus () != IdleMode)
+threads/system.cc:	interrupt->YieldOnReturn ();
+threads/system.cc://----------------------------------------------------------------------
+threads/system.cc://              of the command) -- ex: "nachos -d +" -> argc = 3 
+threads/system.cc://              ex: "nachos -d +" -> argv = {"nachos", "-d", "+"}
+threads/system.cc://----------------------------------------------------------------------
+threads/system.cc:    for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount)
+threads/system.cc:	  if (!strcmp (*argv, "-d"))
+threads/system.cc:	  else if (!strcmp (*argv, "-rs"))
+threads/system.cc:		RandomInit (atoi (*(argv + 1)));	// initialize pseudo-random
+threads/system.cc:	  if (!strcmp (*argv, "-s"))
+threads/system.cc:	  if (!strcmp (*argv, "-f"))
+threads/system.cc:	  if (!strcmp (*argv, "-l"))
+threads/system.cc:	  else if (!strcmp (*argv, "-m"))
+threads/system.cc:    currentThread->setStatus (RUNNING);
+threads/system.cc:    interrupt->Enable ();
+threads/system.cc:    CallOnUserAbort (Cleanup);	// if user hits ctl-C
+threads/system.cc://----------------------------------------------------------------------
+threads/system.cc://      Nachos is halting.  De-allocate global data structures.
+threads/system.cc://----------------------------------------------------------------------
+threads/thread.cc://      Fork -- create a thread to run a procedure concurrently
+threads/thread.cc://              with the caller (this is done in two steps -- first
+threads/thread.cc://      Finish -- called when the forked procedure finishes, to clean up
+threads/thread.cc://      Yield -- relinquish control over the CPU to another ready thread
+threads/thread.cc://      Sleep -- relinquish control over the CPU, but thread is now blocked.
+threads/thread.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc://      De-allocate a thread.
+threads/thread.cc://      because we didn't allocate it -- we got it automatically
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc:    // LB: Observe that currentThread->space may be NULL at that time.
+threads/thread.cc:    this->space = currentThread->space;
+threads/thread.cc:    IntStatus oldLevel = interrupt->SetLevel (IntOff);
+threads/thread.cc:    scheduler->ReadyToRun (this);	// ReadyToRun assumes that interrupts 
+threads/thread.cc:    (void) interrupt->SetLevel (oldLevel);
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc:	ASSERT (stack[StackSize - 1] == STACK_FENCEPOST);
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc://      NOTE: we don't immediately de-allocate the thread data structure 
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc:    (void) interrupt->SetLevel (IntOff);
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc://      it will eventually be re-scheduled.
+threads/thread.cc://      to the front of the ready list and gets re-scheduled.
+threads/thread.cc://      atomically.  On return, we re-set the interrupt level to its
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc:    IntStatus oldLevel = interrupt->SetLevel (IntOff);
+threads/thread.cc:    nextThread = scheduler->FindNextToRun ();
+threads/thread.cc:	  scheduler->ReadyToRun (this);
+threads/thread.cc:	  scheduler->Run (nextThread);
+threads/thread.cc:    (void) interrupt->SetLevel (oldLevel);
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc://      back on the ready queue, so that it can be re-scheduled.
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc:    ASSERT (interrupt->getLevel () == IntOff);
+threads/thread.cc:    while ((nextThread = scheduler->FindNextToRun ()) == NULL)
+threads/thread.cc:	interrupt->Idle ();	// no one to run, wait for an interrupt
+threads/thread.cc:    scheduler->Run (nextThread);	// returns when we've been signalled
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc:    currentThread->Finish ();
+threads/thread.cc:    interrupt->Enable ();
+threads/thread.cc:  if (currentThread->space != NULL)
+threads/thread.cc:      currentThread->RestoreUserState ();	// to restore, do it.
+threads/thread.cc:      currentThread->space->RestoreState ();
+threads/thread.cc:    t->Print ();
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc:    stackTop = stack + 16;	// HP requires 64-byte frame marker
+threads/thread.cc:    stack[StackSize - 1] = STACK_FENCEPOST;
+threads/thread.cc:    stackTop = stack + StackSize - 96;
+threads/thread.cc:    stackTop = stack + StackSize - 4;	// -4 to be on the safe side!
+threads/thread.cc:    *(--stackTop) = (int) ThreadRoot;
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc://      Note that a user program thread has *two* sets of CPU registers -- 
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc:	userRegisters[i] = machine->ReadRegister (i);
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc://      Note that a user program thread has *two* sets of CPU registers -- 
+threads/thread.cc://----------------------------------------------------------------------
+threads/thread.cc:	machine->WriteRegister (i, userRegisters[i]);
+threads/threadtest.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+threads/threadtest.cc://----------------------------------------------------------------------
+threads/threadtest.cc://----------------------------------------------------------------------
+threads/threadtest.cc:	  currentThread->Yield ();
+threads/threadtest.cc://----------------------------------------------------------------------
+threads/threadtest.cc://      Set up a ping-pong between two threads, by forking a thread 
+threads/threadtest.cc://----------------------------------------------------------------------
+threads/threadtest.cc:    t->Fork (SimpleThread, 1);
+threads/utility.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+threads/utility.cc://----------------------------------------------------------------------
+threads/utility.cc://----------------------------------------------------------------------
+threads/utility.cc://----------------------------------------------------------------------
+threads/utility.cc://----------------------------------------------------------------------
+threads/utility.cc://----------------------------------------------------------------------
+threads/utility.cc://----------------------------------------------------------------------
+threads/utility.cc:	  // You will get an unused variable message here -- ignore it.
+userprog/addrspace.cc://      1. link with the -N -T 0 option 
+userprog/addrspace.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+userprog/addrspace.cc://----------------------------------------------------------------------
+userprog/addrspace.cc://----------------------------------------------------------------------
+userprog/addrspace.cc:    noffH->noffMagic = WordToHost (noffH->noffMagic);
+userprog/addrspace.cc:    noffH->code.size = WordToHost (noffH->code.size);
+userprog/addrspace.cc:    noffH->code.virtualAddr = WordToHost (noffH->code.virtualAddr);
+userprog/addrspace.cc:    noffH->code.inFileAddr = WordToHost (noffH->code.inFileAddr);
+userprog/addrspace.cc:    noffH->initData.size = WordToHost (noffH->initData.size);
+userprog/addrspace.cc:    noffH->initData.virtualAddr = WordToHost (noffH->initData.virtualAddr);
+userprog/addrspace.cc:    noffH->initData.inFileAddr = WordToHost (noffH->initData.inFileAddr);
+userprog/addrspace.cc:    noffH->uninitData.size = WordToHost (noffH->uninitData.size);
+userprog/addrspace.cc:    noffH->uninitData.virtualAddr =
+userprog/addrspace.cc:	WordToHost (noffH->uninitData.virtualAddr);
+userprog/addrspace.cc:    noffH->uninitData.inFileAddr = WordToHost (noffH->uninitData.inFileAddr);
+userprog/addrspace.cc://----------------------------------------------------------------------
+userprog/addrspace.cc://----------------------------------------------------------------------
+userprog/addrspace.cc:    executable->ReadAt ((char *) &noffH, sizeof (noffH), 0);
+userprog/addrspace.cc:    // to run anything too big --
+userprog/addrspace.cc:	  // pages to be read-only
+userprog/addrspace.cc:    bzero (machine->mainMemory, size);
+userprog/addrspace.cc:	  executable->ReadAt (&(machine->mainMemory[noffH.code.virtualAddr]),
+userprog/addrspace.cc:	  executable->ReadAt (&
+userprog/addrspace.cc:			      (machine->mainMemory
+userprog/addrspace.cc://----------------------------------------------------------------------
+userprog/addrspace.cc://----------------------------------------------------------------------
+userprog/addrspace.cc://----------------------------------------------------------------------
+userprog/addrspace.cc://      Set the initial values for the user-level register set.
+userprog/addrspace.cc://      will be saved/restored into the currentThread->userRegisters
+userprog/addrspace.cc://----------------------------------------------------------------------
+userprog/addrspace.cc:	machine->WriteRegister (i, 0);
+userprog/addrspace.cc:    // Initial program counter -- must be location of "Start"
+userprog/addrspace.cc:    machine->WriteRegister (PCReg, 0);
+userprog/addrspace.cc:    machine->WriteRegister (NextPCReg, 4);
+userprog/addrspace.cc:    machine->WriteRegister (StackReg, numPages * PageSize - 16);
+userprog/addrspace.cc:	   numPages * PageSize - 16);
+userprog/addrspace.cc://----------------------------------------------------------------------
+userprog/addrspace.cc://----------------------------------------------------------------------
+userprog/addrspace.cc://----------------------------------------------------------------------
+userprog/addrspace.cc://----------------------------------------------------------------------
+userprog/addrspace.cc:    machine->pageTable = pageTable;
+userprog/addrspace.cc:    machine->pageTableSize = numPages;
+userprog/addrspace.cc:    machine->WriteRegister(StackReg, PageSize * (numPages - 3) - 16);
+userprog/bitmap.cc://      Routines to manage a bitmap -- an array of bits each of which
+userprog/bitmap.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://      De-allocate a bitmap.
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://      If no bits are clear, return -1.
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc:    return -1;
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc:    file->ReadAt ((char *) map, numWords * sizeof (unsigned), 0);
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc://----------------------------------------------------------------------
+userprog/bitmap.cc:    file->WriteAt ((char *) map, numWords * sizeof (unsigned), 0);
+userprog/exception.cc://      syscall -- The user code explicitly requests to call a procedure
+userprog/exception.cc://      exceptions -- The user code does something that the CPU can't handle.
+userprog/exception.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+userprog/exception.cc://----------------------------------------------------------------------
+userprog/exception.cc://----------------------------------------------------------------------
+userprog/exception.cc:    int pc = machine->ReadRegister (PCReg);
+userprog/exception.cc:    machine->WriteRegister (PrevPCReg, pc);
+userprog/exception.cc:    pc = machine->ReadRegister (NextPCReg);
+userprog/exception.cc:    machine->WriteRegister (PCReg, pc);
+userprog/exception.cc:    machine->WriteRegister (NextPCReg, pc);
+userprog/exception.cc://----------------------------------------------------------------------
+userprog/exception.cc://      system call code -- r2
+userprog/exception.cc://              arg1 -- r4
+userprog/exception.cc://              arg2 -- r5
+userprog/exception.cc://              arg3 -- r6
+userprog/exception.cc://              arg4 -- r7
+userprog/exception.cc://----------------------------------------------------------------------
+userprog/exception.cc:    int type = machine->ReadRegister (2);
+userprog/exception.cc:	  interrupt->Halt ();
+userprog/exception.cc:              interrupt->Halt();
+userprog/exception.cc:              int rg4 = machine->ReadRegister (4);
+userprog/exception.cc:              currentThread->Finish();
+userprog/exception.cc:              int rg4 = machine->ReadRegister (4);
+userprog/exception.cc:              synchconsole->SynchPutChar(ch);
+userprog/exception.cc:              int rg2 = (int)synchconsole->SynchGetChar();
+userprog/exception.cc:              machine->WriteRegister (2, rg2);
+userprog/exception.cc:              int rg4 = machine->ReadRegister (4);
+userprog/exception.cc:              int rg5 = machine->ReadRegister (5);
+userprog/exception.cc:              buffer = &machine->mainMemory[rg4];
+userprog/exception.cc:              synchconsole->SynchGetString(buffer,rg5);
+userprog/exception.cc:              int rg4 = machine->ReadRegister (4);
+userprog/exception.cc:                synchconsole->SynchPutString(buffer);
+userprog/exception.cc:                 synchconsole->SynchPutString(buffer);
+userprog/exception.cc:              int n = machine->ReadRegister (4);
+userprog/exception.cc:              synchconsole->SynchPutInt(n);
+userprog/exception.cc:              int n = machine->ReadRegister (4);
+userprog/exception.cc:              int *buffer = (int*)(&machine->mainMemory[n]);
+userprog/exception.cc:              synchconsole->SynchGetInt(buffer);
+userprog/exception.cc:              int func = machine->ReadRegister (4);
+userprog/exception.cc:              int arg = machine->ReadRegister (5);
+userprog/exception.cc:  startfrom = from - (from % 4);
+userprog/exception.cc:  machine->ReadMem(startfrom+4*count,4,&buffer);
+userprog/exception.cc:  to[size-1] = '\0';
+userprog/exception.cc:  totalbyte--;
+userprog/progtest.cc:// Copyright (c) 1992-1993 The Regents of the University of California.
+userprog/progtest.cc://----------------------------------------------------------------------
+userprog/progtest.cc://----------------------------------------------------------------------
+userprog/progtest.cc:  OpenFile *executable = fileSystem->Open (filename);
+userprog/progtest.cc:  currentThread->space = space;
+userprog/progtest.cc:  space->InitRegisters ();	// set the initial register values
+userprog/progtest.cc:  space->RestoreState ();	// load page table register
+userprog/progtest.cc:  machine->Run ();		// jump to the user progam
+userprog/progtest.cc:  ASSERT (FALSE);		// machine->Run never returns;
+userprog/progtest.cc://----------------------------------------------------------------------
+userprog/progtest.cc://----------------------------------------------------------------------
+userprog/progtest.cc:    readAvail->V ();
+userprog/progtest.cc:    writeDone->V ();
+userprog/progtest.cc://----------------------------------------------------------------------
+userprog/progtest.cc://----------------------------------------------------------------------
+userprog/progtest.cc:	  readAvail->P ();	// wait for character to arrive
+userprog/progtest.cc:	  ch = console->GetChar ();
+userprog/progtest.cc:        console->PutChar ('<');    // echo it!
+userprog/progtest.cc:        writeDone->P ();
+userprog/progtest.cc:	  console->PutChar (ch);	// echo it!
+userprog/progtest.cc:	  writeDone->P ();	// wait for write to finish
+userprog/progtest.cc:        console->PutChar ('>');    // echo it!
+userprog/progtest.cc:        writeDone->P ();
+userprog/progtest.cc:    while ((ch = synchconsole->SynchGetChar()) != EOF)
+userprog/progtest.cc:      synchconsole->SynchPutChar(ch);
+userprog/synchconsole.cc:	readAvail->V(); 
+userprog/synchconsole.cc:	writeDone->V(); 
+userprog/synchconsole.cc:        getBusy->P();
+userprog/synchconsole.cc:	console->PutChar(ch);
+userprog/synchconsole.cc:	writeDone->P();
+userprog/synchconsole.cc:        getBusy->V();
+userprog/synchconsole.cc:        getBusy->P();
+userprog/synchconsole.cc:	readAvail->P();
+userprog/synchconsole.cc:        getBusy->V();
+userprog/synchconsole.cc:	return console->GetChar();
+userprog/synchconsole.cc:        for(i=0;i<n-1;i++) { 
+userprog/userthread.cc:        pass->function = f;
+userprog/userthread.cc:        pass->argument = arg;
+userprog/userthread.cc:        yourthread->Fork(StartUserThread, (int)pass);
+userprog/userthread.cc:        currentThread->Yield();
+userprog/userthread.cc:        int func = pass->function;
+userprog/userthread.cc:        int arg = pass->argument;
+userprog/userthread.cc:        machine->InitRegisters();
+userprog/userthread.cc:        machine->RestoreState();
+userprog/userthread.cc:        machine->WriteRegister(4, arg);
+userprog/userthread.cc:        machine->WriteRegister(PCReg, func);
+userprog/userthread.cc:        machine->WriteRegister(NextPCReg, func+4);
+userprog/userthread.cc:        machine->WriteRegister(PrevPCReg, func-4);
+userprog/userthread.cc:        machine->space->SetStackPointer();
+userprog/userthread.cc:        machine->Run();
+bin/coff.h:        long    cprmask[4];     /* co-processor register masks          */
+bin/encode.h: Copyright (c) 1992-1993 The Regents of the University of California.
+bin/instr.h: Copyright (c) 1992-1993 The Regents of the University of California.
+bin/instr.h:#define immed(i)	(((i) & 0x8000) ? (i)|(-0x8000) : (i)&0x7fff)
+bin/instr.h:#define off26(i)        (((i)&((1<<26)-1))<<2)
+bin/instr.h:#define top4(i)         (((i)&(~((1<<28)-1))))
+bin/instr.h:#define extend(i, hibitmask)	(((i)&(hibitmask)) ? ((i)|(-(hibitmask))) : (i))
+bin/int.h: Copyright (c) 1992-1993 The Regents of the University of California.
+bin/int.h:/* centralized memory-access primitives */
+bin/int.h:#define ifetch(addr)	(*(int *)(int) (&(mem-memoffset)[imark(addr)]))
+bin/int.h:#define fetch(addr)	(*(int *)(int) (&(mem-memoffset)[amark(addr)]))
+bin/int.h:#define sfetch(addr)	(*(short *)(int) (&(mem-memoffset)[amark(addr)]))
+bin/int.h:#define usfetch(addr)	(*(unsigned short *)(int)(&(mem-memoffset)[amark(addr)]))
+bin/int.h:#define cfetch(addr)	(*(char *)(int) (&(mem-memoffset)[amark(addr)]))
+bin/int.h:#define ucfetch(addr)	(*(unsigned char *)(int)(&(mem-memoffset)[amark(addr)]))
+bin/int.h:	((*(int *)(int) (&(mem-memoffset)[amark(addr)]) = (i)))
+bin/int.h:	((*(short *)(int) (&(mem-memoffset)[amark(addr)]) = (i)))
+bin/int.h:	(((mem-memoffset)[amark(addr)] = (i)))
+bin/noff.h: *	code (read-only), initialized data, and unitialized data
+bin/noff.h:   Segment uninitData;		/* uninitialized data segment --
+filesys/directory.h://	Data structures to manage a UNIX-like directory of file names.
+filesys/directory.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+filesys/directory.h:// The following class defines a UNIX-like "directory".  Each entry in
+filesys/directory.h:    ~Directory();			// De-allocate the directory
+filesys/directory.h:					//  of the directory -- all the file
+filesys/filehdr.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+filesys/filehdr.h:#define NumDirect 	((SectorSize - 2 * sizeof(int)) / sizeof(int))
+filesys/filehdr.h:// the "i-node"), describing where on disk to find all of the data in the file.
+filesys/filehdr.h:// When it is on disk, it is stored in a single sector -- this means
+filesys/filehdr.h:    void Deallocate(BitMap *bitMap);  		// De-allocate this file's 
+filesys/filesys.h://	do with "naming" -- creating, opening, and deleting files,
+filesys/filesys.h://	The "STUB" version just re-defines the Nachos file system 
+filesys/filesys.h://	stored as files in the Nachos file system -- this causes an interesting
+filesys/filesys.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+filesys/filesys.h:	if (fileDescriptor == -1) return FALSE;
+filesys/filesys.h:	  if (fileDescriptor == -1) return NULL;
+filesys/filesys.h:   OpenFile* directoryFile;		// "Root" directory -- list of 
+filesys/openfile.h://	the UNIX ones -- type 'man open' to the UNIX prompt.
+filesys/openfile.h://	by different threads -- this is part of the assignment.
+filesys/openfile.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+filesys/openfile.h:					// start reading/writing -- UNIX lseek
+filesys/openfile.h:					// than the UNIX idiom -- lseek to 
+filesys/synchdisk.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+filesys/synchdisk.h:// As with other I/O devices, the raw physical disk is an asynchronous device --
+filesys/synchdisk.h:    ~SynchDisk();			// De-allocate the synch disk data
+machine/console.h://	I/O device.  A terminal has two parts -- a keyboard input,
+machine/console.h://	for read and write, and the device is "duplex" -- a character
+machine/console.h://  DO NOT CHANGE -- part of the machine emulation
+machine/console.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/console.h:// external interface -- Nachos kernel code can call these
+machine/console.h:// internal emulation routines -- DO NOT call these. 
+machine/disk.h://  DO NOT CHANGE -- part of the machine emulation
+machine/disk.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/disk.h:// Addressing is by sector number -- each sector on the disk is given
+machine/disk.h:// As with other I/O devices, the raw physical disk is an asynchronous device --
+machine/disk.h:// each operation reflects a "track buffer" -- RAM to store the contents
+machine/disk.h:// "skip-sector" scheduling -- a read request which comes in shortly after 
+machine/disk.h:// The track buffer simulation can be disabled by compiling with -DNOTRACKBUF
+machine/interrupt.h://	Data structures to emulate low-level interrupt hardware.
+machine/interrupt.h://		interrupts are re-enabled
+machine/interrupt.h://	As a result, unlike real hardware, interrupts (and thus time-slice 
+machine/interrupt.h://  DO NOT CHANGE -- part of the machine emulation
+machine/interrupt.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/interrupt.h:    ~Interrupt();			// de-allocate data structures
+machine/machine.h://	kernel is in memory too -- but as in most machines these days,
+machine/machine.h://  DO NOT CHANGE -- part of the machine emulation
+machine/machine.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/machine.h:					    // "read-only"
+machine/machine.h:                     // Immediates are sign-extended.
+machine/machine.h:// seen by user programs -- the CPU registers, main memory, etc.
+machine/machine.h:    ~Machine();			// De-allocate the data structures
+machine/machine.h:// Routines internal to the machine simulation -- DO NOT call these 
+machine/machine.h:// Data structures -- all of these are accessible to Nachos kernel code.
+machine/machine.h://  	a software-loaded translation lookaside buffer (tlb) -- a cache of 
+machine/machine.h:// If "tlb" is non-NULL, the Nachos kernel is responsible for managing
+machine/machine.h:// Thus the TLB pointer should be considered as *read-only*, although 
+machine/machine.h:					// "read-only" to Nachos kernel code
+machine/mipssim.h://  DO NOT CHANGE -- part of the machine emulation
+machine/mipssim.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/mipssim.h: * OP_UNIMP -		means that this instruction is legal, but hasn't
+machine/mipssim.h: * OP_RES -		means that this is a reserved opcode (it isn't
+machine/network.h://	fixed-size packet delivery to other machines on the network.
+machine/network.h://	the console device -- both are full duplex channels.
+machine/network.h://  DO NOT CHANGE -- part of the machine emulation
+machine/network.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/network.h:// Network address -- uniquely identifies a machine.  This machine's ID 
+machine/network.h:#define MaxPacketSize 	(MaxWireSize - sizeof(struct PacketHeader))	
+machine/network.h:    ~Network();			// De-allocate the network driver data
+machine/stats.h:// DO NOT CHANGE -- these stats are maintained by the machine emulation
+machine/stats.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/stats.h:// about Nachos behavior -- how much time (ticks) elapsed, how
+machine/stats.h:// take in a real system.  A "tick" is a just a unit of time -- if you 
+machine/stats.h:#define UserTick 	1	// advance for each user-level instruction 
+machine/sysdep.h://	System-dependent interface.  Nachos uses the routines defined
+machine/sysdep.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/sysdep.h:// Initialize system so that cleanUp routine is called when user hits ctl-C
+machine/sysdep.h:// Allocate, de-allocate an array, such that de-referencing
+machine/timer.h://	This means it can be used for implementing time-slicing, or for
+machine/timer.h://	every time stats->totalTicks has increased by TimerTicks.
+machine/timer.h://	In order to introduce some randomness into time-slicing, if "doRandom"
+machine/timer.h://  DO NOT CHANGE -- part of the machine emulation
+machine/timer.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/timer.h:// Internal routines to the timer emulation -- DO NOT call these
+machine/translate.h://	virtual page # -> physical page #, used for managing
+machine/translate.h://	The data structures in this file are "dual-use" - they
+machine/translate.h://	a software-managed translation lookaside buffer (TLB).
+machine/translate.h:// DO NOT CHANGE -- part of the machine emulation
+machine/translate.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+machine/translate.h:// The following class defines an entry in a translation table -- either
+machine/translate.h:// read-only) and some bits for usage information (use and dirty).
+network/post.h://	ordered, fixed-size message delivery to mailboxes on other 
+network/post.h:// 	Thus, the service our post office provides is to de-multiplex 
+network/post.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+network/post.h:// Mailbox address -- uniquely identifies a mailbox on a given machine.
+network/post.h:// Maximum "payload" -- real data -- that can included in a single message
+network/post.h:#define MaxMailSize 	(MaxPacketSize - sizeof(MailHeader))
+network/post.h:     char data[MaxMailSize];	// Payload -- message data
+network/post.h:    ~MailBox();			// De-allocate mail box
+network/post.h:// two main operations: Send -- send a message to a mailbox on a remote 
+network/post.h:// machine, and Receive -- wait until a message is in the mailbox, 
+network/post.h:    ~PostOffice();		// De-allocate Post Office data
+threads/copyright.h:Copyright (c) 1992-1993 The Regents of the University of California.
+threads/copyright.h:    "Copyright (c) 1992-1993 The Regents of the University of California.  All rights reserved.";
+threads/list.h://      Data structures to manage LISP-like lists.  
+threads/list.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+threads/list.h:// The following class defines a "list element" -- which is
+threads/list.h:// The following class defines a "list" -- a singly linked list of
+threads/list.h:    ~List ();			// de-allocate the list
+threads/scheduler.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+threads/scheduler.h:// The following class defines the scheduler/dispatcher abstraction -- 
+threads/scheduler.h:    ~Scheduler ();		// De-allocate ready list
+threads/switch.h: Copyright (c) 1992-1993 The Regents of the University of California.
+threads/switch.h: * values in the Thread object -- used in Thread::AllocateStack().
+threads/switch.h:#define PCState		(PC/4-1)
+threads/switch.h:#define FPState		(FP/4-1)
+threads/switch.h:#define InitialPCState	(S0/4-1)
+threads/switch.h:#define InitialArgState	(S1/4-1)
+threads/switch.h:#define WhenDonePCState	(S2/4-1)
+threads/switch.h:#define StartupPCState	(S3/4-1)
+threads/switch.h:#define PCState         (PC/4-1)
+threads/switch.h:#define InitialPCState  (I0/4-1)
+threads/switch.h:#define InitialArgState (I1/4-1)
+threads/switch.h:#define WhenDonePCState (I2/4-1)
+threads/switch.h:#define StartupPCState  (I3/4-1)
+threads/switch.h:#define PCState         (PC/4-1)
+threads/switch.h:#define InitialPCState  (S0/4-1)
+threads/switch.h:#define InitialArgState (S1/4-1)
+threads/switch.h:#define WhenDonePCState (S2/4-1)
+threads/switch.h:#define StartupPCState  (S3/4-1)
+threads/switch.h:#define PCState         (_PC/4-1)
+threads/switch.h:#define FPState         (_EBP/4-1)
+threads/switch.h:#define InitialPCState  (_ESI/4-1)
+threads/switch.h:#define InitialArgState (_EDX/4-1)
+threads/switch.h:#define WhenDonePCState (_EDI/4-1)
+threads/switch.h:#define StartupPCState  (_ECX/4-1)
+threads/synch.h://      interface is given -- they are to be implemented as part of 
+threads/synch.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+threads/synch.h:// synch.h -- synchronization primitives.  
+threads/synch.h:// The following class defines a "semaphore" whose value is a non-negative
+threads/synch.h://      P() -- waits until value > 0, then decrement
+threads/synch.h://      V() -- increment, waking up a thread waiting in P() if necessary
+threads/synch.h:// the semaphore directly -- even if you did read the value, the
+threads/synch.h:     ~Semaphore ();		// de-allocate semaphore
+threads/synch.h://      Acquire -- wait until the lock is FREE, then set it to BUSY
+threads/synch.h://      Release -- set lock to be FREE, waking up a thread waiting
+threads/synch.h://      Wait() -- release the lock, relinquish the CPU until signaled, 
+threads/synch.h://              then re-acquire the lock
+threads/synch.h://      Signal() -- wake up a thread, if there are any waiting on 
+threads/synch.h://      Broadcast() -- wake up all threads waiting on the condition
+threads/synch.h:// In Nachos, condition variables are assumed to obey *Mesa*-style
+threads/synch.h:// of the woken thread to re-acquire the lock (this re-acquire is
+threads/synch.h:// variables according to *Hoare*-style semantics -- where the signalling
+threads/synch.h:// The consequence of using Mesa-style semantics is that some other thread
+threads/synchlist.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+threads/synchlist.h:// The following class defines a "synchronized list" -- a list for which:
+threads/synchlist.h:    ~SynchList ();		// de-allocate a synchronized list
+threads/system.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+threads/thread.h://      thread, it is possible to overflow the stack -- for instance,
+threads/thread.h://      increase the size of thread stack -- ThreadStackSize.
+threads/thread.h://      Only then can we do the fork: "t->fork(f, arg)".
+threads/thread.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+threads/thread.h:// The following class defines a "thread control block" -- which
+threads/thread.h:    // NOTE -- thread being deleted
+threads/thread.h:// A thread running a user program actually has *two* sets of CPU registers -- 
+threads/thread.h:    int userRegisters[NumTotalRegs];	// user-level CPU register state
+threads/thread.h:    void SaveUserState ();	// save user-level register state
+threads/thread.h:    void RestoreUserState ();	// restore user-level register state
+threads/thread.h:// Magical machine-dependent routines, defined in switch.s
+threads/utility.h://      passed to Nachos (-d).  You are encouraged to add your own
+threads/utility.h://      debugging flags.  The pre-defined debugging flags are:
+threads/utility.h://      '+' -- turn on all debug messages
+threads/utility.h://      't' -- thread system
+threads/utility.h://      's' -- semaphores, locks, and conditions
+threads/utility.h://      'i' -- interrupt emulation
+threads/utility.h://      'm' -- machine emulation (USER_PROGRAM)
+threads/utility.h://      'd' -- disk emulation (FILESYS)
+threads/utility.h://      'f' -- file system (FILESYS)
+threads/utility.h://      'a' -- address spaces (USER_PROGRAM)
+threads/utility.h://      'n' -- network emulation (NETWORK)
+threads/utility.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+threads/utility.h://----------------------------------------------------------------------
+threads/utility.h://----------------------------------------------------------------------
+userprog/addrspace.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+userprog/addrspace.h:    ~AddrSpace ();		// De-allocate an address space
+userprog/addrspace.h:    void InitRegisters ();	// Initialize user-level CPU registers,
+userprog/addrspace.h:    void SaveState ();		// Save/restore address space-specific
+userprog/bitmap.h://      Data structures defining a bitmap -- an array of bits each of which
+userprog/bitmap.h:// Copyright (c) 1992-1993 The Regents of the University of California.
+userprog/bitmap.h:// The following class defines a "bitmap" -- an array of bits,
+userprog/bitmap.h:// Most useful for managing the allocation of the elements of an array --
+userprog/bitmap.h:     ~BitMap ();		// De-allocate bitmap
+userprog/bitmap.h:    // If no bits are clear, return -1.
+userprog/syscall.h: * Copyright (c) 1992-1993 The Regents of the University of California.
+userprog/syscall.h:/* system call codes -- used by the stubs to tell the kernel which system call
+userprog/syscall.h: * These functions are patterned after UNIX -- files represent
+userprog/syscall.h: * Return the number of bytes actually read -- if the open file isn't
+userprog/syscall.h:/* User-level thread operations: Fork and Yield.  To allow multiple
