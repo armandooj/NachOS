@@ -6,6 +6,7 @@ void print(void *c)
   // PutString("Thread ");
   // PutChar(*((char *) c) );
   // PutString(" is executing\n");
+  UserThreadExit();  
 }
 
 int main() {
@@ -15,7 +16,6 @@ int main() {
   
   UserThreadCreate(print, (void *) c);
   PutChar('*');
-  
+    
   return 0;
 }
-

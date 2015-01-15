@@ -114,7 +114,7 @@ Console::CheckCharAvail()
 void
 Console::WriteDone()
 {
-    DEBUG('t', "Finish Write.\n");
+    DEBUG('t', "Thread \"%s\" Finish Write.\n", currentThread->getName() );
     putBusy = FALSE;
     stats->numConsoleCharsWritten++;
     (*writeHandler)(handlerArg);
@@ -144,7 +144,7 @@ Console::GetChar()
 void
 Console::PutChar(char ch)
 {
-    DEBUG('t', "Begin Write in Put Char \n"); 
+    DEBUG('t', "Process \"%s\" begins Write in Put Char \n", currentThread->getName()); 
 
     ASSERT(putBusy == FALSE);
     WriteFile(writeFileNo, &ch, sizeof(char));
