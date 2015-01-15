@@ -19,6 +19,10 @@
 #include "system.h"
 #include "addrspace.h"
 #include "noff.h"
+#ifdef CHANGED
+#include "userthread.h"
+#endif
+
 
 #include <strings.h>		/* for bzero */
 
@@ -195,3 +199,11 @@ AddrSpace::RestoreState ()
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
 }
+
+#ifdef CHANGED
+void
+AddrSpace::SetStackPointer ()
+{
+    machine->WriteRegister(StackReg, PageSize * (numPages - 3) - 16);
+}
+#endif

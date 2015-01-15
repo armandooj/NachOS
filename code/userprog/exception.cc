@@ -24,6 +24,9 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
+#ifdef CHANGED
+#include "userthread.h"
+#endif
 
 //----------------------------------------------------------------------
 // UpdatePC : Increments the Program Counter register in order to resume
@@ -95,6 +98,13 @@ ExceptionHandler (ExceptionType which)
               break;
             }
 
+            case SC_Exit: {
+              int rg4 = machine->ReadRegister (4);
+              DEBUG('a', "exit initiated by user program %d.\n",rg4);
+              interrupt->Halt();
+              break;
+            }
+
             case SC_PutChar: {
               int rg4 = machine->ReadRegister (4);
               char ch = (char)rg4;
@@ -155,9 +165,17 @@ ExceptionHandler (ExceptionType which)
               break;
             }
 
+            case SC_UserThreadCreate: {
+              DEBUG('a', "UserThreadCreate, initiated by user program.\n");
+              int rg4 = machine->ReadRegister (4);
+              int rg5 = machine->ReadRegister (5);
+              do_UserThreadCreate(rg4, rg5);
+              break;
+            }
+
             default: {
-              DEBUG('a', "Shutdown, initiated by user program.\n");
-              interrupt->Halt();
+              printf("unexpected %d %d\n",which,type);
+              ASSERT(FALSE);
             }
               
           }

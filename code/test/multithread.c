@@ -3,16 +3,15 @@
 void print(void *num)
 {
      int n = (int)num;
-     PutString("Thread ");
+     //PutString("Thread ");
      PutInt(n);
-     PutString(" Created !\n");
+     //PutString(" Created !\n");
 }
 
 int main()
 {
      UserThreadCreate(print, (void*)1);
-     //UserThreadCreate(print, (void*)2);
-     PutString("main end.\n");
-     Halt();
+     UserThreadCreate(print, (void*)2);
+     PutChar('m');
      return 0;
 }

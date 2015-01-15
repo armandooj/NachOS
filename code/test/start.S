@@ -97,6 +97,14 @@ GetInt:
 	syscall
 	j	$31
 	.end GetInt
+
+	.globl UserThreadCreate
+	.ent	UserThreadCreate
+UserThreadCreate:
+	addiu $2,$0,SC_UserThreadCreate
+	syscall
+	j	$31
+	.end UserThreadCreate
 #endif
 
 	.globl Exit
