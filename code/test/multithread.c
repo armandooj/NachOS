@@ -3,7 +3,12 @@ void print(void *c)
 {
   PutChar(* ((char *) c));
 
-  // TODO exit the thread!
+  int i;
+  for (i = 0; i < 5; i++) {
+    PutChar('.');
+  }
+  
+  UserThreadExit();
 }
 
 int main() {
@@ -15,12 +20,23 @@ int main() {
   if (id >= 0) {
     //PutInt(id);
     PutChar('*');
-  } else {
-    PutString("Error creating a Thread.");
+  } else {    
+    PutString("Error creating first Thread.");
   }
 
-  // UserThreadCreate(print, (void *) c);
+  ch = 'b';
+
+  int i;
+  for (i = 0; i <= 2; i++) {
+    id = UserThreadCreate(print, (void *) c);
+    if (id >= 0) {      
+      PutString("OK");
+    } else {
+      PutString("Error creating a Thread -> ");
+      // PutInt(i);
+      PutString("\n");
+    }
+  }
   
   return 0;
 }
-

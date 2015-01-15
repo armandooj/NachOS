@@ -39,7 +39,9 @@ class AddrSpace
     int GetMaxNumThreads ();
 
     // Get's and sets the first stack's free position
-    int GetAndSetFreeStackPosition ();
+    int GetAndSetFreeStackLocation ();
+    // Free the given position
+    void FreeStackLocation (int position);
 
   private:
     TranslationEntry * pageTable;	// Assume linear page table translation

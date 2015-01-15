@@ -192,8 +192,15 @@ int AddrSpace::GetMaxNumThreads() {
 Stack BitMap Operations
 */
 
-int AddrSpace::GetAndSetFreeStackPosition () {
+int AddrSpace::GetAndSetFreeStackLocation () {
     return stackBitMap->Find();
+}
+
+void AddrSpace::FreeStackLocation (int position) {
+    DEBUG('a', "Freeing stack location %d\n", position);
+    stackBitMap->Print();
+    stackBitMap->Clear(position);
+    stackBitMap->Print();
 }
 
 //----------------------------------------------------------------------

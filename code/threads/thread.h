@@ -83,8 +83,8 @@ class Thread
     int machineState[MachineStateSize];	// all registers except for stackTop
 
   public:
-      Thread (const char *debugName);	// initialize a Thread 
-     ~Thread ();		// deallocate a Thread
+    Thread (const char *debugName);	// initialize a Thread 
+    ~Thread ();		// deallocate a Thread
     // NOTE -- thread being deleted
     // must not be running when delete 
     // is called
@@ -98,22 +98,19 @@ class Thread
     // relinquish the processor
     void Finish ();		// The thread is done executing
 
-    // Finds the next available location and sets it in arg
-    void SetStackLocation(int *location);
-
     void CheckOverflow ();	// Check if thread has 
     // overflowed its stack
     void setStatus (ThreadStatus st)
     {
-	status = st;
+	   status = st;
     }
     const char *getName ()
     {
-	return (name);
+	   return (name);
     }
     void Print ()
     {
-	printf ("%s, ", name);
+	   printf ("%s, ", name);
     }
 
   private:
@@ -140,7 +137,15 @@ class Thread
     void SaveUserState ();	// save user-level register state
     void RestoreUserState ();	// restore user-level register state
 
+    // Frees the stack location
+    void FreeStackLocation();
+    int GetStackLocation();
+
     AddrSpace *space;		// User code this thread is running.
+
+  private:
+    int stackLocation;
+
 #endif
 };
 

@@ -196,7 +196,12 @@ ExceptionHandler (ExceptionType which)
                 int thread_id = do_UserThreadCreate(f, arg);
                 machine->WriteRegister(2, thread_id);                     
                 break;
-            }             
+            }       
+            case SC_UserThreadExit: 
+            {
+                do_UserThreadExit();                  
+                break;
+            }         
             case SC_GetChar:
             {
                 char ch = synchconsole->SynchGetChar();
