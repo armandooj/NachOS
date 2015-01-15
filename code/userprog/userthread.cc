@@ -19,7 +19,7 @@ Initialises backups of registers of a new copy of the MIPS interpreter in the sa
 */
 static void StartUserThread(int data) {
 
-  printf("StartUserThread with Stack Position: %d\n", currentThread->GetStackLocation());
+  DEBUG('t', "StartUserThread with Stack Position: %d\n", currentThread->GetStackLocation());
 
   currentThread->space->InitRegisters();
   currentThread->space->RestoreState(); // TODO: Check if this need to reverse
