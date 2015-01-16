@@ -162,7 +162,7 @@ ExceptionHandler (ExceptionType which)
               */
               
               while (currentThread->space->getNumberOfUserProcesses() != 0) {
-                mcurrentThread->space->ExitForMain->P();  
+                currentThread->space->ExitForMain->P();  
               }
               
               DEBUG('t', "Status: Running queue empty: %d. Blocking queue empty:%d\n",
