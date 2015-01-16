@@ -19,6 +19,13 @@ Initialises backups of registers of a new copy of the MIPS interpreter in the sa
 */
 static void StartUserThread(int data) {
 
+  currentThread->SetStackLocation();
+
+  if (currentThread->GetStackLocation() < 0) {
+    DEBUG('t', "Error creating the thread.");
+    return;
+  } 
+
   DEBUG('t', "StartUserThread with Stack Position: %d\n", currentThread->GetStackLocation());
 
   currentThread->space->InitRegisters();
@@ -47,16 +54,10 @@ int do_UserThreadCreate(int f, int arg) {
   paramFunction->arg = arg;
 
   Thread *newThread = new Thread("new Thread");
-  // Note, Fork() now sets the stack location
   newThread->Fork(StartUserThread, (int) paramFunction);
 
-  if (newThread->GetStackLocation() < 0) {
-    DEBUG('t', "Error creating the thread.");
-    return -1;
-  }
-
   // TODO use a real ID
-  return newThread->GetStackLocation();
+  return 1;
 }
 
 void do_UserThreadExit() {

@@ -107,9 +107,6 @@ Thread::Fork (VoidFunctionPtr func, int arg)
     // LB: Observe that currentThread->space may be NULL at that time.
     this->space = currentThread->space;
 
-    // // We need to set it's address space first so that we can access the stack!
-    stackLocation = space->GetAndSetFreeStackLocation();
-
 #endif // USER_PROGRAM
 
     IntStatus oldLevel = interrupt->SetLevel (IntOff);
@@ -425,6 +422,12 @@ Thread::FreeStackLocation() {
 int
 Thread::GetStackLocation() {
   return stackLocation;
+}
+
+void
+Thread::SetStackLocation() {
+  // // We need to set it's address space first so that we can access the stack!
+  stackLocation = space->GetAndSetFreeStackLocation();
 }
 
 

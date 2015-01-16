@@ -27,7 +27,7 @@ int main() {
   ch = 'b';
 
   int i;
-  for (i = 0; i <= 1; i++) {
+  for (i = 0; i <= 5; i++) {
     id = UserThreadCreate(print, (void *) c);
     if (id >= 0) {      
       PutString("OK");
