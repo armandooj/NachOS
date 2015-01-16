@@ -30,7 +30,6 @@
 Scheduler::Scheduler ()
 {
     readyList = new List;
-    numberOfUserProcesses = 0;
 }
 
 //----------------------------------------------------------------------
@@ -161,15 +160,4 @@ Scheduler::Print ()
 //----------------------------------------------------------------------
 bool Scheduler::IsRunningQueueEmpty() {
     return readyList->IsEmpty();
-}
-
-void Scheduler::increaseUserProcesses(){
-    numberOfUserProcesses++;
-}
-void Scheduler::decreaseUserProcesses(){
-    numberOfUserProcesses--;
-}
-
-int Scheduler::getNumberOfUserProcesses() {
-    return numberOfUserProcesses;
 }

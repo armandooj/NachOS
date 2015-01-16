@@ -41,7 +41,7 @@ static void StartUserThread(int data) {
   // Set the stack pointer
   currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetStackLocation() + 1));
   
-  scheduler->increaseUserProcesses();
+  currentThread->space->increaseUserProcesses();
   
   machine->Run();
 }
@@ -63,8 +63,9 @@ int do_UserThreadCreate(int f, int arg) {
 void do_UserThreadExit() {
 
     DEBUG('t', "Thread \"%s\"\n Exit", currentThread->getName() );
-    DEBUG('t', "Status: number of current userthreads: %d\n", scheduler->getNumberOfUserProcesses());
-    scheduler->decreaseUserProcesses();
+    DEBUG('t', "Status: number of current userthreads: %d\n", 
+                            currentThread->space->getNumberOfUserProcesses());
+    currentThread->space->decreaseUserProcesses();
     
     currentThread->FreeStackLocation();  
 

@@ -42,12 +42,21 @@ class AddrSpace
     int GetAndSetFreeStackLocation ();
     // Free the given position
     void FreeStackLocation (int position);
-
+    
+#ifdef CHANGED    
+    void increaseUserProcesses();
+    void decreaseUserProcesses();
+    int getNumberOfUserProcesses();
+#endif   // END CHANGED
   private:
     TranslationEntry * pageTable;	// Assume linear page table translation
     // for now!
     unsigned int numPages;	// Number of pages in the virtual 
     // address space
+
+#ifdef CHANGED
+    int numberOfUserProcesses;
+#endif   // END CHANGED
 
     // Available pages
     BitMap *stackBitMap;

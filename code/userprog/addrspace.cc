@@ -122,6 +122,11 @@ AddrSpace::AddrSpace (OpenFile * executable)
 
       // Initialize the bitmap
       stackBitMap = new BitMap(GetMaxNumThreads());
+
+#ifdef CHANGED
+      numberOfUserProcesses = 0;
+#endif   // END CHANGED
+      
 }
 
 //----------------------------------------------------------------------
@@ -228,3 +233,25 @@ AddrSpace::RestoreState ()
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
 }
+
+
+#ifdef CHANGED
+//----------------------------------------------------------------------
+// Manipulate User Process
+//      These are function to munipulate the numberOfUserProcesses 
+//      variable
+//
+//----------------------------------------------------------------------
+
+void AddrSpace::increaseUserProcesses(){
+    numberOfUserProcesses++;
+}
+void AddrSpace::decreaseUserProcesses(){
+    numberOfUserProcesses--;
+}
+
+int AddrSpace::getNumberOfUserProcesses() {
+    return numberOfUserProcesses;
+}
+
+#endif   // END CHANGED

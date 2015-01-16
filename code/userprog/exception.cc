@@ -150,9 +150,9 @@ ExceptionHandler (ExceptionType which)
             case SC_Exit: 
             {
               DEBUG('t', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
-              DEBUG('t', "Number of UserThread: %d\n", scheduler->getNumberOfUserProcesses() );
+              DEBUG('t', "Number of UserThread: %d\n", currentThread->space->getNumberOfUserProcesses() );
                   
-              while (scheduler->getNumberOfUserProcesses() != 0) {
+              while (currentThread->space->getNumberOfUserProcesses() != 0) {
                 currentThread->Yield();
               }
     
