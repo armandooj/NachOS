@@ -91,12 +91,12 @@ int SynchConsole::SynchGetInt() {
     char buffer[MAX_INT_SIZE + 1];
 
     int i = 0; 
-    while(i < MAX_INT_SIZE + 1) { 
-      buffer[i] = SynchGetChar();
-      if (buffer[i] == '\n' || buffer[i] == EOF || buffer[i] == '\0') {        
-        break;
-      }
-      i++;
+    while (i < MAX_INT_SIZE) {
+        buffer[i] = SynchGetChar();
+        if (buffer[i] == '\n' || buffer[i] == EOF || buffer[i] == '\0') {              
+            break;
+        }
+        i++;
     }
 
     int val;
