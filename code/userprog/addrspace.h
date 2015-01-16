@@ -55,11 +55,13 @@ class AddrSpace
     // address space
 
 #ifdef CHANGED
-    int numberOfUserProcesses;
-#endif   // END CHANGED
-
+    int numberOfUserProcesses;    
+    
     // Available pages
     BitMap *stackBitMap;
+#endif   // END CHANGED
+
+
 };
 
 #endif // ADDRSPACE_H

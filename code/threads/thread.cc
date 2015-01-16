@@ -412,6 +412,7 @@ Thread::RestoreUserState ()
 #endif
 
 
+#ifdef CHANGED
 // Stack BitMap
 
 void
@@ -430,4 +431,5 @@ Thread::SetStackLocation() {
   stackLocation = space->GetAndSetFreeStackLocation();
 }
 
+#endif
 

@@ -120,13 +120,11 @@ AddrSpace::AddrSpace (OpenFile * executable)
 			      noffH.initData.size, noffH.initData.inFileAddr);
       }
 
+#ifdef CHANGED
       // Initialize the bitmap
       stackBitMap = new BitMap(GetMaxNumThreads());
-
-#ifdef CHANGED
       numberOfUserProcesses = 0;
-#endif   // END CHANGED
-      
+#endif   // END CHANGED      
 }
 
 //----------------------------------------------------------------------
@@ -175,6 +173,7 @@ AddrSpace::InitRegisters ()
 	   numPages * PageSize - 16);
 }
 
+#ifdef CHANGED
 //----------------------------------------------------------------------
 // AddrSpace::MultiThreadSetStackPointer
 //      Use in multithread function to set the new stack pointer to
@@ -205,6 +204,8 @@ void AddrSpace::FreeStackLocation (int position) {
     DEBUG('a', "Freeing stack location %d\n", position);
     stackBitMap->Clear(position);
 }
+
+#endif
 
 //----------------------------------------------------------------------
 // AddrSpace::SaveState

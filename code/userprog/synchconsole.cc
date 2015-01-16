@@ -55,12 +55,12 @@ char SynchConsole::SynchGetChar()
 void SynchConsole::SynchPutString(const char s[])
 {
     Pro_IO->P();
-    int i=0;
-    while(i < MAX_STRING_SIZE)
+    int i = 0;
+    while(i < MAX_STRING_SIZE && s[i] != '\0')
 	{
         console->PutChar(*(s + i));
         writeDone->P();
-	i++;
+	    i++;
     }
     Pro_IO->V();
 }
@@ -82,7 +82,7 @@ void SynchConsole::SynchGetString(char *s, int n)
 
 void SynchConsole::SynchPutInt(int n)
 {
-    char buffer[MAX_INT_SIZE + 1] ;
+    char buffer[MAX_INT_SIZE + 1];
     snprintf(buffer, MAX_INT_SIZE + 1, "%d", n);
     this->SynchPutString(buffer);
 }
@@ -91,12 +91,12 @@ int SynchConsole::SynchGetInt() {
     char buffer[MAX_INT_SIZE + 1];
 
     int i = 0; 
-    while(i < MAX_INT_SIZE + 1) { 
-      buffer[i] = SynchGetChar();
-      if (buffer[i] == '\n' || buffer[i] == EOF || buffer[i] == '\0') {        
-        break;
-      }
-      i++;
+    while (i < MAX_INT_SIZE) {
+        buffer[i] = SynchGetChar();
+        if (buffer[i] == '\n' || buffer[i] == EOF || buffer[i] == '\0') {              
+            break;
+        }
+        i++;
     }
 
     int val;
