@@ -19,6 +19,8 @@
 
 #define UserStackSize		2048	// increase this as necessary!
 
+class Semaphore;    //forward declaration
+
 class AddrSpace
 {
   public:
@@ -42,11 +44,13 @@ class AddrSpace
     int GetAndSetFreeStackLocation ();
     // Free the given position
     void FreeStackLocation (int position);
-    
+
 #ifdef CHANGED    
     void increaseUserProcesses();
     void decreaseUserProcesses();
     int getNumberOfUserProcesses();
+    
+    Semaphore *ExitForMain;
 #endif   // END CHANGED
   private:
     TranslationEntry * pageTable;	// Assume linear page table translation

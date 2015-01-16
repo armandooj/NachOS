@@ -19,6 +19,7 @@
 #include "system.h"
 #include "addrspace.h"
 #include "noff.h"
+#include "synch.h"
 
 #include <strings.h>		/* for bzero */
 
@@ -124,6 +125,8 @@ AddrSpace::AddrSpace (OpenFile * executable)
       // Initialize the bitmap
       stackBitMap = new BitMap(GetMaxNumThreads());
       numberOfUserProcesses = 0;
+      
+      ExitForMain = new Semaphore("Exit for Main", 1);
 #endif   // END CHANGED      
 }
 
