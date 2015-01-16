@@ -30,6 +30,7 @@
 Scheduler::Scheduler ()
 {
     readyList = new List;
+    numberOfUserProcesses = 0;
 }
 
 //----------------------------------------------------------------------
@@ -151,4 +152,24 @@ Scheduler::Print ()
 {
     printf ("Ready list contents:\n");
     readyList->Mapcar ((VoidFunctionPtr) ThreadPrint);
+}
+
+//----------------------------------------------------------------------
+// Scheduler::IsRunningQueueEmpty
+//      Get the number of threads in ready list. If there is no thread
+//      running, it means the system is deadlock. 
+//----------------------------------------------------------------------
+bool Scheduler::IsRunningQueueEmpty() {
+    return readyList->IsEmpty();
+}
+
+void Scheduler::increaseUserProcesses(){
+    numberOfUserProcesses++;
+}
+void Scheduler::decreaseUserProcesses(){
+    numberOfUserProcesses--;
+}
+
+int Scheduler::getNumberOfUserProcesses() {
+    return numberOfUserProcesses;
 }

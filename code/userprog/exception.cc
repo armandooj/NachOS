@@ -24,6 +24,8 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
+#include "userthread.h"
+#include "scheduler.h"
 
 //----------------------------------------------------------------------
 // UpdatePC : Increments the Program Counter register in order to resume
@@ -145,28 +147,42 @@ ExceptionHandler (ExceptionType which)
      #else // CHANGED
          if (which == SyscallException) {
            switch (type) {
-             case SC_Exit: {
+            case SC_Exit: 
+            {
+              DEBUG('t', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
+              DEBUG('t', "Number of UserThread: %d\n", scheduler->getNumberOfUserProcesses() );
+                  
+              while (scheduler->getNumberOfUserProcesses() != 0) {
+                currentThread->Yield();
+              }
+    
+              DEBUG('t', "Status: Running queue empty: %d. Blocking queue empty:%d\n",
+                                         scheduler->IsRunningQueueEmpty(), 
+                                         interrupt->IsBlockingQueueEmpty());
+
               int value = machine->ReadRegister(4);          
               DEBUG('a', "Exit program, return value: %d.\n", value);
               interrupt->Halt();
               break;
-             }
-             case SC_Halt: {
+            }
+            case SC_Halt: 
+            {
                DEBUG('a', "Shutdown, initiated by user program.\n");
                interrupt->Halt();
                break;
-              }
-             case SC_PutChar: {
+            }
+            case SC_PutChar: 
+            {  
                int int_c = machine->ReadRegister(4);
                char c = (char) int_c;
-               DEBUG('a', "PutChar\n");
+               DEBUG('t', "Begin PutChar\n");
                synchconsole->SynchPutChar(c);
+               DEBUG('t', "End PutChar\n");
                break;
-             }
-             case SC_PutString: {
-                          
-                int startPosition = machine->ReadRegister(4);
-                
+            }
+            case SC_PutString: 
+            {                          
+                int startPosition = machine->ReadRegister(4);                
                 bool stop = false;
                 char buffer[MAX_STRING_SIZE] = {};
                 int iteration = 0;
@@ -183,11 +199,64 @@ ExceptionHandler (ExceptionType which)
 
                     synchconsole->SynchPutString(buffer);
                     iteration ++;
-
                 } while (!stop);
-                break;                
-             }
-             default: {
+                break;            
+            }            
+            case SC_UserThreadCreate: 
+            {
+                int f = machine->ReadRegister(4);
+                int arg = machine->ReadRegister(5);
+                int thread_id = do_UserThreadCreate(f, arg);
+                machine->WriteRegister(2, thread_id);                     
+                break;
+            }       
+            case SC_UserThreadExit: 
+            {
+                do_UserThreadExit();                  
+                break;
+            }         
+            case SC_GetChar:
+            {
+                char ch = synchconsole->SynchGetChar();
+                machine->WriteRegister(2, int(ch));
+                break;
+            }
+            case SC_GetString:
+            {                
+                int phy_addr = machine->ReadRegister(4);
+                int size = machine->ReadRegister(5);
+
+                // Get char by char so that we can find the end of file.
+                int i, ch;
+                for (i = 0; i < size - 1; i++) {
+                    ch = synchconsole->SynchGetChar();
+                    if (ch == EOF) {
+                        break;
+                    } else {
+                        machine->WriteMem(phy_addr + i, 1, ch);
+                        if (ch == '\n' || ch == '\0') {
+                            break;
+                        }
+                    }
+                }
+
+                // End the String at the end
+                machine->WriteMem(phy_addr + i, 1, '\0');
+                break;
+            }
+            case SC_PutInt:
+            {
+                int val = machine->ReadRegister(4);
+                synchconsole->SynchPutInt(val);
+                break;
+            }
+            case SC_GetInt:
+            {
+                int val = synchconsole->SynchGetInt();
+                machine->WriteMem(machine->ReadRegister(4), 4, val);
+                break;
+            }
+            default: {
                printf("Unexpected user mode exception %d %d\n", which, type);
                ASSERT(FALSE);
              }

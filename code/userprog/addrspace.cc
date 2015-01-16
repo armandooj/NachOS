@@ -71,7 +71,7 @@ AddrSpace::AddrSpace (OpenFile * executable)
 	SwapHeader (&noffH);
     ASSERT (noffH.noffMagic == NOFFMAGIC);
 
-// how big is address space?
+    // how big is address space?
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size + UserStackSize;	// we need to increase the size
     // to leave room for the stack
     numPages = divRoundUp (size, PageSize);
@@ -84,7 +84,7 @@ AddrSpace::AddrSpace (OpenFile * executable)
 
     DEBUG ('a', "Initializing address space, num pages %d, size %d\n",
 	   numPages, size);
-// first, set up the translation 
+    // first, set up the translation 
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++)
       {
@@ -98,11 +98,11 @@ AddrSpace::AddrSpace (OpenFile * executable)
 	  // pages to be read-only
       }
 
-// zero out the entire address space, to zero the unitialized data segment 
-// and the stack segment
+    // zero out the entire address space, to zero the unitialized data segment 
+    // and the stack segment
     bzero (machine->mainMemory, size);
 
-// then, copy in the code and data segments into memory
+    // then, copy in the code and data segments into memory
     if (noffH.code.size > 0)
       {
 	  DEBUG ('a', "Initializing code segment, at 0x%x, size %d\n",
@@ -120,6 +120,8 @@ AddrSpace::AddrSpace (OpenFile * executable)
 			      noffH.initData.size, noffH.initData.inFileAddr);
       }
 
+      // Initialize the bitmap
+      stackBitMap = new BitMap(GetMaxNumThreads());
 }
 
 //----------------------------------------------------------------------
@@ -166,6 +168,37 @@ AddrSpace::InitRegisters ()
     machine->WriteRegister (StackReg, numPages * PageSize - 16);
     DEBUG ('a', "Initializing stack register to %d\n",
 	   numPages * PageSize - 16);
+}
+
+//----------------------------------------------------------------------
+// AddrSpace::MultiThreadSetStackPointer
+//      Use in multithread function to set the new stack pointer to
+//      new position
+//----------------------------------------------------------------------
+
+void
+AddrSpace::MultiThreadSetStackPointer (unsigned int newPositionOffset)
+{
+    machine->WriteRegister (StackReg, (numPages * PageSize - newPositionOffset) - 16);
+    DEBUG ('a', "Initializing stack register to %d\n", (numPages * PageSize - newPositionOffset) - 16);
+}
+
+// Returns how many threads the system can handle
+int AddrSpace::GetMaxNumThreads() {
+    return UserStackSize / (PageSize * 3);
+}
+
+/*
+Stack BitMap Operations
+*/
+
+int AddrSpace::GetAndSetFreeStackLocation () {
+    return stackBitMap->Find();
+}
+
+void AddrSpace::FreeStackLocation (int position) {
+    DEBUG('a', "Freeing stack location %d\n", position);
+    stackBitMap->Clear(position);
 }
 
 //----------------------------------------------------------------------
