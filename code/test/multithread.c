@@ -13,7 +13,6 @@ int main() {
   char ch = 'a';
   char* c = &ch;
 
-
   UserThreadCreate(print, (void *) c);
   PutChar('*');
     

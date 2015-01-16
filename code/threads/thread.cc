@@ -413,22 +413,23 @@ Thread::RestoreUserState ()
 
 
 #ifdef CHANGED
+
 // Stack BitMap
 
 void
-Thread::FreeStackLocation() {
-  space->FreeStackLocation(stackLocation);
+Thread::FreeTid() {
+  space->FreeStackLocation(tid);
 }
 
 int
-Thread::GetStackLocation() {
-  return stackLocation;
+Thread::GetTid() {
+  return tid;
 }
 
 void
-Thread::SetStackLocation() {
+Thread::SetTid() {
   // // We need to set it's address space first so that we can access the stack!
-  stackLocation = space->GetAndSetFreeStackLocation();
+  tid = space->GetAndSetFreeStackLocation();
 }
 
 #endif

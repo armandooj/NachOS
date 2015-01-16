@@ -137,15 +137,19 @@ class Thread
     void SaveUserState ();	// save user-level register state
     void RestoreUserState ();	// restore user-level register state
 
-    // Stack operations
-    void FreeStackLocation();
-    int GetStackLocation();
-    void SetStackLocation();
+#ifdef CHANGED
+    // Stack operations (used also for the ID)
+    void FreeTid();
+    int GetTid();
+    void SetTid();
+#endif
 
     AddrSpace *space;		// User code this thread is running.
 
+#ifdef CHANGED
   private:
-    int stackLocation;
+    int tid;
+#endif
 
 #endif
 };
