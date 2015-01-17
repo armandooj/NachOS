@@ -20,14 +20,12 @@ Initialises backups of registers of a new copy of the MIPS interpreter in the sa
 */
 static void StartUserThread(int data) {
 
-  currentThread->SetStackLocation();
+  DEBUG('t', "StartUserThread with Stack Position: %d\n", currentThread->GetTid());
 
-  if (currentThread->GetStackLocation() < 0) {
-    DEBUG('t', "Error creating the thread.");
-    return;
-  } 
-
-  DEBUG('t', "StartUserThread with Stack Position: %d\n", currentThread->GetStackLocation());
+  if (currentThread->GetTid() < 0) {
+    DEBUG('t', "Error, new Thread doesn't have a valid stack space");
+    return;    
+  }
 
   currentThread->space->InitRegisters();
   currentThread->space->RestoreState(); // TODO: Check if this need to reverse
@@ -40,7 +38,7 @@ static void StartUserThread(int data) {
   machine->WriteRegister(PCReg, paramFunction->function);
   machine->WriteRegister(NextPCReg, paramFunction->function + 4);
   // Set the stack pointer
-  currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetStackLocation() + 1));
+  currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetTid() + 1));
   
   currentThread->space->increaseUserProcesses();
   
@@ -56,25 +54,27 @@ int do_UserThreadCreate(int f, int arg) {
   paramFunction->function = f;
   paramFunction->arg = arg;
 
-  Thread *newThread = new Thread("new Thread");
+  Thread *newThread = new Thread("New User Thread");
   newThread->Fork(StartUserThread, (int) paramFunction);
+  // The thread's id is also its location on the stack
+  newThread->SetTid();
 
-  // TODO use a real ID
-  return 1;
+  return newThread->GetTid();
 }
 
 void do_UserThreadExit() {
 
-    DEBUG('t', "Thread \"%s\"\n Exit", currentThread->getName() );
+    DEBUG('t', "Thread \"%s\" uses User Exit\n", currentThread->getName() );
     DEBUG('t', "Status: number of current userthreads: %d\n", 
                             currentThread->space->getNumberOfUserProcesses());
-    currentThread->FreeStackLocation();  
     
     currentThread->space->decreaseUserProcesses();
     if (currentThread->space->getNumberOfUserProcesses() == 0){
         currentThread->space->ExitForMain->V();
     }
 
+    // Also frees the corresponding stack location
+    currentThread->FreeTid();
     currentThread->Finish();
 }
 

@@ -18,8 +18,7 @@ int main() {
   
   int id = UserThreadCreate(print, (void *) c);
   if (id >= 0) {
-    //PutInt(id);
-    PutChar('*');
+    PutInt(id);
   } else { 
     PutString("Error creating first Thread.");
   }
@@ -29,13 +28,11 @@ int main() {
   int i;
   for (i = 0; i <= 5; i++) {
     id = UserThreadCreate(print, (void *) c);
-    if (id >= 0) {      
-      PutString("OK");
 
+    if (id >= 0) {      
+      PutInt(id);
     } else {
-      PutString("ER");
-      // PutString("Error creating a Thread -> ");
-      // PutInt(i);
+      PutString("Er");
       PutString("\n");
     }
   }
