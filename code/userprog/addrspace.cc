@@ -19,6 +19,7 @@
 #include "system.h"
 #include "addrspace.h"
 #include "noff.h"
+#include "synch.h"
 
 #include <strings.h>		/* for bzero */
 
@@ -125,7 +126,8 @@ AddrSpace::AddrSpace (OpenFile * executable)
       stackBitMap = new BitMap(GetMaxNumThreads());
       stackBitMapLock = new Lock("Stack Lock");
       processCountLock = new Lock("Process Count Lock");
-      numberOfUserProcesses = 0;
+      numberOfUserProcesses = 1;    // counting the main process      
+      ExitForMain = new Semaphore("Exit for Main", 1);
 #endif   // END CHANGED      
 }
 

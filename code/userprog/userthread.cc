@@ -12,6 +12,7 @@
 #include "userthread.h"
 #include "thread.h"
 #include "scheduler.h"
+#include "synch.h"
 
 /*
 Initialises backups of registers of a new copy of the MIPS interpreter in the same way as the primitive interpreter 
@@ -46,6 +47,8 @@ static void StartUserThread(int data) {
 
 int do_UserThreadCreate(int f, int arg) {
 
+    DEBUG('t', "Enter User Create Thread\n");
+
   // Use a struct to pass both the function and argument to the fork function
   ParamFunction *paramFunction = new ParamFunction();
   paramFunction->function = f;
@@ -61,10 +64,15 @@ int do_UserThreadCreate(int f, int arg) {
 
 void do_UserThreadExit() {
 
-    DEBUG('t', "Thread \"%s\"\n Exit", currentThread->getName() );
-    DEBUG('t', "Status: number of current userthreads: %d\n", currentThread->space->getNumberOfUserProcesses());
-    currentThread->space->decreaseUserProcesses();
+    DEBUG('t', "Thread \"%s\" uses User Exit\n", currentThread->getName() );
+    DEBUG('t', "Status: number of current userthreads: %d\n", 
+                            currentThread->space->getNumberOfUserProcesses());
     
+    currentThread->space->decreaseUserProcesses();
+    if (currentThread->space->getNumberOfUserProcesses() == 0){
+        currentThread->space->ExitForMain->V();
+    }
+
     // Also frees the corresponding stack location
     currentThread->FreeTid();
     currentThread->Finish();

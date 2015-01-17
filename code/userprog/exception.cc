@@ -26,6 +26,7 @@
 #include "syscall.h"
 #include "userthread.h"
 #include "scheduler.h"
+#include "synch.h"
 
 //----------------------------------------------------------------------
 // UpdatePC : Increments the Program Counter register in order to resume
@@ -149,16 +150,22 @@ ExceptionHandler (ExceptionType which)
            switch (type) {
             case SC_Exit: 
             {
+              currentThread->space->decreaseUserProcesses();
+            
               DEBUG('t', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
               DEBUG('t', "Number of UserThread: %d\n", currentThread->space->getNumberOfUserProcesses() );
-                  
+              
+              //busy waiting
+              /*
               while (currentThread->space->getNumberOfUserProcesses() != 0) {
+                currentThread->space->ExitForMain->V();
                 currentThread->Yield();
               }
-    
-              DEBUG('t', "Status: Running queue empty: %d. Blocking queue empty:%d\n",
-                                         scheduler->IsRunningQueueEmpty(), 
-                                         interrupt->IsBlockingQueueEmpty());
+              */
+              
+              while (currentThread->space->getNumberOfUserProcesses() != 0) {
+                currentThread->space->ExitForMain->P();  
+              }
 
               int value = machine->ReadRegister(4);          
               DEBUG('a', "Exit program, return value: %d.\n", value);
