@@ -103,18 +103,23 @@ Semaphore::V ()
 // the test case in the network assignment won't work!
 Lock::Lock (const char *debugName)
 {
+    name = debugName;
+    lock = new Semaphore("Lock semaphore", 1);
 }
 
 Lock::~Lock ()
 {
+    delete lock;
 }
 void
 Lock::Acquire ()
 {
+    lock->P();
 }
 void
 Lock::Release ()
 {
+    lock->V();
 }
 
 Condition::Condition (const char *debugName)

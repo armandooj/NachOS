@@ -121,8 +121,9 @@ AddrSpace::AddrSpace (OpenFile * executable)
       }
 
 #ifdef CHANGED
-      // Initialize the bitmap
+      // Initialize the bitmap, lock and variables
       stackBitMap = new BitMap(GetMaxNumThreads());
+      stackBitMapLock = new Lock("Stack Lock");
       numberOfUserProcesses = 0;
 #endif   // END CHANGED      
 }
@@ -173,7 +174,38 @@ AddrSpace::InitRegisters ()
 	   numPages * PageSize - 16);
 }
 
+//----------------------------------------------------------------------
+// AddrSpace::SaveState
+//      On a context switch, save any machine state, specific
+//      to this address space, that needs saving.
+//
+//      For now, nothing!
+//----------------------------------------------------------------------
+
+void
+AddrSpace::SaveState ()
+{
+}
+
+//----------------------------------------------------------------------
+// AddrSpace::RestoreState
+//      On a context switch, restore the machine state so that
+//      this address space can run.
+//
+//      For now, tell the machine where to find the page table.
+//----------------------------------------------------------------------
+
+void
+AddrSpace::RestoreState ()
+{
+    machine->pageTable = pageTable;
+    machine->pageTableSize = numPages;
+}
+
+
+
 #ifdef CHANGED
+
 //----------------------------------------------------------------------
 // AddrSpace::MultiThreadSetStackPointer
 //      Use in multithread function to set the new stack pointer to
@@ -205,38 +237,6 @@ void AddrSpace::FreeStackLocation (int position) {
     stackBitMap->Clear(position);
 }
 
-#endif
-
-//----------------------------------------------------------------------
-// AddrSpace::SaveState
-//      On a context switch, save any machine state, specific
-//      to this address space, that needs saving.
-//
-//      For now, nothing!
-//----------------------------------------------------------------------
-
-void
-AddrSpace::SaveState ()
-{
-}
-
-//----------------------------------------------------------------------
-// AddrSpace::RestoreState
-//      On a context switch, restore the machine state so that
-//      this address space can run.
-//
-//      For now, tell the machine where to find the page table.
-//----------------------------------------------------------------------
-
-void
-AddrSpace::RestoreState ()
-{
-    machine->pageTable = pageTable;
-    machine->pageTableSize = numPages;
-}
-
-
-#ifdef CHANGED
 //----------------------------------------------------------------------
 // Manipulate User Process
 //      These are function to munipulate the numberOfUserProcesses 
@@ -244,10 +244,10 @@ AddrSpace::RestoreState ()
 //
 //----------------------------------------------------------------------
 
-void AddrSpace::increaseUserProcesses(){
+void AddrSpace::increaseUserProcesses() {
     numberOfUserProcesses++;
 }
-void AddrSpace::decreaseUserProcesses(){
+void AddrSpace::decreaseUserProcesses() {
     numberOfUserProcesses--;
 }
 

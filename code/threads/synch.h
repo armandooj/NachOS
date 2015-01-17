@@ -71,10 +71,10 @@ class Lock
 {
   public:
     Lock (const char *debugName);	// initialize lock to be FREE
-     ~Lock ();			// deallocate lock
+    ~Lock ();			// deallocate lock
     const char *getName ()
     {
-	return name;
+	    return name;
     }				// debugging assist
 
     void Acquire ();		// these are the only operations on a lock
@@ -87,7 +87,7 @@ class Lock
 
   private:
     const char *name;		// for debugging
-    // plus some other stuff you'll need to define
+    Semaphore *lock;
 };
 
 // The following class defines a "condition variable".  A condition
