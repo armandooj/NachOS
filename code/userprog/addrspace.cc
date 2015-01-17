@@ -122,10 +122,11 @@ AddrSpace::AddrSpace (OpenFile * executable)
       }
 
 #ifdef CHANGED
-      // Initialize the bitmap
+      // Initialize the bitmap, lock and variables
       stackBitMap = new BitMap(GetMaxNumThreads());
-      numberOfUserProcesses = 1;    // counting the main process
-      
+      stackBitMapLock = new Lock("Stack Lock");
+      processCountLock = new Lock("Process Count Lock");
+      numberOfUserProcesses = 1;    // counting the main process      
       ExitForMain = new Semaphore("Exit for Main", 1);
 #endif   // END CHANGED      
 }
@@ -140,6 +141,9 @@ AddrSpace::~AddrSpace ()
   // LB: Missing [] for delete
   // delete pageTable;
   delete [] pageTable;
+  delete stackBitMap;
+  delete stackBitMapLock;
+  delete processCountLock;
   // End of modification
 }
 
@@ -176,40 +180,6 @@ AddrSpace::InitRegisters ()
 	   numPages * PageSize - 16);
 }
 
-#ifdef CHANGED
-//----------------------------------------------------------------------
-// AddrSpace::MultiThreadSetStackPointer
-//      Use in multithread function to set the new stack pointer to
-//      new position
-//----------------------------------------------------------------------
-
-void
-AddrSpace::MultiThreadSetStackPointer (unsigned int newPositionOffset)
-{
-    machine->WriteRegister (StackReg, (numPages * PageSize - newPositionOffset) - 16);
-    DEBUG ('a', "Initializing stack register to %d\n", (numPages * PageSize - newPositionOffset) - 16);
-}
-
-// Returns how many threads the system can handle
-int AddrSpace::GetMaxNumThreads() {
-    return UserStackSize / (PageSize * 3);
-}
-
-/*
-Stack BitMap Operations
-*/
-
-int AddrSpace::GetAndSetFreeStackLocation () {
-    return stackBitMap->Find();
-}
-
-void AddrSpace::FreeStackLocation (int position) {
-    DEBUG('a', "Freeing stack location %d\n", position);
-    stackBitMap->Clear(position);
-}
-
-#endif
-
 //----------------------------------------------------------------------
 // AddrSpace::SaveState
 //      On a context switch, save any machine state, specific
@@ -239,7 +209,45 @@ AddrSpace::RestoreState ()
 }
 
 
+
 #ifdef CHANGED
+
+//----------------------------------------------------------------------
+// AddrSpace::MultiThreadSetStackPointer
+//      Use in multithread function to set the new stack pointer to
+//      new position
+//----------------------------------------------------------------------
+
+void
+AddrSpace::MultiThreadSetStackPointer (unsigned int newPositionOffset)
+{
+    machine->WriteRegister (StackReg, (numPages * PageSize - newPositionOffset) - 16);
+    DEBUG ('a', "Initializing stack register to %d\n", (numPages * PageSize - newPositionOffset) - 16);
+}
+
+// Returns how many threads the system can handle
+int AddrSpace::GetMaxNumThreads() {
+    return UserStackSize / (PageSize * 3);
+}
+
+/*
+Stack BitMap Operations
+*/
+
+int AddrSpace::GetAndSetFreeStackLocation () {
+    stackBitMapLock->Acquire();
+    int location = stackBitMap->Find();
+    stackBitMapLock->Release();
+    return location;
+}
+
+void AddrSpace::FreeStackLocation (int position) {    
+    stackBitMapLock->Acquire();
+    DEBUG('a', "Freeing stack location %d\n", position);
+    stackBitMap->Clear(position);
+    stackBitMapLock->Release();
+}
+
 //----------------------------------------------------------------------
 // Manipulate User Process
 //      These are function to munipulate the numberOfUserProcesses 
@@ -247,11 +255,15 @@ AddrSpace::RestoreState ()
 //
 //----------------------------------------------------------------------
 
-void AddrSpace::increaseUserProcesses(){
+void AddrSpace::increaseUserProcesses() {
+    processCountLock->Acquire();
     numberOfUserProcesses++;
+    processCountLock->Release();
 }
-void AddrSpace::decreaseUserProcesses(){
+void AddrSpace::decreaseUserProcesses() {
+    processCountLock->Acquire();
     numberOfUserProcesses--;
+    processCountLock->Release();
 }
 
 int AddrSpace::getNumberOfUserProcesses() {
