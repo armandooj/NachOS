@@ -150,6 +150,8 @@ ExceptionHandler (ExceptionType which)
            switch (type) {
             case SC_Exit: 
             {
+              currentThread->space->decreaseUserProcesses();
+            
               DEBUG('t', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
               DEBUG('t', "Number of UserThread: %d\n", currentThread->space->getNumberOfUserProcesses() );
               
@@ -164,10 +166,6 @@ ExceptionHandler (ExceptionType which)
               while (currentThread->space->getNumberOfUserProcesses() != 0) {
                 currentThread->space->ExitForMain->P();  
               }
-              
-              DEBUG('t', "Status: Running queue empty: %d. Blocking queue empty:%d\n",
-                                         scheduler->IsRunningQueueEmpty(), 
-                                         interrupt->IsBlockingQueueEmpty());
 
               int value = machine->ReadRegister(4);          
               DEBUG('a', "Exit program, return value: %d.\n", value);

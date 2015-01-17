@@ -124,7 +124,7 @@ AddrSpace::AddrSpace (OpenFile * executable)
 #ifdef CHANGED
       // Initialize the bitmap
       stackBitMap = new BitMap(GetMaxNumThreads());
-      numberOfUserProcesses = 0;
+      numberOfUserProcesses = 1;    // counting the main process
       
       ExitForMain = new Semaphore("Exit for Main", 1);
 #endif   // END CHANGED      
