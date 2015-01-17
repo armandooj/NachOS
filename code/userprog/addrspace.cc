@@ -124,6 +124,7 @@ AddrSpace::AddrSpace (OpenFile * executable)
       // Initialize the bitmap, lock and variables
       stackBitMap = new BitMap(GetMaxNumThreads());
       stackBitMapLock = new Lock("Stack Lock");
+      processCountLock = new Lock("Process Count Lock");
       numberOfUserProcesses = 0;
 #endif   // END CHANGED      
 }
@@ -138,6 +139,9 @@ AddrSpace::~AddrSpace ()
   // LB: Missing [] for delete
   // delete pageTable;
   delete [] pageTable;
+  delete stackBitMap;
+  delete stackBitMapLock;
+  delete processCountLock;
   // End of modification
 }
 
@@ -229,12 +233,17 @@ Stack BitMap Operations
 */
 
 int AddrSpace::GetAndSetFreeStackLocation () {
-    return stackBitMap->Find();
+    stackBitMapLock->Acquire();
+    int location = stackBitMap->Find();
+    stackBitMapLock->Release();
+    return location;
 }
 
-void AddrSpace::FreeStackLocation (int position) {
+void AddrSpace::FreeStackLocation (int position) {    
+    stackBitMapLock->Acquire();
     DEBUG('a', "Freeing stack location %d\n", position);
     stackBitMap->Clear(position);
+    stackBitMapLock->Release();
 }
 
 //----------------------------------------------------------------------
@@ -245,10 +254,14 @@ void AddrSpace::FreeStackLocation (int position) {
 //----------------------------------------------------------------------
 
 void AddrSpace::increaseUserProcesses() {
+    processCountLock->Acquire();
     numberOfUserProcesses++;
+    processCountLock->Release();
 }
 void AddrSpace::decreaseUserProcesses() {
+    processCountLock->Acquire();
     numberOfUserProcesses--;
+    processCountLock->Release();
 }
 
 int AddrSpace::getNumberOfUserProcesses() {
