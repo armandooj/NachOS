@@ -16,6 +16,7 @@
 #include "copyright.h"
 #include "filesys.h"
 #include "bitmap.h"
+#include "synch.h"
 
 #define UserStackSize		2048	// increase this as necessary!
 
@@ -63,6 +64,9 @@ class AddrSpace
     
     // Available pages
     BitMap *stackBitMap;
+    Lock *stackBitMapLock;
+    Lock *processCountLock;
+
 #endif   // END CHANGED
 
 
