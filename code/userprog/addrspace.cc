@@ -20,6 +20,7 @@
 #include "addrspace.h"
 #include "noff.h"
 #include "synch.h"
+#include "list.h"
 
 #include <strings.h>		/* for bzero */
 
@@ -128,6 +129,10 @@ AddrSpace::AddrSpace (OpenFile * executable)
       processCountLock = new Lock("Process Count Lock");
       numberOfUserProcesses = 1;    // counting the main process      
       ExitForMain = new Semaphore("Exit for Main", 1);
+      
+      //For Join Functionality
+      activeThreads = new ListForJoin();
+      activeLocks = new ListForJoin();
 #endif   // END CHANGED      
 }
 

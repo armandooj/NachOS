@@ -141,7 +141,7 @@ class Thread
     // Stack operations (used also for the ID)
     void FreeTid();
     int GetTid();
-    void SetTid();
+    void SetTid(AddrSpace *thisThreadSpace);
 #endif
 
     AddrSpace *space;		// User code this thread is running.

@@ -252,3 +252,73 @@ List::SortedRemove (long long *keyPtr)
     delete element;
     return thing;
 }
+
+#ifdef CHANGED
+
+void 
+ListForJoin::AppendTraverse(void*item, int key) {
+    List::Append(item);
+    last->key = (long long) key;    
+}
+
+void *
+ListForJoin::RemoveTraverse(int key){
+
+    void *thing = NULL;    
+    ListElement *element = first;
+    ListElement *ptrPre = NULL;
+    ListElement *ptr = first;
+    long long newKey = (long long) key;
+
+    // special case of 1 element or no element
+    if ( IsEmpty() ) 
+        return NULL;
+    if (first == last) {
+        if (first->key == newKey) {
+            thing = first->item;
+            first = NULL;
+            last = NULL;
+            return thing;
+        }
+        else return NULL;
+    }
+    
+    // Case if there is at least 2 nodes
+    //loop through to find the item with the key
+    for (ptr = first; ptr != NULL; ptr = ptr->next) {
+        DEBUG('l', "Inside thread %d\n",ptr->key );
+        if ( newKey == ptr->key) {
+            thing = ptr -> item;
+            element = ptr;
+
+            // remove node from the list
+            if (ptr == first) { 
+                first = ptr -> next;
+            }else if (ptr == last) { 
+                last = ptrPre; 
+                ptrPre->next = NULL;
+            }else {
+                ptrPre->next = ptr->next;            
+            }
+            
+            // free memory
+            delete element;
+            
+            break;
+        }
+        ptrPre = ptr;
+    }
+    
+    
+    return thing;
+}
+
+void
+ListForJoin::PrintContent() {
+    for (ListElement * ptr = first; ptr != NULL; ptr = ptr->next) {
+        DEBUG ('l', "%d->", ptr->key);
+    }    
+    DEBUG('l', "\n");
+}
+
+#endif

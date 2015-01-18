@@ -40,7 +40,12 @@ static void StartUserThread(int data) {
   // Set the stack pointer
   currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetTid() + 1));
   
-  currentThread->space->increaseUserProcesses();
+  //add to active list
+  currentThread->space->activeThreads->AppendTraverse(NULL, currentThread->GetTid() );
+  
+  DEBUG('l', "Add new thread: %d\n", currentThread->GetTid());
+  DEBUG('l', "Thread list: \n");
+  currentThread->space->activeThreads->PrintContent();
   
   machine->Run();
 }
@@ -55,10 +60,17 @@ int do_UserThreadCreate(int f, int arg) {
   paramFunction->arg = arg;
 
   Thread *newThread = new Thread("New User Thread");
-  newThread->Fork(StartUserThread, (int) paramFunction);
-  // The thread's id is also its location on the stack
-  newThread->SetTid();
+  
+  //put increase counter here for synchonization problem
+  currentThread->space->increaseUserProcesses();    //PROBLEM??? 
 
+  // The thread's id is also its location on the stack
+  newThread->SetTid(currentThread->space);  
+                        //TODO check correctness, could be wrong 
+                        // if set after fork. BUGGGYY :D
+  newThread->Fork(StartUserThread, (int) paramFunction);
+  
+  //newThread->SetTid();
   return newThread->GetTid();
 }
 
@@ -75,7 +87,23 @@ void do_UserThreadExit() {
 
     // Also frees the corresponding stack location
     currentThread->FreeTid();
+    
+    //Remove from active list
+    currentThread->space->activeThreads->RemoveTraverse(currentThread->GetTid());
+    //debugging -- delete later
+    DEBUG('l', "Delete thread: %d\n", currentThread->GetTid());
+    DEBUG('l', "Thread list: \n");
+    currentThread->space->activeThreads->PrintContent();
+    
     currentThread->Finish();
+}
+
+// return -1 if error 
+int do_UserThreadJoin(int tid) {
+
+
+
+    return 0;
 }
 
 #endif

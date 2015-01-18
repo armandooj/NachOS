@@ -427,9 +427,9 @@ Thread::GetTid() {
 }
 
 void
-Thread::SetTid() {
-  // // We need to set it's address space first so that we can access the stack!
-  tid = space->GetAndSetFreeStackLocation();
+Thread::SetTid(AddrSpace *thisThreadSpace) {
+  // WARNING: We need to set it's address space first so that we can access the stack!
+  tid = thisThreadSpace->GetAndSetFreeStackLocation();
 }
 
 #endif

@@ -2,8 +2,6 @@
 void thread2(void *c)
 {
   PutChar(* ((char *) c));  
-
-  Exit(0);
   UserThreadExit(); 
 }
 
