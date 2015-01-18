@@ -35,6 +35,7 @@ static void StartUserThread(int data) {
   // Write the argument in the register 4
   machine->WriteRegister(4, paramFunction->arg);
   // Initial program counter -- must be location of "Start"
+  machine->WriteRegister(RetAddrReg, paramFunction->ret_function);
   machine->WriteRegister(PCReg, paramFunction->function);
   machine->WriteRegister(NextPCReg, paramFunction->function + 4);
   // Set the stack pointer
@@ -45,7 +46,7 @@ static void StartUserThread(int data) {
   machine->Run();
 }
 
-int do_UserThreadCreate(int f, int arg) {
+int do_UserThreadCreate(int f, int arg, int ret_function) {
 
     DEBUG('t', "Enter User Create Thread\n");
 
@@ -53,6 +54,7 @@ int do_UserThreadCreate(int f, int arg) {
   ParamFunction *paramFunction = new ParamFunction();
   paramFunction->function = f;
   paramFunction->arg = arg;
+  paramFunction->ret_function = ret_function;
 
   Thread *newThread = new Thread("New User Thread");
   newThread->Fork(StartUserThread, (int) paramFunction);

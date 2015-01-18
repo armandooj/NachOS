@@ -151,6 +151,7 @@ PutString:
 	.ent   UserThreadCreate
 UserThreadCreate:
 	addiu $2,$0,SC_UserThreadCreate
+	addiu $6,$0,UserThreadExit // Pass as a parameter the return function
 	syscall
 	j	$31
 	.end UserThreadCreate

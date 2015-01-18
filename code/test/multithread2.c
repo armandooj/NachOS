@@ -2,13 +2,6 @@
 void print(void *c)
 {
   PutChar(* ((char *) c));
-
-  // int i;
-  // for (i = 0; i < 5; i++) {
-  //   PutChar('.');
-  // }
-  
-  UserThreadExit();
 }
 
 int main() {
