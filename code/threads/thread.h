@@ -39,6 +39,7 @@
 
 #include "copyright.h"
 #include "utility.h"
+#include "userthread.h" 
 
 #ifdef USER_PROGRAM
 #include "machine.h"
@@ -112,6 +113,10 @@ class Thread
     {
 	   printf ("%s, ", name);
     }
+
+    // Thread current directory (filesystem)
+    int SetCurrentDirectory(const char* name);
+    const char* GetCurrentDirectory();
 
   private:
     // some of the private data for this class is listed above

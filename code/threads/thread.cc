@@ -20,6 +20,16 @@
 #include "synch.h"
 #include "system.h"
 
+#include "disk.h"
+#include "bitmap.h"
+#include "directory.h"
+#include "filehdr.h"
+#include "filesys.h"
+#include <libgen.h>
+#include <list>
+#include <string>
+
+
 #define STACK_FENCEPOST 0xdeadbeef	// this is put at the top of the
 					// execution stack, for detecting 
 					// stack overflows
@@ -432,5 +442,53 @@ Thread::SetTid() {
   tid = space->GetAndSetFreeStackLocation();
 }
 
-#endif
+const char* Thread::GetCurrentDirectory()
+{
+//#ifdef USER_PROGRAM
+    if (space != NULL)
+        return space->GetCurrentDirectory();
+//#endif
+    return currentDirectory;
+}
 
+int Thread::SetCurrentDirectory(const char* dirname)
+{
+//#ifndef FILESYS_STUB
+    // Check directory validity
+    char *ename = fileSystem->ExpandFileName(dirname);
+    std::string expandname = ename;
+
+    if (expandname[expandname.size() - 1] != '/')
+        expandname = expandname + "/";
+
+    Directory *dir = fileSystem->GetDirectoryByName(expandname.c_str(), NULL);
+
+    if (dir == NULL)
+    {
+        delete [] ename;
+        return -1;
+    }
+
+    delete dir;
+
+//#ifdef USER_PROGRAM
+    if (space != NULL)
+    {
+        int ret = space->SetCurrentDirectory(expandname.c_str());
+        delete [] ename;
+        return ret;
+    }
+//#endif
+
+    // Delete previous dir
+    delete [] currentDirectory;
+
+    char *tmp = new char[strlen(expandname.c_str()) + 1];
+    strcpy(tmp, expandname.c_str());
+    delete [] ename;
+    currentDirectory = tmp;
+
+    return 0;
+}
+
+#endif
