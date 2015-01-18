@@ -61,6 +61,8 @@ class FileSystem {
       }
 
     bool Remove(char *name) { return Unlink(name) == 0; }
+    Directory *GetDirectoryByName(const char* dirname, int *store_sector){ return NULL; }
+    char *ExtractFileName(const char* filename) { return NULL; }
 
 };
 
@@ -85,6 +87,16 @@ class FileSystem {
     void List();			// List all the files in the file system
 
     void Print();			// List all the files and their contents
+
+    char *ExtractFileName(const char* filename); /* Get absolute path */
+    char *DirectoryName(const char* filename);  /* Get directory name */
+    char *FileName(const char* filename);       /* Get file name */
+    Directory *GetDirectoryByName(const char* dirname, int *store_sector); /* Get directory by name */
+    //bool CheckNameLimitation(const char* name);         /* Check if the name is valid */
+    int CreateDirectory(const char *dirname);           /* Create a directory (any path) */
+    bool RemoveDirectory(const char *name);             /* Remove a directory */
+    void ListRec(const char *name);             /* List recursivly a directory */
+    OpenFile* GetFreeMapFile() { return freeMapFile; }
 
   private:
    OpenFile* freeMapFile;		// Bit map of free disk blocks,
