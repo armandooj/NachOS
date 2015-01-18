@@ -628,6 +628,7 @@ char *FileSystem::ExpandFileName(const char* filename)
 }
 
 /**
+<<<<<<< HEAD
  * Extract dirname from filename
  *
  * Return a dynamicly allocated name (should be freed)
@@ -891,4 +892,5 @@ void FileSystem::ListRec(const char *dirname)
     parent->PrintRec(name.c_str());
     delete [] expandname;
     delete parent;
+
 }
