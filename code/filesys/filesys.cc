@@ -50,6 +50,10 @@
 #include "directory.h"
 #include "filehdr.h"
 #include "filesys.h"
+#include "system.h"
+#include <list>
+#include <string>
+#include <libgen.h>
 
 // Sectors containing the file headers for the bitmap of free sectors,
 // and the directory of files.  These file headers are placed in well-known 
@@ -129,7 +133,7 @@ FileSystem::FileSystem(bool format)
 	    freeMap->Print();
 	    directory->Print();
 
-        delete freeMap; 
+    delete freeMap; 
 	delete directory; 
 	delete mapHdr; 
 	delete dirHdr;
@@ -141,6 +145,13 @@ FileSystem::FileSystem(bool format)
         directoryFile = new OpenFile(DirectorySector);
     }
 }
+
+FileSystem::~FileSystem()
+{
+    delete freeMapFile;
+    delete directoryFile;
+}
+
 
 //----------------------------------------------------------------------
 // FileSystem::Create
@@ -182,16 +193,27 @@ FileSystem::Create(const char *name, int initialSize)
 
     DEBUG('f', "Creating file %s, size %d\n", name, initialSize);
 
-    directory = new Directory(NumDirEntries);
-    directory->FetchFrom(directoryFile);
+    // Extract file name
+    char *extractname = ExtractFileName(name);
+    char *pDir = DirectoryName(extractname);
+    char *fp = FileName(extractname);
 
-    if (directory->Find(name) != -1)
+    // Get the parent directory
+    int psector;
+
+    Directory *directory = GetDirectoryByName(pDir, &psector);
+
+    if(directory==NULL)
+        success = FALSE;
+    else if (directory->Find(fp) != -1)
       success = FALSE;			// file is already in directory
     else {	
         freeMap = new BitMap(NumSectors);
         freeMap->FetchFrom(freeMapFile);
+
         sector = freeMap->Find();	// find a sector to hold the file header
-    	if (sector == -1) 		
+    	
+        if (sector == -1) 		
             success = FALSE;		// no free block for file header 
         else if (!directory->Add(name, sector))
             success = FALSE;	// no space in directory
@@ -202,15 +224,24 @@ FileSystem::Create(const char *name, int initialSize)
 	    else {	
 	    	success = TRUE;
 		// everthing worked, flush all changes back to disk
-    	    	hdr->WriteBack(sector); 		
-    	    	directory->WriteBack(directoryFile);
-    	    	freeMap->WriteBack(freeMapFile);
+
+                        // everthing worked, flush all changes back to disk
+            OpenFile *f = new OpenFile(psector, NULL);
+
+    	    	hdr->WriteBack(sector); 	   // Write File header on disk	
+    	    	directory->WriteBack(f);  // Write directory structure on disk
+    	    	freeMap->WriteBack(freeMapFile);   // Write free sectors on disk
+                delete f;
 	    }
             delete hdr;
 	}
         delete freeMap;
     }
     delete directory;
+    delete [] extractname;
+    delete [] pDir;    
+    delete [] fp;
+
     return success;
 }
 
@@ -224,20 +255,49 @@ FileSystem::Create(const char *name, int initialSize)
 //	"name" -- the text name of the file to be opened
 //----------------------------------------------------------------------
 
-OpenFile *
+
 FileSystem::Open(const char *name)
 { 
-    Directory *directory = new Directory(NumDirEntries);
-    OpenFile *openFile = NULL;
-    int sector;
+    fileSyncMgr->NewOpenedFile(name);
 
     DEBUG('f', "Opening file %s\n", name);
-    directory->FetchFrom(directoryFile);
-    sector = directory->Find(name); 
-    if (sector >= 0) 		
-	openFile = new OpenFile(sector);	// name was found in directory 
-    delete directory;
-    return openFile;				// return NULL if not found
+    // Expand file name
+    char *extractname = ExtractFileName(name);
+    char *pDir = DirectoryName(expandname);
+    char *fp = FileName(expandname);
+
+    fileSyncMgr->DeleteOpenedFile(name);
+    fileSyncMgr->NewOpenedFile(extractname);
+
+    // Get the parent directory
+    int psector;
+
+    Directory *directory = GetDirectoryByName(pDir, &psector);
+    OpenFile *openFile = NULL;
+    int sector;    
+    
+    if (directory == NULL)
+    {
+        openFile = NULL;
+    }
+    else
+    {
+        sector = directory->Find(fp);  // Seek file on system
+
+        if (sector >= 0)                                        // Filename was found in directory
+            openFile = new OpenFile(sector, extractname);
+
+        if (openFile == NULL)
+            fileSyncMgr->DeleteOpenedFile(extractname);
+
+        delete directory;
+    }
+
+    delete [] pDir;
+    delete [] extractname;
+    delete [] fp;
+
+    return openFile;                // return NULL if not found
 }
 
 //----------------------------------------------------------------------
@@ -257,21 +317,57 @@ FileSystem::Open(const char *name)
 bool
 FileSystem::Remove(const char *name)
 { 
-    Directory *directory;
+    
     BitMap *freeMap;
     FileHeader *fileHdr;
     int sector;
     
-    directory = new Directory(NumDirEntries);
-    directory->FetchFrom(directoryFile);
-    sector = directory->Find(name);
-    if (sector == -1) {
-       delete directory;
-       return FALSE;			 // file not found 
+    // Expand file name
+    char *extractname = ExtractFileName(name);
+    char *pDir = DirectoryName(extractname);
+    char *fp = FileName(extractname);
+
+    // Get the parent directory
+    int psector;
+
+    // Try to open parent directory
+    Directory *directory = GetDirectoryByName(pDir, &psector);
+    
+    // Check if file is not already opened
+    if (fileSyncMgr->IsOpenedFile(expandname))
+    {
+        delete [] extractname;
+        delete [] pDir;
+        delete [] fp;
+        if (directory)
+            delete directory;
+        return -1;
     }
+
+    // If not found
+    if (directory == NULL)
+    {
+        delete [] extractname;
+        delete [] pDir;
+        delete [] fp;
+        return -2;
+    }
+
+    // Search for filename
+    sector = directory->Find(fp);
+    if (sector == -1) {
+        delete [] extractname;
+        delete [] pDir;
+        delete [] fp;
+        delete directory;
+        return -2;
+    }
+
+    // Read file from Disk
     fileHdr = new FileHeader;
     fileHdr->FetchFrom(sector);
 
+    // Get free sectors BitMap
     freeMap = new BitMap(NumSectors);
     freeMap->FetchFrom(freeMapFile);
 
@@ -280,10 +376,18 @@ FileSystem::Remove(const char *name)
     directory->Remove(name);
 
     freeMap->WriteBack(freeMapFile);		// flush to disk
-    directory->WriteBack(directoryFile);        // flush to disk
+
+    // Write directory modifications to disk
+    OpenFile *f = new OpenFile(parent_sector, NULL);
+    directory->WriteBack(f);
+    delete f;
+
     delete fileHdr;
     delete directory;
     delete freeMap;
+    delete [] extractname;
+    delete [] pDir;
+    delete [] fp;
     return TRUE;
 } 
 
@@ -293,13 +397,17 @@ FileSystem::Remove(const char *name)
 //----------------------------------------------------------------------
 
 void
-FileSystem::List()
+FileSystem::List(const char *dirname)
 {
-    Directory *directory = new Directory(NumDirEntries);
+    char *extractname = ExtractFileName(dirname);
+    Directory *parent = GetDirectoryByName(extractname, NULL);
+    delete [] extractname;
 
-    directory->FetchFrom(directoryFile);
-    directory->List();
-    delete directory;
+    if (parent == NULL)
+        return;
+
+    parent->List();
+    delete parent;
 }
 
 //----------------------------------------------------------------------
@@ -314,7 +422,7 @@ FileSystem::List()
 
 void
 FileSystem::Print()
-{
+
     FileHeader *bitHdr = new FileHeader;
     FileHeader *dirHdr = new FileHeader;
     BitMap *freeMap = new BitMap(NumSectors);
@@ -339,3 +447,72 @@ FileSystem::Print()
     delete freeMap;
     delete directory;
 } 
+
+
+            /* Create a Directory     */
+int FileSystem::CreateDirectory(const char* dirname)
+{
+    // Extract file name
+    char *extractname = ExtractFileName(dirname);
+    char *pDir = DirectoryName(expandname);
+
+    BitMap *freeMap = new BitMap(NumSectors);
+
+    // Get the parent directory
+    int psector;
+
+    Directory *parent = GetDirectoryByName(pDir, &psector);
+
+    int er=0;
+
+    if(parent==NULL)
+        er=-1;
+    else
+    {
+        freeMap->FetchFrom(freeMapFile);
+        int sector = freeMap->Find();
+        if(sector==-1)
+        {
+            er=-2;
+        }
+        else
+        {
+            freeMap->Mark(sector); // Mark sector
+
+            // Allocate space for the installation of the directory
+            Directory *child_dir = new Directory(NumDirEntries);
+            FileHeader *dirHdr = new FileHeader;
+
+            dirHdr->WriteBack(sector);
+
+            // Write Directory
+            OpenFile *f = new OpenFile(sector,NULL);
+            child_dir->WriteBack(f);
+ 
+            // Changed FreeMap
+            freeMap->WriteBack(freeMapFile);
+
+            delete f;
+            delete child_dir;
+            delete dirHdr;
+            er=0;
+        }
+    }
+
+    if(er==0)
+    {
+        OpenFile *f = new OpenFile(psector,NULL);
+        parent->WriteBack(f);
+        delete f;
+    }
+
+    if(parent!=NULL)
+        delete parent;
+
+    delete [] extractname;
+    delete [] pDir;
+    delete freeMap;
+
+    return er;
+}
+
