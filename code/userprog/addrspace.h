@@ -16,7 +16,9 @@
 #include "copyright.h"
 #include "filesys.h"
 #include "bitmap.h"
+#ifdef CHANGED
 #include "synch.h"
+#endif
 
 #define UserStackSize		2048	// increase this as necessary!
 
