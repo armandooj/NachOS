@@ -99,7 +99,7 @@ int SynchConsole::SynchGetInt() {
         i++;
     }
 
-    // By now we have the number but if we don't "consume" al the numbers they're
+    // By now we have the number but if we don't "consume" all the numbers they're
     // going to appear as a bash command not found error. Read the rest...
     char c = SynchGetChar();
     while (c != '\0' && c != EOF && c != '\n') {
