@@ -40,6 +40,11 @@
 #define SC_GetInt   	      16
 #define SC_UserThreadCreate 17
 #define SC_UserThreadExit   18
+#define SC_Seek                 19
+#define SC_GetCurrentDirectory  20
+#define SC_SetCurrentDirectory  21
+#define SC_Remove               22
+
 
 #endif
 
@@ -125,6 +130,11 @@ int Read (char *buffer, int size, OpenFileId id);
 /* Close the file, we're done reading and writing to it. */
 void Close (OpenFileId id);
 
+/* Seek into the file at position pos */
+int Seek(OpenFileId id, int pos);**
+
+/* Unlink/Remove file */
+int Remove(const char *name);
 
 
 /* User-level thread operations: Fork and Yield.  To allow multiple
@@ -159,6 +169,16 @@ int GetInt();
 // Function for User Thread 
 int UserThreadCreate(void f(void *arg), void *arg);
 void UserThreadExit();
+
+/**
+ * Get the current directory of a process
+ **/
+char *GetCurrentDirectory();
+
+/**
+ * Set the current directory of a process
+ **/
+int SetCurrentDirectory(char *name);
 
 #endif // IN_USER_MODE
 

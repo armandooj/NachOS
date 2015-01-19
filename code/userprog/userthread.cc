@@ -13,6 +13,10 @@
 #include "thread.h"
 #include "scheduler.h"
 #include "synch.h"
+#include "copyright.h"
+#include "console.h"
+#include "synchconsole.h"
+#include "addrspace.h"
 
 /*
 Initialises backups of registers of a new copy of the MIPS interpreter in the same way as the primitive interpreter 

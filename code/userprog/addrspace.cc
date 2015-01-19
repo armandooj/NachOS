@@ -23,6 +23,8 @@
 
 #include <strings.h>		/* for bzero */
 
+
+
 //----------------------------------------------------------------------
 // SwapHeader
 //      Do little endian to big endian conversion on the bytes in the 
@@ -66,6 +68,16 @@ AddrSpace::AddrSpace (OpenFile * executable)
     NoffHeader noffH;
     unsigned int i, size;
 
+       // Set default current directory
+    currentDirectory = new char[2];
+    currentDirectory[0] = '/';
+    currentDirectory[1] = '\0';
+
+       // Init open file table as unused
+    //int i;
+    for (i = 0; i < MAX_OPEN_FILES; i++)
+        filetable[i].inUse = false;
+    i=0;
     executable->ReadAt ((char *) &noffH, sizeof (noffH), 0);
     if ((noffH.noffMagic != NOFFMAGIC) &&
 	(WordToHost (noffH.noffMagic) == NOFFMAGIC))
@@ -144,6 +156,10 @@ AddrSpace::~AddrSpace ()
   delete stackBitMap;
   delete stackBitMapLock;
   delete processCountLock;
+  delete [] currentDirectory;
+
+    // Clean open files
+  CleanOpenFiles();
   // End of modification
 }
 

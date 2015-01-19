@@ -27,7 +27,7 @@
 #include "userthread.h"
 #include "scheduler.h"
 #include "synch.h"
-
+#include "filesys.h"
 //----------------------------------------------------------------------
 // UpdatePC : Increments the Program Counter register in order to resume
 // the user program immediately after the "syscall" instruction.
@@ -45,14 +45,6 @@ UpdatePC ()
 
 #ifdef CHANGED
 
-//------------------------------------------------------------
-// copyStringFromMachine
-//
-// Copies a string from the MIPS mode to the Linux mode.
-//   from: the address of the string
-//   to: the buffer
-//   size: the number of character to read from the address
-//------------------------------------------------------------
 unsigned int copyStringFromMachine(int from, char *to, unsigned size) {
     
     bool stop = false;
@@ -105,6 +97,162 @@ unsigned int copyStringFromMachine(int from, char *to, unsigned size) {
     
     return bytesRead;
 }
+
+int copyStringToMachine(int to, const char *from, unsigned int size)
+{
+unsigned int fSize, i;
+fSize = strlen(from);
+//read bytes one by one
+for(i=0 ; i < size && i < fSize ; i++)
+{
+if(!machine->WriteMem(to+i, 1, from[i]))
+{
+//WriteMem error
+return -1;
+}
+if(from[i] == '\0')
+{
+break;
+}
+}
+return i;
+}
+
+
+
+void switch_Open()
+{
+    // Get file name from user space
+    char *filename = new char[MAX_STRING_SIZE + 1];
+    int write = copyStringFromMachine(machine->ReadRegister(4), filename, MAX_STRING_SIZE);
+    filename[write] = '\0';
+
+    // Expand filename
+    char *absname = fileSystem->ExpandFileName(filename);
+    delete [] filename;
+
+    // Try to open file
+    int ret = currentThread->space->FileOpen(absname);
+    delete [] absname;
+
+    // Notify user of result
+    machine->WriteRegister(2, ret);
+}
+
+void switch_Close()
+{
+    // Read id from userspace
+    int id = machine->ReadRegister(4);
+
+    // Close file & notify user
+    machine->WriteRegister(2, currentThread->space->FileClose(id));
+}
+
+void switch_Read()
+{
+    // Retrieve arguments
+    int id = machine->ReadRegister(4);
+    int to = machine->ReadRegister(5);
+    int size = machine->ReadRegister(6);
+
+    // Read from file & notify user
+    machine->WriteRegister(2, currentThread->space->FileRead(id, to, size));
+}
+
+void switch_Write()
+{
+    // Retrieve arguments
+    int id = machine->ReadRegister(4);
+    int from = machine->ReadRegister(5);
+    int size = machine->ReadRegister(6);
+
+    // Write from file & notify user
+    machine->WriteRegister(2, currentThread->space->FileWrite(id, from, size));
+}
+
+void switch_Seek()
+{
+    // Retrieve arguments
+    int id = machine->ReadRegister(4);
+    int position = machine->ReadRegister(5);
+
+    // Seek to position
+    machine->WriteRegister(2, currentThread->space->FileSeek(id, position));
+}
+
+void switch_Create()
+{
+    // Get file name from user space
+    char *filename = new char[MAX_STRING_SIZE + 1];
+    int write = copyStringFromMachine(machine->ReadRegister(4), filename, MAX_STRING_SIZE);
+    filename[write] = '\0';
+
+    // Expand filename
+    char *absname = fileSystem->ExpandFileName(filename);
+    delete [] filename;
+
+    // Get size from userspace
+    int size = 0;               // 0 as file is dynamicly resized
+
+    // Try to create file
+    bool ret = fileSystem->Create(absname, size);
+    delete [] absname;
+
+    // Notify user of result
+    machine->WriteRegister(2, ret ? 0 : -1);
+}
+
+void switch_Remove()
+{
+    // Get file name from user space
+    char *filename = new char[MAX_STRING_SIZE + 1];
+    int write = copyStringFromMachine(machine->ReadRegister(4), filename, MAX_STRING_SIZE);
+    filename[write] = '\0';
+
+    // Expand filename
+    char *absname = fileSystem->ExpandFileName(filename);
+    delete [] filename;
+
+    // Try to delete
+    int ret = currentThread->space->FileRemove(absname);
+    delete [] absname;
+
+    // Notify user of result
+    machine->WriteRegister(2, ret);
+}
+
+void switch_GetCurrentDirectory()
+{
+    int to = machine->ReadRegister(4);
+    int n = strlen(currentThread->GetCurrentDirectory());
+
+    // Copy buffer to string
+    copyStringToMachine(to, currentThread->GetCurrentDirectory(), n);
+    machine->WriteRegister(2, machine->ReadRegister(4));
+}
+
+void switch_SetCurrentDirectory()
+{
+    int from = machine->ReadRegister(4);
+    char *buffer = new char[MAX_STRING_SIZE + 1];
+
+    // Copy buffer to string
+    copyStringFromMachine(from, buffer, MAX_STRING_SIZE);
+    machine->WriteRegister(2, currentThread->SetCurrentDirectory(buffer));
+    delete [] buffer;
+}
+
+
+
+//------------------------------------------------------------
+// copyStringFromMachine
+//
+// Copies a string from the MIPS mode to the Linux mode.
+//   from: the address of the string
+//   to: the buffer
+//   size: the number of character to read from the address
+//------------------------------------------------------------
+
 #endif
 
 //----------------------------------------------------------------------
@@ -263,6 +411,51 @@ ExceptionHandler (ExceptionType which)
                 machine->WriteMem(machine->ReadRegister(4), 4, val);
                 break;
             }
+                case SC_Open:
+                {
+                    switch_Open();
+                    break;
+                }
+                case SC_Create:
+                {
+                    switch_Create();
+                    break;
+                }
+                case SC_Close:
+                {
+                    switch_Close();
+                    break;
+                }
+                case SC_Seek:
+                {
+                    switch_Seek();
+                    break;
+                }
+                case SC_Read:
+                {
+                    switch_Read();
+                    break;
+                }
+                case SC_Write:
+                {
+                    switch_Write();
+                    break;
+                }
+                case SC_GetCurrentDirectory:
+                {
+                    switch_GetCurrentDirectory();
+                    break;
+                }
+                case SC_SetCurrentDirectory:
+                {
+                    switch_SetCurrentDirectory();
+                    break;
+                }
+                case SC_Remove:
+                {
+                    switch_Remove();
+                    break;
+                }
             default: {
                printf("Unexpected user mode exception %d %d\n", which, type);
                ASSERT(FALSE);
