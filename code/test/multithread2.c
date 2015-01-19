@@ -19,10 +19,10 @@ int main() {
   ch = 'b';
 
   int i;
-  for (i = 0; i <= 5; i++) {
+  for (i = 0; i <= 4; i++) {
     id = UserThreadCreate(print, (void *) c);
 
-    if (id >= 0) {      
+    if (id > 0) {      
       PutInt(id);
     } else {
       PutString("Er");

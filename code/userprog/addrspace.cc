@@ -243,13 +243,13 @@ int AddrSpace::GetAndSetFreeStackLocation () {
     stackBitMapLock->Acquire();
     int location = stackBitMap->Find();
     stackBitMapLock->Release();
-    return location + 1;
+    return location;
 }
 
-void AddrSpace::FreeStackLocation (int position) {    
+void AddrSpace::FreeStackLocation (int location) {    
     stackBitMapLock->Acquire();
-    DEBUG('a', "Freeing stack location %d\n", position);
-    stackBitMap->Clear(position - 1);
+    DEBUG('a', "Freeing stack location %d\n", location);
+    stackBitMap->Clear(location);
     stackBitMapLock->Release();
 }
 

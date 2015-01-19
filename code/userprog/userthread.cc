@@ -56,12 +56,17 @@ int do_UserThreadCreate(int f, int arg, int ret_function) {
 
   Thread *newThread = new Thread("New User Thread");
   
-  //put increase counter here for synchonization problem
-  currentThread->space->increaseUserProcesses();    //PROBLEM??? 
+  // put increase counter here for synchonization problem
+  currentThread->space->increaseUserProcesses();    // PROBLEM??? 
 
   // The thread's id is also its location on the stack
   newThread->SetTid(currentThread->space);  // wrong if set after fork.
-  //add to active list
+
+  // TODO Does this help ?
+  if (newThread->GetTid() < 0)
+    return -1;
+
+  // Add to active list
   currentThread->space->activeThreads->AppendTraverse(NULL, newThread->GetTid());
   DEBUG('l', "Add new thread: %d\n", newThread->GetTid());
   DEBUG('l', "Thread list: \n");
@@ -90,7 +95,6 @@ void do_UserThreadExit() {
     
     //Remove from active list
     currentThread->space->activeThreads->RemoveTraverse(currentThread->GetTid());
-    
     
     //debugging -- delete later
     DEBUG('l', "Delete thread: %d\n", currentThread->GetTid());
