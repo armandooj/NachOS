@@ -214,14 +214,20 @@ ExceptionHandler (ExceptionType which)
                 int f = machine->ReadRegister(4);
                 int arg = machine->ReadRegister(5);
                 int thread_id = do_UserThreadCreate(f, arg);
-                machine->WriteRegister(2, thread_id);                     
+                machine->WriteRegister(2, thread_id);
                 break;
-            }       
+            }
             case SC_UserThreadExit: 
             {
                 do_UserThreadExit();                  
                 break;
-            }         
+            }
+            case SC_UserThreadJoin:
+            {
+                int tid = machine->ReadRegister(4);
+                do_UserThreadJoin(tid);
+                break;
+            }
             case SC_GetChar:
             {
                 char ch = synchconsole->SynchGetChar();
