@@ -260,7 +260,7 @@ ExceptionHandler (ExceptionType which)
             }
             case SC_PutInt:
             {
-                int val = machine->ReadRegister(4);
+                int val = machine->ReadRegister(4);                
                 synchconsole->SynchPutInt(val);
                 break;
             }
