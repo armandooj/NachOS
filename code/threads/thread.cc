@@ -47,7 +47,7 @@ Thread::Thread (const char *threadName)
       userRegisters[r] = 0;
       
 #ifdef CHANGED
-    joinCondition = new Semaphore("Sleep For Join", 1);
+    joinCondition = new Semaphore("Sleep For Join", 0);
 #endif  // End CHANGED
 #endif //End USER_PROGRAM
 
