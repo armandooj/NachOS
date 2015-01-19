@@ -45,7 +45,12 @@ Thread::Thread (const char *threadName)
     // user threads.
     for (int r=NumGPRegs; r<NumTotalRegs; r++)
       userRegisters[r] = 0;
-#endif
+      
+#ifdef CHANGED
+    joinCondition = new Semaphore("Sleep For Join", 0);
+#endif  // End CHANGED
+#endif //End USER_PROGRAM
+
 }
 
 //----------------------------------------------------------------------
@@ -67,6 +72,9 @@ Thread::~Thread ()
     ASSERT (this != currentThread);
     if (stack != NULL)
 	DeallocBoundedArray ((char *) stack, StackSize * sizeof (int));
+	
+	//deallocate semaphore
+	delete joinCondition;
 }
 
 //----------------------------------------------------------------------
@@ -418,7 +426,7 @@ Thread::RestoreUserState ()
 
 void
 Thread::FreeTid() {
-  space->FreeStackLocation(tid);
+  space->FreeStackLocation(tid - 1);
 }
 
 int
@@ -427,9 +435,12 @@ Thread::GetTid() {
 }
 
 void
-Thread::SetTid() {
-  // // We need to set it's address space first so that we can access the stack!
-  tid = space->GetAndSetFreeStackLocation();
+Thread::SetTid(AddrSpace *thisThreadSpace) {
+  // WARNING: We need to set it's address space first so that we can access the stack!
+  tid = thisThreadSpace->GetAndSetFreeStackLocation();
+  // Since main is the thread 0, we don't wan't user threads to start from 0. Make them start from 1
+  // except when something went wrong
+  tid = tid >= 0 ? tid + 1 : -1;
 }
 
 #endif

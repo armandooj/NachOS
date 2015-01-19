@@ -5,7 +5,7 @@ void print(void *c)
   // PutString("Thread ");
   // PutChar(*((char *) c) );
   // PutString(" is executing\n");
-  UserThreadExit(); 
+  // UserThreadExit(); 
 }
 
 int main() {

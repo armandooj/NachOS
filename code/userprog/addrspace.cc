@@ -20,6 +20,7 @@
 #include "addrspace.h"
 #include "noff.h"
 #include "synch.h"
+#include "list.h"
 
 #include <strings.h>		/* for bzero */
 
@@ -131,7 +132,11 @@ AddrSpace::AddrSpace (OpenFile *executable)
   processCountLock = new Lock("Process Count Lock");
   numberOfUserProcesses = 1;    // counting the main process      
   ExitForMain = new Semaphore("Exit for Main", 1);
-#endif     
+
+  //For Join Functionality
+  activeThreads = new ListForJoin();
+  activeLocks = new ListForJoin();
+#endif   // END CHANGED      
 }
 
 //----------------------------------------------------------------------
@@ -246,10 +251,10 @@ int AddrSpace::GetAndSetFreeStackLocation () {
     return location;
 }
 
-void AddrSpace::FreeStackLocation (int position) {    
+void AddrSpace::FreeStackLocation (int location) {    
     stackBitMapLock->Acquire();
-    DEBUG('a', "Freeing stack location %d\n", position);
-    stackBitMap->Clear(position);
+    DEBUG('a', "Freeing stack location %d\n", location);
+    stackBitMap->Clear(location);
     stackBitMapLock->Release();
 }
 

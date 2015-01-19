@@ -16,8 +16,10 @@
 #include "copyright.h"
 #include "filesys.h"
 #include "bitmap.h"
+
 #ifdef CHANGED
 #include "synch.h"
+#include "list.h"
 #endif
 
 #define UserStackSize		2048	// increase this as necessary!
@@ -53,7 +55,11 @@ class AddrSpace
     void decreaseUserProcesses();
     int getNumberOfUserProcesses();
     
-    Semaphore *ExitForMain;
+    Semaphore *ExitForMain;    
+    
+    //Variable for Join functionality
+    ListForJoin *activeThreads;
+    ListForJoin *activeLocks;
 #endif   // END CHANGED
   private:
     TranslationEntry * pageTable;	// Assume linear page table translation

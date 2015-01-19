@@ -1,19 +1,15 @@
 #include "syscall.h"
 void thread2(void *c)
 {
-  PutChar(* ((char *) c));  
-
-  Exit(0);
-  UserThreadExit(); 
+  PutChar(* ((char *) c));
 }
 
 void thread1(void *c)
 {
   UserThreadCreate(thread2, c);
   PutChar('2');
-  PutString("Long Process");
-  
-  UserThreadExit(); 
+  PutString("Long Process");  
+  // UserThreadExit(); 
 }
 
 int main() {
