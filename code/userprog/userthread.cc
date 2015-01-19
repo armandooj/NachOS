@@ -45,7 +45,7 @@ static void StartUserThread(int data) {
 
 int do_UserThreadCreate(int f, int arg) {
 
-    DEBUG('t', "Enter User Create Thread\n");
+  DEBUG('t', "Enter User Create Thread\n");
 
   // Use a struct to pass both the function and argument to the fork function
   ParamFunction *paramFunction = new ParamFunction();
@@ -60,27 +60,26 @@ int do_UserThreadCreate(int f, int arg) {
   // The thread's id is also its location on the stack
   newThread->SetTid(currentThread->space);  // wrong if set after fork.
   //add to active list
-  currentThread->space->activeThreads->AppendTraverse(NULL, newThread->GetTid() );
+  currentThread->space->activeThreads->AppendTraverse(NULL, newThread->GetTid());
   DEBUG('l', "Add new thread: %d\n", newThread->GetTid());
   DEBUG('l', "Thread list: \n");
   currentThread->space->activeThreads->PrintContent();                          
 
   newThread->Fork(StartUserThread, (int) paramFunction);
   
-  //newThread->SetTid();
   return newThread->GetTid();
 }
 
 void do_UserThreadExit() {
 
-    DEBUG('t', "Thread \"%s\" uses User Exit\n", currentThread->getName() );
+    DEBUG('t', "Thread \"%s\" uses User Exit\n", currentThread->getName());
     DEBUG('t', "Status: number of current userthreads: %d\n", 
                             currentThread->space->getNumberOfUserProcesses());
     
     DEBUG('l', "Thread \"%s\" uses User Exit\n", currentThread->getName() );
     
     currentThread->space->decreaseUserProcesses();
-    if (currentThread->space->getNumberOfUserProcesses() == 0){
+    if (currentThread->space->getNumberOfUserProcesses() == 0) {
         currentThread->space->ExitForMain->V();
     }
 
@@ -98,7 +97,7 @@ void do_UserThreadExit() {
     
     //check queue of active lock to see anyone needs waking up
     void* thing = currentThread->space->activeLocks->RemoveTraverse(currentThread->GetTid());    
-    if (thing !=NULL ) {
+    if (thing != NULL ) {
         // waking up the receipient
         ((JoinWaiting*) thing) -> threadWaiting->V();
         
@@ -116,11 +115,11 @@ int do_UserThreadJoin(int tid) {
     DEBUG('l', "Begin join, thread %d waiting for %d\n", currentThread->GetTid(), tid);
     
     //Sanity check
-    if (tid == currentThread->GetTid() )
+    if (tid == currentThread->GetTid())
         return -1;
     
     // check if the thread is in the active thread,
-    if ( ! currentThread->space->activeThreads->seek(tid) )
+    if (!currentThread->space->activeThreads->seek(tid))
         return 0;
     
     //build the structure to prepare to sleep, just the semaphore
@@ -130,14 +129,14 @@ int do_UserThreadJoin(int tid) {
     waitingCondition->threadWaiting = currentThread->joinCondition;
     
     // add to the queue
-    currentThread->space->activeLocks->AppendTraverse( (void*) waitingCondition, tid);
+    currentThread->space->activeLocks->AppendTraverse((void*) waitingCondition, tid);
 
     DEBUG('l', "Insert to waiting thread: %d\n", currentThread->GetTid());
     DEBUG('l', "Waiting thread list: \n");
     currentThread->space->activeLocks->PrintContent();
     
     // the synchonization part
-    if ( ! currentThread->space->activeThreads->seek(tid) ) {
+    if (!currentThread->space->activeThreads->seek(tid)) {
         //take off the queue and returning
         currentThread->space->activeLocks->RemoveTraverse(tid);
         return 0;
