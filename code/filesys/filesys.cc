@@ -627,12 +627,6 @@ char *FileSystem::ExpandFileName(const char* filename)
     return res;
 }
 
-/**
-<<<<<<< HEAD
- * Extract dirname from filename
- *
- * Return a dynamicly allocated name (should be freed)
- **/
 char *FileSystem::DirectoryName(const char* filename)
 {
     // Trick dir name

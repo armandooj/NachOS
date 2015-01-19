@@ -46,7 +46,9 @@ extern Machine *machine;	// user program memory and registers
 
 #ifdef FILESYS_NEEDED		// FILESYS or FILESYS_STUB
 #include "filesys.h"
+#include "syncmgr.h"
 extern FileSystem *fileSystem;
+extern FileSyncMgr *fileSyncMgr;
 #endif
 
 #ifdef FILESYS

@@ -60,6 +60,8 @@ extern void Print (char *file), PerformanceTest (void);
 extern void StartProcess (char *file), ConsoleTest (char *in, char *out);
 extern void SynchConsoleTest (char *in, char *out);
 extern void MailTest (int networkID);
+void CurrentDirectoryTest();
+void CurrentDirectoryTest2();
 
 //----------------------------------------------------------------------
 // main
@@ -130,38 +132,93 @@ main (int argc, char **argv)
         }
       #endif
 #endif // USER_PROGRAM
+
 #ifdef FILESYS
-	  if (!strcmp (*argv, "-cp"))
-	    {			// copy from UNIX to Nachos
-		ASSERT (argc > 2);
-		Copy (*(argv + 1), *(argv + 2));
-		argCount = 3;
-	    }
-	  else if (!strcmp (*argv, "-p"))
-	    {			// print a Nachos file
-		ASSERT (argc > 1);
-		Print (*(argv + 1));
-		argCount = 2;
-	    }
-	  else if (!strcmp (*argv, "-r"))
-	    {			// remove Nachos file
-		ASSERT (argc > 1);
-		fileSystem->Remove (*(argv + 1));
-		argCount = 2;
-	    }
-	  else if (!strcmp (*argv, "-l"))
-	    {			// list Nachos directory
-		fileSystem->List ();
-	    }
-	  else if (!strcmp (*argv, "-D"))
-	    {			// print entire filesystem
-		fileSystem->Print ();
-	    }
-	  else if (!strcmp (*argv, "-t"))
-	    {			// performance test
-		PerformanceTest ();
-	    }
+        bool cleanup = false;
+
+        if (!strcmp (*argv, "-cp"))
+        {			// copy from UNIX to Nachos
+            ASSERT (argc > 2);
+            Copy (*(argv + 1), *(argv + 2));
+            argCount = 3;
+            cleanup = true;
+        }
+        else if (!strcmp (*argv, "-p"))
+        {			// print a Nachos file
+            ASSERT (argc > 1);
+            Print (*(argv + 1));
+            argCount = 2;
+            cleanup = true;
+        }
+        else if (!strcmp (*argv, "-r"))
+        {			// remove Nachos file
+            ASSERT (argc > 1);
+            fileSystem->Remove (*(argv + 1));
+            argCount = 2;
+            cleanup = true;
+        }
+        else if (!strcmp (*argv, "-ls"))
+        {			// list Nachos directory
+            fileSystem->List("/");
+            cleanup = true;
+        }
+        else if (!strcmp (*argv, "-l"))
+        {			// list Nachos directory
+            fileSystem->List(*(argv + 1));
+            argCount = 2;
+            cleanup = true;
+        }
+        else if (!strcmp (*argv, "-lr"))
+        {			// list Nachos directory
+            fileSystem->ListRec(*(argv + 1));
+            argCount = 2;
+            cleanup = true;
+        }
+        else if (!strcmp (*argv, "-md"))
+        {			// create Nachos directory
+            DEBUG('f', "Return of create dir = %d\n", fileSystem->CreateDirectory(*(argv + 1)));
+            argCount = 2;
+            cleanup = true;
+        }
+        else if (!strcmp (*argv, "-rd"))
+        {			// create Nachos directory
+            DEBUG('f', "Return of delete dir = %d\n", fileSystem->RemoveDirectory(*(argv + 1)));
+            argCount = 2;
+            cleanup = true;
+        }
+        else if (!strcmp (*argv, "-D"))
+        {			// print entire filesystem
+            fileSystem->Print ();
+            cleanup = true;
+        }
+        else if (!strcmp (*argv, "-t"))
+        {			// performance test
+            PerformanceTest ();
+            cleanup = true;
+        }
+
+        else if (!strcmp (*argv, "-tk1"))
+        {			// kernel thread 1
+            CurrentDirectoryTest();
+            cleanup = true;
+        }
+
+        else if (!strcmp (*argv, "-tk2"))
+        {			// kernel thread 1
+            CurrentDirectoryTest2();
+            cleanup = true;
+        }
+
+        // Memory leak
+        if (cleanup)
+        {
+            currentThread = NULL;
+            delete mainThread;
+            interrupt->Halt();
+        }
+
 #endif // FILESYS
+
 #ifdef NETWORK
 	  if (!strcmp (*argv, "-o"))
 	    {

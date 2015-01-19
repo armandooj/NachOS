@@ -32,6 +32,7 @@
 class DirectoryEntry {
   public:
     bool inUse;				// Is this directory entry in use?
+    bool isDir;             // For sub-directory
     int sector;				// Location on disk to find the 
 					//   FileHeader for this file 
     char name[FileNameMaxLen + 1];	// Text name for file, with +1 for 
@@ -61,15 +62,25 @@ class Directory {
     int Find(const char *name);		// Find the sector number of the 
 					// FileHeader for file: "name"
 
+    bool AddDirectory(const char *name, int newSector);  // Add a dir name into the directory
     bool Add(const char *name, int newSector);  // Add a file name into the directory
 
+    bool RemoveDirectory(const char *name); // Remove a dir from the directory
     bool Remove(const char *name);	// Remove a file from the directory
+
+    bool IsEmpty();             // Check if the directory is empty
 
     void List();			// Print the names of all the files
 					//  in the directory
-    void Print();			// Verbose print of the contents
-					//  of the directory -- all the file
-					//  names and their contents.
+    void Print();			// Verbose print of the contents 	//  of the directory -- all the file  					//  names and their contents.
+    void PrintRec(const char *prefix);          // Recursive printing of directory
+
+
+    static Directory* ReadAtSector(int sector); // read a directory available in sector
+
+    bool FileExists(const char* filename); /* Check if a file exists with this name */
+    bool DirExists(const char* dirname);   /* Check if a directory exists with this name */
+    bool CheckMaxEntries();                /* See if directory limit is not reached */
 
   private:
     int tableSize;			// Number of directory entries

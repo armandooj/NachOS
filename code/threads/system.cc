@@ -21,6 +21,7 @@ Timer *timer;			// the hardware timer device,
 
 #ifdef FILESYS_NEEDED
 FileSystem *fileSystem;
+FileSyncMgr *fileSyncMgr;
 #endif
 
 #ifdef FILESYS
@@ -172,6 +173,8 @@ Initialize (int argc, char **argv)
 
 #ifdef FILESYS_NEEDED
     fileSystem = new FileSystem (format);
+    fileSyncMgr = new FileSyncMgr();
+    fileSystem = new FileSystem (format);
 #endif
 
 #ifdef NETWORK
@@ -197,6 +200,7 @@ Cleanup ()
 
 #ifdef FILESYS_NEEDED
     delete fileSystem;
+    delete fileSyncMgr;
 #endif
 
 #ifdef FILESYS
@@ -210,6 +214,6 @@ Cleanup ()
     delete timer;
     delete scheduler;
     delete interrupt;
-
+    delete stats;
     Exit (0);
 }

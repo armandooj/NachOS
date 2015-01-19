@@ -20,7 +20,21 @@
 
 #define UserStackSize		2048	// increase this as necessary!
 
+class Thread;
 class Semaphore;    //forward declaration
+
+
+/**
+ * Open file structures
+ **/
+#define MAX_OPEN_FILES 10
+struct openfile_s
+{
+    bool inUse;
+    char *absoluteName;
+    Thread *owner;
+    OpenFile *handler;
+};
 
 class AddrSpace
 {
@@ -53,7 +67,22 @@ class AddrSpace
     
     Semaphore *ExitForMain;
 #endif   // END CHANGED
+
+        // Thread current directory (filesystem)
+    int SetCurrentDirectory(const char* name);
+    const char* GetCurrentDirectory();
+
+    // Files management
+    void CleanOpenFiles();
+    int FileOpen(const char* filename);
+    int FileClose(int id);
+    int FileWrite(int id, int into, int numBytes);
+    int FileRead(int id, int buffer, int numBytes);
+    int FileSeek(int id, int position);
+    int FileRemove(const char* filename);
   private:
+    // Open file table
+    openfile_s filetable[MAX_OPEN_FILES];
     TranslationEntry * pageTable;	// Assume linear page table translation
     // for now!
     unsigned int numPages;	// Number of pages in the virtual 
@@ -69,6 +98,7 @@ class AddrSpace
 
 #endif   // END CHANGED
 
+    char *currentDirectory;
 
 };
 

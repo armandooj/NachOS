@@ -271,3 +271,197 @@ int AddrSpace::getNumberOfUserProcesses() {
 }
 
 #endif   // END CHANGED
+
+const char* AddrSpace::GetCurrentDirectory()
+{
+    return currentDirectory;
+}
+
+int AddrSpace::SetCurrentDirectory(const char* dirname)
+{
+    // Delete previous dir
+    delete [] currentDirectory;
+
+    char *tmp = new char[strlen(dirname) + 1];
+    strcpy(tmp, dirname);
+    currentDirectory = tmp;
+    return 0;
+}
+
+/**
+ * Close all open files
+ **/
+void AddrSpace::CleanOpenFiles()
+{
+    int i;
+
+    for (i = 0; i < MAX_OPEN_FILES; i++)
+    {
+        if (filetable[i].inUse)
+        {
+            // Close file
+            delete filetable[i].handler;
+            filetable[i].handler = NULL;
+
+            // Delete filename
+            delete [] filetable[i].absoluteName;
+            filetable[i].absoluteName = NULL;
+
+            // Detach owner
+            filetable[i].owner = NULL;
+
+            // Mark as unused
+            filetable[i].inUse = false;
+        }
+    }
+}
+
+
+/**
+ * Try to open a file
+ *
+ * Return -1 if file cannot be opened
+ * Return -2 if MAX_OPEN_FILES is reached
+ * Otherwise return id (\in [0; MAX_OPEN_FILES[)
+ **/
+int AddrSpace::FileOpen(const char* filename)
+{
+    int index = 0;
+
+    while (index < MAX_OPEN_FILES && filetable[index].inUse)
+        index++;
+
+    // If no more empty slot
+    if (index == MAX_OPEN_FILES)
+        return -2;
+
+    // Mark as inUse in case of context switch
+    filetable[index].inUse = true;
+
+    // Fill structure
+    char *name = new char[strlen(filename) + 1];
+    strcpy(name, filename);
+
+    filetable[index].absoluteName = name;
+
+    // Try to open file
+    OpenFile *handler = fileSystem->Open(filename);
+    if (handler == NULL)
+    {
+        filetable[index].inUse = false;
+        delete [] name;
+        return -1;
+    }
+
+    filetable[index].handler = handler;
+    filetable[index].owner = currentThread;
+    filetable[index].inUse = true;
+    return index;
+}
+
+/**
+ * Try to remove a file
+ *
+ * Return -1 if file cannot be found
+ * Return -2 if the file is already opened
+ * 0 otherwise
+ **/
+int AddrSpace::FileRemove(const char* filename)
+{
+    return fileSystem->Remove(filename);
+}
+
+/**
+ * Close a file
+ *
+ * Return -1 if the file was not opened or id invalid
+ * 0 otherwise
+ **/
+int AddrSpace::FileClose(int id)
+{
+    // ID validity
+    if (id < 0 || id >= MAX_OPEN_FILES)
+        return -1;
+
+    // file open
+    if (!filetable[id].inUse)
+        return -1;
+
+    // Clean structure
+    delete filetable[id].handler;
+    filetable[id].handler = NULL;
+
+    delete [] filetable[id].absoluteName;
+    filetable[id].absoluteName = NULL;
+    filetable[id].owner = NULL;
+    filetable[id].inUse = false;
+
+
+    return 0;
+}
+
+/**
+ * Write to a file
+ *
+ * into refers to virtual @ inside user space
+ * Return -1 if the file was not opened or id invalid
+ * num of bytes written otherwise
+ **/
+int AddrSpace::FileWrite(int id, int into, int numBytes)
+{
+    // ID validity
+    if (id < 0 || id >= MAX_OPEN_FILES)
+        return -1;
+
+    // File open
+    if (!filetable[id].inUse)
+        return -1;
+
+    // Pass request to handler
+    return filetable[id].handler->WriteVirtual(into, numBytes);
+}
+
+/**
+ * Read from a file
+ *
+ * buffer refers to virtual @ inside user space
+ *
+ * Return -1 if the file was not opened or id invalid
+ * num of bytes written otherwise
+ **/
+int AddrSpace::FileRead(int id, int buffer, int numBytes)
+{
+    // ID validity
+    if (id < 0 || id >= MAX_OPEN_FILES)
+        return -1;
+
+    // File open
+    if (!filetable[id].inUse)
+        return -1;
+
+    // Pass request to handler
+    return filetable[id].handler->ReadVirtual(buffer, numBytes);
+}
+
+/**
+ * Seek inside a file
+ *
+ * Return -1 if the file was not opened or id invalid
+ * 0 otherwise
+ **/
+int AddrSpace::FileSeek(int id, int position)
+{
+    // ID validity
+    if (id < 0 || id >= MAX_OPEN_FILES)
+        return -1;
+
+    // File open
+    if (!filetable[id].inUse)
+        return -1;
+
+    // Pass request to handler
+    filetable[id].handler->Seek(position);
+
+    return 0;
+}
+
