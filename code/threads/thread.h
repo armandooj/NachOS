@@ -43,6 +43,7 @@
 #ifdef USER_PROGRAM
 #include "machine.h"
 #include "addrspace.h"
+#include "synch.h"
 #endif
 
 // CPU register state to be saved on context switch.  
@@ -142,6 +143,8 @@ class Thread
     void FreeTid();
     int GetTid();
     void SetTid(AddrSpace *thisThreadSpace);
+    
+    Semaphore *joinCondition; // Use this variable to sleep while waiting on Join
 #endif
 
     AddrSpace *space;		// User code this thread is running.

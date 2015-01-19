@@ -45,7 +45,12 @@ Thread::Thread (const char *threadName)
     // user threads.
     for (int r=NumGPRegs; r<NumTotalRegs; r++)
       userRegisters[r] = 0;
-#endif
+      
+#ifdef CHANGED
+    joinCondition = new Semaphore("Sleep For Join", 1);
+#endif  // End CHANGED
+#endif //End USER_PROGRAM
+
 }
 
 //----------------------------------------------------------------------
@@ -67,6 +72,9 @@ Thread::~Thread ()
     ASSERT (this != currentThread);
     if (stack != NULL)
 	DeallocBoundedArray ((char *) stack, StackSize * sizeof (int));
+	
+	//deallocate semaphore
+	delete joinCondition;
 }
 
 //----------------------------------------------------------------------

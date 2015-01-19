@@ -286,7 +286,7 @@ ListForJoin::RemoveTraverse(int key){
     // Case if there is at least 2 nodes
     //loop through to find the item with the key
     for (ptr = first; ptr != NULL; ptr = ptr->next) {
-        DEBUG('l', "Inside thread %d\n",ptr->key );
+
         if ( newKey == ptr->key) {
             thing = ptr -> item;
             element = ptr;
@@ -300,17 +300,29 @@ ListForJoin::RemoveTraverse(int key){
             }else {
                 ptrPre->next = ptr->next;            
             }
-            
+                        
             // free memory
-            delete element;
-            
+            delete element;            
             break;
         }
         ptrPre = ptr;
-    }
-    
-    
+    }    
     return thing;
+}
+
+bool
+ListForJoin::seek(int key) {
+    bool result = false;
+    ListElement *ptr;
+    long long newKey = (long long) key;
+    
+    for (ptr = first; ptr != NULL; ptr = ptr->next) {
+        if ( newKey == ptr->key) {
+            result = true;
+            break;
+        }
+    }
+    return result;
 }
 
 void

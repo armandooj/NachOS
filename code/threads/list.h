@@ -73,7 +73,8 @@ class ListForJoin:List
         // Routine to traverse and get items. For get, use the sortedInsert
         void AppendTraverse(void*item, int key);
         void *RemoveTraverse(int key);  
-        void PrintContent();      
+        void PrintContent();
+        bool seek(int key);
     private:
 };
 #endif
