@@ -426,7 +426,7 @@ Thread::RestoreUserState ()
 
 void
 Thread::FreeTid() {
-  space->FreeStackLocation(tid);
+  space->FreeStackLocation(tid - 1);
 }
 
 int
@@ -438,6 +438,9 @@ void
 Thread::SetTid(AddrSpace *thisThreadSpace) {
   // WARNING: We need to set it's address space first so that we can access the stack!
   tid = thisThreadSpace->GetAndSetFreeStackLocation();
+  // Since main is the thread 0, we don't wan't user threads to start from 0. Make them start from 1
+  // except when something went wrong
+  tid = tid >= 0 ? tid + 1 : -1;
 }
 
 #endif

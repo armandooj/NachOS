@@ -2,7 +2,7 @@
 void thread2(void *c)
 {
   PutChar(* ((char *) c));  
-  UserThreadExit(); 
+  // UserThreadExit(); 
 }
 
 void thread1(void *c)
@@ -12,7 +12,7 @@ void thread1(void *c)
   UserThreadJoin(t2);
   PutChar('1');
   
-  UserThreadExit(); 
+  // UserThreadExit(); 
 }
 
 int main() {
