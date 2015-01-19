@@ -63,9 +63,10 @@ int do_UserThreadCreate(int f, int arg, int ret_function) {
   newThread->SetTid(currentThread->space);  // wrong if set after fork.
 
   // TODO Does this help ?
-  if (newThread->GetTid() < 0)
+  if (newThread->GetTid() < 0) {
+    currentThread->space->decreaseUserProcesses();
     return -1;
-
+  }
   // Add to active list
   currentThread->space->activeThreads->AppendTraverse(NULL, newThread->GetTid());
   DEBUG('l', "Add new thread: %d\n", newThread->GetTid());
