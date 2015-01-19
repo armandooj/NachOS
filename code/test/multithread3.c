@@ -1,9 +1,7 @@
 #include "syscall.h"
 void thread2(void *c)
 {
-  PutChar(* ((char *) c));  
-  Exit(0);
-  // UserThreadExit(); 
+  PutChar(* ((char *) c));
 }
 
 void thread1(void *c)

@@ -39,16 +39,14 @@ static void StartUserThread(int data) {
   machine->WriteRegister(PCReg, paramFunction->function);
   machine->WriteRegister(NextPCReg, paramFunction->function + 4);
   // Set the stack pointer
-  currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetTid() + 1));
-  
-  currentThread->space->increaseUserProcesses();
+  currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetTid())); 
   
   machine->Run();
 }
 
 int do_UserThreadCreate(int f, int arg, int ret_function) {
 
-    DEBUG('t', "Enter User Create Thread\n");
+  DEBUG('t', "Enter User Create Thread\n");
 
   // Use a struct to pass both the function and argument to the fork function
   ParamFunction *paramFunction = new ParamFunction();
@@ -57,27 +55,100 @@ int do_UserThreadCreate(int f, int arg, int ret_function) {
   paramFunction->ret_function = ret_function;
 
   Thread *newThread = new Thread("New User Thread");
-  newThread->Fork(StartUserThread, (int) paramFunction);
-  // The thread's id is also its location on the stack
-  newThread->SetTid();
+  
+  //put increase counter here for synchonization problem
+  currentThread->space->increaseUserProcesses();    //PROBLEM??? 
 
+  // The thread's id is also its location on the stack
+  newThread->SetTid(currentThread->space);  // wrong if set after fork.
+  //add to active list
+  currentThread->space->activeThreads->AppendTraverse(NULL, newThread->GetTid());
+  DEBUG('l', "Add new thread: %d\n", newThread->GetTid());
+  DEBUG('l', "Thread list: \n");
+  currentThread->space->activeThreads->PrintContent();                          
+
+  newThread->Fork(StartUserThread, (int) paramFunction);
+  
   return newThread->GetTid();
 }
 
 void do_UserThreadExit() {
 
-    DEBUG('t', "Thread \"%s\" uses User Exit\n", currentThread->getName() );
+    DEBUG('t', "Thread \"%s\" uses User Exit\n", currentThread->getName());
     DEBUG('t', "Status: number of current userthreads: %d\n", 
                             currentThread->space->getNumberOfUserProcesses());
     
+    DEBUG('l', "Thread \"%s\" uses User Exit\n", currentThread->getName() );
+    
     currentThread->space->decreaseUserProcesses();
-    if (currentThread->space->getNumberOfUserProcesses() == 0){
+    if (currentThread->space->getNumberOfUserProcesses() == 0) {
         currentThread->space->ExitForMain->V();
     }
 
     // Also frees the corresponding stack location
     currentThread->FreeTid();
+    
+    //Remove from active list
+    currentThread->space->activeThreads->RemoveTraverse(currentThread->GetTid());
+    
+    
+    //debugging -- delete later
+    DEBUG('l', "Delete thread: %d\n", currentThread->GetTid());
+    DEBUG('l', "Thread list: \n");
+    currentThread->space->activeThreads->PrintContent();
+    
+    //check queue of active lock to see anyone needs waking up
+    void* thing = currentThread->space->activeLocks->RemoveTraverse(currentThread->GetTid());    
+    if (thing != NULL ) {
+        // waking up the receipient
+        ((JoinWaiting*) thing) -> threadWaiting->V();
+        
+        DEBUG('l', "Delete from waiting thread: %d\n", currentThread->GetTid());
+        DEBUG('l', "Waiting thread list: \n");
+        currentThread->space->activeLocks->PrintContent();
+    }
+        
     currentThread->Finish();
+}
+
+// return -1 if error, 0 if not running, 1 if success
+int do_UserThreadJoin(int tid) {
+    
+    DEBUG('l', "Begin join, thread %d waiting for %d\n", currentThread->GetTid(), tid);
+    
+    //Sanity check
+    if (tid == currentThread->GetTid())
+        return -1;
+    
+    // check if the thread is in the active thread,
+    if (!currentThread->space->activeThreads->seek(tid))
+        return 0;
+    
+    //build the structure to prepare to sleep, just the semaphore
+    //first, send it to the queue 
+    JoinWaiting* waitingCondition = new JoinWaiting();
+    waitingCondition->tid = currentThread->GetTid();
+    waitingCondition->threadWaiting = currentThread->joinCondition;
+    
+    // add to the queue
+    currentThread->space->activeLocks->AppendTraverse((void*) waitingCondition, tid);
+
+    DEBUG('l', "Insert to waiting thread: %d\n", currentThread->GetTid());
+    DEBUG('l', "Waiting thread list: \n");
+    currentThread->space->activeLocks->PrintContent();
+    
+    // the synchonization part
+    if (!currentThread->space->activeThreads->seek(tid)) {
+        //take off the queue and returning
+        currentThread->space->activeLocks->RemoveTraverse(tid);
+        return 0;
+    } else {
+        // go to sleep
+        DEBUG('l', "Going to sleep: \n");
+        currentThread->joinCondition->P();
+        DEBUG('l', "Waking up \n");
+    }    
+    return 1;   // return after being wake up :D
 }
 
 #endif
