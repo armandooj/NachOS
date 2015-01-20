@@ -99,8 +99,21 @@ int SynchConsole::SynchGetInt() {
         i++;
     }
 
+    if (i >= MAX_INT_SIZE) {
+        // By now we have the number but if we don't "consume" all the numbers they're
+        // going to appear as a bash command not found error. Read the rest...
+        char c = SynchGetChar();
+        while (c != '\0' && c != EOF && c != '\n') {
+            c = SynchGetChar();
+        }
+    }
+
+    buffer[i] = '\0';
+
     int val;
+    // Another option would be to use atoi(buffer);
     sscanf(buffer, "%d", &val);
+
     return val;
 }
 #endif // CHANGED
