@@ -14,11 +14,11 @@ class FrameProvider {
     ~FrameProvider();
 
     int GetEmptyFrame();
-    void ReleaseFrame();
+    void ReleaseFrame(int frame);
     int NumAvailFrame();
 
   private:
-    BitMap *bitmap;
+    BitMap *framesBitMap;
   
 };
 #endif
