@@ -33,6 +33,7 @@
 //    -l lists the contents of the Nachos directory
 //    -D prints the contents of the entire file system 
 //    -t tests the performance of the Nachos file system
+//    -md Creates a new Directory 
 //
 //  NETWORK
 //    -n sets the network reliability
@@ -52,6 +53,7 @@
 
 #include "utility.h"
 #include "system.h"
+#include "../filesys/filesys.h"
 
 // External functions used by this file
 
@@ -82,11 +84,14 @@ main (int argc, char **argv)
     // for a particular command
 
     DEBUG ('t', "Entering main");
+      DEBUG('t', 	"Hello test luna \n");
+
     (void) Initialize (argc, argv);
 
 #ifdef THREADS
     ThreadTest ();
 #endif
+        printf("[%s]\n", *(argv + 1));
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount)
       {
@@ -94,9 +99,12 @@ main (int argc, char **argv)
 	  if (!strcmp (*argv, "-z"))	// print copyright
 	      printf ("%s", copyright);
 #ifdef USER_PROGRAM
+        printf("[%s]\n", *(argv + 1));
+
 	  if (!strcmp (*argv, "-x"))
 	    {			// run a user program
 		ASSERT (argc > 1);
+
 		StartProcess (*(argv + 1));
 		argCount = 2;
 	    }
@@ -131,7 +139,10 @@ main (int argc, char **argv)
       #endif
 #endif // USER_PROGRAM
 #ifdef FILESYS
-	  if (!strcmp (*argv, "-cp"))
+#ifdef CHANGED
+        printf("[%s]\n", *(argv + 1));
+#endif 
+        if (!strcmp (*argv, "-cp"))
 	    {			// copy from UNIX to Nachos
 		ASSERT (argc > 2);
 		Copy (*(argv + 1), *(argv + 2));
@@ -157,10 +168,20 @@ main (int argc, char **argv)
 	    {			// print entire filesystem
 		fileSystem->Print ();
 	    }
+#ifdef CHANGED
+	    else if (!strcmp (*argv, "-md"))
+	    {		
+	    	FileSystem *obj;
+	    	obj = new FileSystem (true);
+
+		 obj->CreateDirectory(*(argv+1));
+	    }
+#endif 
 	  else if (!strcmp (*argv, "-t"))
 	    {			// performance test
 		PerformanceTest ();
 	    }
+
 #endif // FILESYS
 #ifdef NETWORK
 	  if (!strcmp (*argv, "-o"))

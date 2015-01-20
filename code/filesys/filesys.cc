@@ -142,6 +142,15 @@ FileSystem::FileSystem(bool format)
     }
 }
 
+
+// To create a new Directory 
+
+bool FileSystem::CreateDirectory (char *name)
+{
+    printf ( "Successfully called print directory function \n") ;
+    return true ;
+}
+
 //----------------------------------------------------------------------
 // FileSystem::Create
 //  Create a file in the Nachos file system (similar to UNIX create).

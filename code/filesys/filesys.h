@@ -73,7 +73,7 @@ class FileSystem {
     					// If "format", there is nothing on
 					// the disk, so initialize the directory
     					// and the bitmap of free blocks.
-
+    bool CreateDirectory (char *name);
     bool Create(const char *name, int initialSize);  	
 					// Create a file (UNIX creat)
 
