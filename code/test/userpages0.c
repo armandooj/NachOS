@@ -18,8 +18,9 @@ int main() {
     char *c2 = &ch2;
     t1 = UserThreadCreate(print, (void *) c1);
     t2 = UserThreadCreate(print, (void *) c2);
-    // UserThreadJoin(t1);
-    // UserThreadJoin(t2);
+    
+    ForkExec("putstring");
+    
     return 0;
 }
 

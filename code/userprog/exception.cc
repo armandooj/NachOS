@@ -270,6 +270,16 @@ ExceptionHandler (ExceptionType which)
                 machine->WriteMem(machine->ReadRegister(4), 4, val);
                 break;
             }
+            case SC_ForkExec:
+            {
+                int s = machine->ReadRegister(4);
+                
+                char str[100] = {};
+                copyStringFromMachine(s, str, 100);
+                printf("New file name: %s\n", str);
+            
+                break;
+            }
             default: {
                printf("Unexpected user mode exception %d %d\n", which, type);
                ASSERT(FALSE);
