@@ -70,11 +70,13 @@ Thread::~Thread ()
     DEBUG ('t', "Deleting thread \"%s\"\n", name);
 
     ASSERT (this != currentThread);
-    if (stack != NULL)
-	DeallocBoundedArray ((char *) stack, StackSize * sizeof (int));
-	
-	//deallocate semaphore
-	delete joinCondition;
+    if (stack != NULL) 
+      DeallocBoundedArray ((char *) stack, StackSize * sizeof (int));
+
+#ifdef CHANGED	
+    //deallocate semaphore
+    delete joinCondition;
+#endif
 }
 
 //----------------------------------------------------------------------
