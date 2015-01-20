@@ -87,14 +87,13 @@ AddrSpace::AddrSpace (OpenFile *executable)
   // at least until we have
   // virtual memory
 
-  DEBUG ('a', "Initializing address space, num pages %d, size %d\n",
-    numPages, size);
+  DEBUG ('a', "Initializing address space, num pages %d, size %d\n", numPages, size);
   // first, set up the translation 
   pageTable = new TranslationEntry[numPages];
   for (i = 0; i < numPages; i++)
   {
-	  pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-	  pageTable[i].physicalPage = i;
+	  pageTable[i].virtualPage = i;	
+	  pageTable[i].physicalPage = i + 1; // physical page # = virtual page # + 1
 	  pageTable[i].valid = TRUE;
 	  pageTable[i].use = FALSE;
 	  pageTable[i].dirty = FALSE;
@@ -107,7 +106,7 @@ AddrSpace::AddrSpace (OpenFile *executable)
   // and the stack segment
   bzero (machine->mainMemory, size);
 
-    // then, copy in the code and data segments into memory
+  // then, copy in the code and data segments into memory
   if (noffH.code.size > 0) {
     DEBUG ('a', "Initializing code segment, at 0x%x, size %d\n", noffH.code.virtualAddr, noffH.code.size);
 #ifdef CHANGED    
