@@ -27,6 +27,7 @@
 #include "userthread.h"
 #include "scheduler.h"
 #include "synch.h"
+#include "userprocess.h"
 
 //----------------------------------------------------------------------
 // UpdatePC : Increments the Program Counter register in order to resume
@@ -277,7 +278,7 @@ ExceptionHandler (ExceptionType which)
                 char str[100] = {};
                 copyStringFromMachine(s, str, 100);
                 printf("New file name: %s\n", str);
-            
+                
                 break;
             }
             default: {
