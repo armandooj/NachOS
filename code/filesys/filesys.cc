@@ -51,6 +51,13 @@
 #include "filehdr.h"
 #include "filesys.h"
 
+#include "system.h"
+#include <libgen.h>
+#include <list>
+#include <string>
+
+
+
 // Sectors containing the file headers for the bitmap of free sectors,
 // and the directory of files.  These file headers are placed in well-known 
 // sectors, so that they can be located on boot-up.
@@ -147,6 +154,7 @@ FileSystem::FileSystem(bool format)
 
 bool FileSystem::CreateDirectory (char *name)
 {
+    //BitMap *NewMap = new BitMap(NumSectors); // Create a new bit map with the number of sectos
     printf ( "Successfully called print directory function \n") ;
     return true ;
 }

@@ -170,8 +170,8 @@ void
 Directory::List()
 {
    for (int i = 0; i < tableSize; i++)
-	if (table[i].inUse)
-	    printf("%s\n", table[i].name);
+    if (table[i].inUse)
+	    printf("%s \n", table[i].name);
 }
 
 //----------------------------------------------------------------------
