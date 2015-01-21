@@ -94,17 +94,18 @@ AddrSpace::AddrSpace (OpenFile *executable)
   {
 	  pageTable[i].virtualPage = i;	
     // physical page # = virtual page # + 1 // machine->frameProvider->GetEmptyFrame();
-#ifdef CHANGED    
-	  pageTable[i].physicalPage = frameProvider->GetEmptyFrame();
+#ifdef CHANGED
+    int frame = frameProvider->GetEmptyFrame();
+	  pageTable[i].physicalPage = frame;
 #else
-      pageTable[i].physicalPage = i;
+    pageTable[i].physicalPage = i;
 #endif
 	  pageTable[i].valid = TRUE;
 	  pageTable[i].use = FALSE;
 	  pageTable[i].dirty = FALSE;
 	  pageTable[i].readOnly = FALSE;	// if the code segment was entirely on 
-  // a separate page, we could set its 
-  // pages to be read-only
+    // a separate page, we could set its 
+    // pages to be read-only
   }
 
   // zero out the entire address space, to zero the unitialized data segment 
@@ -205,7 +206,8 @@ AddrSpace::InitRegisters ()
 void
 AddrSpace::SaveState ()
 {
-    
+    pageTable = machine->pageTable;
+    numPages = machine->pageTableSize;
 }
 
 //----------------------------------------------------------------------
