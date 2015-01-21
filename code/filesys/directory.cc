@@ -35,12 +35,20 @@
 //	"size" is the number of entries in the directory
 //----------------------------------------------------------------------
 
-Directory::Directory(int size)
+Directory::Directory(int size,char *name,int current_sector,int parent_sector)
 {
+    parentsector = parent_sector;  // Initializing the parent sector
+    currentsector= current_sector ; // Initializing the current sector
+    strcpy(table[currentsector].name,name);
+
     table = new DirectoryEntry[size];
     tableSize = size;
     for (int i = 0; i < tableSize; i++)
+    {
 	table[i].inUse = FALSE;
+    table[i].sector = -1 ;   // -1  Means that it is not used
+    table[i].isFile= FALSE ;  // False if it is a folder and true if it is a file .
+    }
 }
 
 //----------------------------------------------------------------------
@@ -53,13 +61,28 @@ Directory::~Directory()
     delete [] table;
 } 
 
+
+
+void
+Directory::hierarchy(int sector , int ParentSector)
+{
+    table[CurrentDirectory].isFile = FALSE  ; // As the current Directory can't be a file
+    table[CurrentDirectory].sector=sector;
+    strcpy(table[CurrentDirectory].name,currentName);
+    
+    table[ParentDirectory].isFile=FALSE;
+    table[ParentDirectory].sector=ParentSector;
+    strcpy(table[ParentDirectory].name,fatherName);
+
+}
+
+
 //----------------------------------------------------------------------
 // Directory::FetchFrom
-// 	Read the contents of the directory from disk.
+//  Read the contents of the directory from disk.
 //
-//	"file" -- file containing the directory contents
-//----------------------------------------------------------------------
-
+//  "file" -- file containing the directory contents
+//---------------------------------------------------------------------- 
 void
 Directory::FetchFrom(OpenFile *file)
 {
@@ -138,8 +161,24 @@ Directory::Add(const char *name, int newSector)
             strncpy(table[i].name, name, FileNameMaxLen); 
             table[i].sector = newSector;
         return TRUE;
-	}
+    }
     return FALSE;	// no space.  Fix when we have extensible files.
+}
+
+// Add a new Directory 
+
+void 
+Directory::AddDirectory ( char *name , int freesector)
+{
+
+     for (int i = 0; i < tableSize; i++)
+        if (!table[i].inUse) {
+            table[i].inUse = TRUE;
+            table[i].isFile= FALSE;
+            strncpy(table[i].name, name, FileNameMaxLen); 
+            table[i].sector = freesector;
+     //   return TRUE;
+    }
 }
 
 //----------------------------------------------------------------------

@@ -89,7 +89,7 @@ FileSystem::FileSystem(bool format)
     DEBUG('f', "Initializing the file system.\n");
     if (format) {
         BitMap *freeMap = new BitMap(NumSectors);
-        Directory *directory = new Directory(NumDirEntries);
+        Directory *directory = new Directory (NumDirEntries,' ',0,1);
     FileHeader *mapHdr = new FileHeader;
     FileHeader *dirHdr = new FileHeader;
 
@@ -154,56 +154,30 @@ FileSystem::FileSystem(bool format)
 
 bool FileSystem::CreateDirectory (char *name)
 {
-    Directory *directory;
-    BitMap *freeMap;
-    FileHeader *hdr;
-    int sector;
-    bool success;
+    Directory *currentD = new Directory (NumDirEntries,' ',0,1); // O for current and 1 for parent
+    currentD->FetchFrom(directoryFile);  // Get the current directory details
 
-    DEBUG('f', "Creating Directory %s, size %d\n", name);
-
-    directory = new Directory(NumDirEntries);
-    directory->FetchFrom(directoryFile);
-
-    if (directory->Find(name) != -1)
-      success = FALSE;          // Directory is already in directory
-    else {  
-        freeMap = new BitMap(NumSectors);
-        freeMap->FetchFrom(freeMapFile);
-        sector = freeMap->Find();   // find a sector to hold the Directory header
-
-        if (sector == -1)       
-            success = FALSE;        // no free block for Directory header 
-
-        
-        else if (!directory->Add(name, sector))
-            success = FALSE;    // no space in directory
-    else {
-            hdr = new FileHeader;
-        if (!hdr->Allocate(freeMap, initialSize))
-                success = FALSE;    // no space on disk for data
-        else {  
-            success = TRUE;
-        // everthing worked, flush all changes back to disk
-                hdr->WriteBack(sector);         
-                directory->WriteBack(directoryFile);
-                freeMap->WriteBack(freeMapFile);
-        }
-            delete hdr;
-    }
-        delete freeMap;
-    }
-    delete directory;
-    return success;
+    BitMap *freeMap= new BitMap(NumSectors);
+    FileHeader *dirHdr = new FileHeader;
 
 
+    //Find a free sector for the new Directory and initialize it
+    int FreeSector =freeMap->Find();
+    ASSERT(dirHdr->Allocate(freeMap,DirectoryFileSize));
+    dirHdr->WriteBack(FreeSector);
+
+    //Now we create the new Directory 
+    Directory *d = new Directory (NumDirEntries,name,FreeSector,0);
+    OpenFile* fichierRep = new OpenFile(FreeSector);
 
 
+    // Add the directory 
+    currentD->AddDirectory(name, FreeSector); 
+    freeMap->Mark(FreeSector);
+    d->WriteBack(fichierRep);
 
-
-
-
-
+    currentD->WriteBack(directoryFile);
+freeMap->WriteBack(freeMapFile);
 
 
 
@@ -252,7 +226,7 @@ FileSystem::Create(const char *name, int initialSize)
 
     DEBUG('f', "Creating file %s, size %d\n", name, initialSize);
 
-    directory = new Directory(NumDirEntries);
+    directory = new Directory (NumDirEntries,' ',0,1);
     directory->FetchFrom(directoryFile);
 
     if (directory->Find(name) != -1)
@@ -297,7 +271,7 @@ FileSystem::Create(const char *name, int initialSize)
 OpenFile *
 FileSystem::Open(const char *name)
 { 
-    Directory *directory = new Directory(NumDirEntries);
+    Directory *directory = new Directory (NumDirEntries,' ',0,1);
     OpenFile *openFile = NULL;
     int sector;
 
@@ -332,7 +306,7 @@ FileSystem::Remove(const char *name)
     FileHeader *fileHdr;
     int sector;
     
-    directory = new Directory(NumDirEntries);
+    directory = new Directory (NumDirEntries,' ',0,1);
     directory->FetchFrom(directoryFile);
     sector = directory->Find(name);
     if (sector == -1) {
@@ -365,8 +339,7 @@ FileSystem::Remove(const char *name)
 void
 FileSystem::List()
 {
-    Directory *directory = new Directory(NumDirEntries);
-
+    Directory *directory = new Directory (NumDirEntries,' ',0,1);
     directory->FetchFrom(directoryFile);
     directory->List();
     delete directory;
@@ -388,7 +361,7 @@ FileSystem::Print()
     FileHeader *bitHdr = new FileHeader;
     FileHeader *dirHdr = new FileHeader;
     BitMap *freeMap = new BitMap(NumSectors);
-    Directory *directory = new Directory(NumDirEntries);
+    Directory *directory = new Directory (NumDirEntries,' ',0,1);
 
     printf("Bit map file header:\n");
     bitHdr->FetchFrom(FreeMapSector);

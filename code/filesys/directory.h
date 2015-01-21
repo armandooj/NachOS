@@ -22,6 +22,14 @@
 #define FileNameMaxLen 		9	// for simplicity, we assume 
 					// file names are <= 9 characters long
 
+
+#define CurrentDirectory 0 // Directory .
+#define ParentDirectory 1 // Directory ..
+#define currentName "."
+#define fatherName ".."
+
+
+
 // The following class defines a "directory entry", representing a file
 // in the directory.  Each entry gives the name of the file, and where
 // the file's header is to be found on disk.
@@ -32,7 +40,8 @@
 class DirectoryEntry {
   public:
     bool inUse;				// Is this directory entry in use?
-    int sector;				// Location on disk to find the 
+    int sector;
+    bool isFile;				// Location on disk to find the 
 					//   FileHeader for this file 
     char name[FileNameMaxLen + 1];	// Text name for file, with +1 for 
 					// the trailing '\0'
@@ -50,8 +59,9 @@ class DirectoryEntry {
 
 class Directory {
   public:
-    Directory(int size); 		// Initialize an empty directory
-					// with space for "size" files
+    Directory(int size,char *name,int current_sector,int parent_sector); // Initialize an empty directory
+                    // with space for "size" files
+ 		
     ~Directory();			// De-allocate the directory
 
     void FetchFrom(OpenFile *file);  	// Init directory contents from disk
@@ -70,8 +80,13 @@ class Directory {
     void Print();			// Verbose print of the contents
 					//  of the directory -- all the file
 					//  names and their contents.
+    void hierarchy (int sector , int ParentSector ) ;// To initialize the directory header
+
+    void AddDirectory ( char *name , int freesector); // Add a new directory into the directory
 
   private:
+    int parentsector ;  // To be able to know the parent directory
+    int currentsector ; // To be able to know the current directory
     int tableSize;			// Number of directory entries
     DirectoryEntry *table;		// Table of pairs: 
 					// <file name, file header location> 
