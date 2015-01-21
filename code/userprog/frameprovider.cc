@@ -4,6 +4,7 @@
 FrameProvider::FrameProvider(int numFrames) {
   framesBitMap = new BitMap(numFrames);
   framesBitMap->Mark(0);
+  lock = new Lock("FrameProvider lock");
 }
 
 FrameProvider::~FrameProvider() {
@@ -12,7 +13,10 @@ FrameProvider::~FrameProvider() {
 
 int FrameProvider::GetEmptyFrame() {
   // TODO Random()
-  return framesBitMap->Find();
+  lock->Acquire();
+  int frame = framesBitMap->Find();
+  lock->Release();
+  return frame;
 }
 
 void FrameProvider::ReleaseFrame(int frame) {
@@ -20,7 +24,10 @@ void FrameProvider::ReleaseFrame(int frame) {
 }
 
 int FrameProvider::NumAvailFrame() {
-  return framesBitMap->NumClear();
+  lock->Acquire();
+  int number = framesBitMap->NumClear();
+  lock->Release();
+  return number;
 }
 
 
