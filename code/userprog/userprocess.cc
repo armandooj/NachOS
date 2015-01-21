@@ -3,8 +3,11 @@
 
 #include "system.h"
 #include "userprocess.h"
+#include "thread.h"
 
-int do_UserProcessCreate(char *) {
+int do_UserProcessCreate(char *filename) {
+
+  //TODO: NEED A FORK HERE :DDDDD
 
   OpenFile *executable = fileSystem->Open (filename);
   AddrSpace *space;
@@ -16,23 +19,30 @@ int do_UserProcessCreate(char *) {
   }
   
   space = new AddrSpace (executable);
-  currentThread->space = space;
-
   delete executable;		// close file
 
-  space->InitRegisters ();	// set the initial register values
-  space->RestoreState ();	// load page table register
+  Thread *newThread = new Thread("New Process Thread");
+  newThread->space = space;
+  newThread->setStatus(JUST_CREATED);
+  
+  //space->InitRegisters ();	// set the initial register values
+  //space->RestoreState ();	// load page table register
+  
+  //save the old state before jumping
+  //currentThread->space->SaveState();
 
-  machine->Run ();		// jump to the user progam
+  //Put to ready queue
+  IntStatus oldLevel = interrupt->SetLevel (IntOff);
+  scheduler->ReadyToRun (newThread);	// ReadyToRun assumes that interrupts 
+  // are disabled!
+  (void) interrupt->SetLevel (oldLevel);
+  
+  //machine->Run ();		// jump to the user progam
   // ASSERT (FALSE);		// machine->Run never returns;
   // the address space exits
   // by doing the syscall "exit"    
     
   return 0;
-}
-
-int do_UserProcessExit() {
-
 }
 
 #endif

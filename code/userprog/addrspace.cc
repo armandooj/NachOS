@@ -205,6 +205,7 @@ AddrSpace::InitRegisters ()
 void
 AddrSpace::SaveState ()
 {
+    
 }
 
 //----------------------------------------------------------------------
