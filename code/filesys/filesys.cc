@@ -71,6 +71,8 @@
 #define NumDirEntries       10
 #define DirectoryFileSize   (sizeof(DirectoryEntry) * NumDirEntries)
 
+char nonptr[]= "Notused";
+
 //----------------------------------------------------------------------
 // FileSystem::FileSystem
 //  Initialize the file system.  If format = TRUE, the disk has
@@ -89,7 +91,7 @@ FileSystem::FileSystem(bool format)
     DEBUG('f', "Initializing the file system.\n");
     if (format) {
         BitMap *freeMap = new BitMap(NumSectors);
-        Directory *directory = new Directory (NumDirEntries,' ',0,1);
+        Directory *directory = new Directory (NumDirEntries,nonptr,0,1);
     FileHeader *mapHdr = new FileHeader;
     FileHeader *dirHdr = new FileHeader;
 
@@ -154,7 +156,7 @@ FileSystem::FileSystem(bool format)
 
 bool FileSystem::CreateDirectory (char *name)
 {
-    Directory *currentD = new Directory (NumDirEntries,' ',0,1); // O for current and 1 for parent
+    Directory *currentD = new Directory (NumDirEntries,nonptr,0,1); // O for current and 1 for parent
     currentD->FetchFrom(directoryFile);  // Get the current directory details
 
     BitMap *freeMap= new BitMap(NumSectors);
@@ -226,7 +228,7 @@ FileSystem::Create(const char *name, int initialSize)
 
     DEBUG('f', "Creating file %s, size %d\n", name, initialSize);
 
-    directory = new Directory (NumDirEntries,' ',0,1);
+    directory = new Directory (NumDirEntries,nonptr,0,1);
     directory->FetchFrom(directoryFile);
 
     if (directory->Find(name) != -1)
@@ -271,7 +273,7 @@ FileSystem::Create(const char *name, int initialSize)
 OpenFile *
 FileSystem::Open(const char *name)
 { 
-    Directory *directory = new Directory (NumDirEntries,' ',0,1);
+    Directory *directory = new Directory (NumDirEntries,nonptr,0,1);
     OpenFile *openFile = NULL;
     int sector;
 
@@ -305,8 +307,7 @@ FileSystem::Remove(const char *name)
     BitMap *freeMap;
     FileHeader *fileHdr;
     int sector;
-    
-    directory = new Directory (NumDirEntries,' ',0,1);
+    directory = new Directory (NumDirEntries,nonptr,0,1);
     directory->FetchFrom(directoryFile);
     sector = directory->Find(name);
     if (sector == -1) {
@@ -339,7 +340,7 @@ FileSystem::Remove(const char *name)
 void
 FileSystem::List()
 {
-    Directory *directory = new Directory (NumDirEntries,' ',0,1);
+    Directory *directory = new Directory (NumDirEntries,nonptr,0,1);
     directory->FetchFrom(directoryFile);
     directory->List();
     delete directory;
@@ -361,7 +362,7 @@ FileSystem::Print()
     FileHeader *bitHdr = new FileHeader;
     FileHeader *dirHdr = new FileHeader;
     BitMap *freeMap = new BitMap(NumSectors);
-    Directory *directory = new Directory (NumDirEntries,' ',0,1);
+    Directory *directory = new Directory (NumDirEntries,nonptr,0,1);
 
     printf("Bit map file header:\n");
     bitHdr->FetchFrom(FreeMapSector);

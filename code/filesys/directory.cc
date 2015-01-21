@@ -39,14 +39,15 @@ Directory::Directory(int size,char *name,int current_sector,int parent_sector)
 {
     parentsector = parent_sector;  // Initializing the parent sector
     currentsector= current_sector ; // Initializing the current sector
+      table = new DirectoryEntry[size];
     strcpy(table[currentsector].name,name);
 
-    table = new DirectoryEntry[size];
+  
     tableSize = size;
     for (int i = 0; i < tableSize; i++)
     {
 	table[i].inUse = FALSE;
-    table[i].sector = -1 ;   // -1  Means that it is not used
+    table[i].sector = 0 ;   // -1  Means that it is not used
     table[i].isFile= FALSE ;  // False if it is a folder and true if it is a file .
     }
 }

@@ -166,7 +166,7 @@ main (int argc, char **argv)
 		fileSystem->Print ();
 	    }
 
-	    else if (!strcmp (*argv, "-md"))
+	    else if (!strcmp (*argv, "-md")) // To create Directory
 	    {		
 	    	FileSystem *obj;
 	    	obj = new FileSystem (true);
