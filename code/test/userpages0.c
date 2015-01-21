@@ -8,7 +8,6 @@ void print(void *c)
     }
 }
 
-
 int main() {
 
     int t1, t2;
@@ -18,8 +17,6 @@ int main() {
     char *c2 = &ch2;
     t1 = UserThreadCreate(print, (void *) c1);
     t2 = UserThreadCreate(print, (void *) c2);
-    
-    ForkExec("putstring");
     
     return 0;
 }
