@@ -154,7 +154,60 @@ FileSystem::FileSystem(bool format)
 
 bool FileSystem::CreateDirectory (char *name)
 {
-    //BitMap *NewMap = new BitMap(NumSectors); // Create a new bit map with the number of sectos
+    Directory *directory;
+    BitMap *freeMap;
+    FileHeader *hdr;
+    int sector;
+    bool success;
+
+    DEBUG('f', "Creating Directory %s, size %d\n", name);
+
+    directory = new Directory(NumDirEntries);
+    directory->FetchFrom(directoryFile);
+
+    if (directory->Find(name) != -1)
+      success = FALSE;          // Directory is already in directory
+    else {  
+        freeMap = new BitMap(NumSectors);
+        freeMap->FetchFrom(freeMapFile);
+        sector = freeMap->Find();   // find a sector to hold the Directory header
+
+        if (sector == -1)       
+            success = FALSE;        // no free block for Directory header 
+
+        
+        else if (!directory->Add(name, sector))
+            success = FALSE;    // no space in directory
+    else {
+            hdr = new FileHeader;
+        if (!hdr->Allocate(freeMap, initialSize))
+                success = FALSE;    // no space on disk for data
+        else {  
+            success = TRUE;
+        // everthing worked, flush all changes back to disk
+                hdr->WriteBack(sector);         
+                directory->WriteBack(directoryFile);
+                freeMap->WriteBack(freeMapFile);
+        }
+            delete hdr;
+    }
+        delete freeMap;
+    }
+    delete directory;
+    return success;
+
+
+
+
+
+
+
+
+
+
+
+
+ //   BitMap *NewMap = new BitMap(NumSectors); // Create a new bit map with the number of sectos
     printf ( "Successfully called print directory function \n") ;
     return true ;
 }
