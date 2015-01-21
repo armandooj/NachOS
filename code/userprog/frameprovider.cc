@@ -1,5 +1,7 @@
 #ifdef CHANGED
-#include "frameprovider.h"
+
+#include "system.h"
+
 
 FrameProvider::FrameProvider(int numFrames) {
   framesBitMap = new BitMap(numFrames);
@@ -15,6 +17,7 @@ int FrameProvider::GetEmptyFrame() {
   // TODO Random()
   lock->Acquire();
   int frame = framesBitMap->Find();
+  bzero(&(machine->mainMemory[frame * PageSize]), PageSize);
   lock->Release();
   return frame;
 }
