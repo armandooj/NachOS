@@ -280,7 +280,7 @@ ExceptionHandler (ExceptionType which)
                 printf("New file name: %s\n", str);
                 
                 //create new process here
-                do_UserProcessCreate(str);                
+                do_ProcessCreate(str);                
                 break;
             }
             default: {
