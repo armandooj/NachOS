@@ -160,6 +160,7 @@ class Thread
     void SetTid(AddrSpace *thisThreadSpace);
     void SetTid(int id);
     int Join(int tidToWait);
+    void JoinChildren();
     
     Semaphore *joinCondition; // Use this variable to sleep while waiting on Join
 

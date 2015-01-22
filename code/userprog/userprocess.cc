@@ -36,7 +36,7 @@ int do_UserProcessCreate(char *filename) {
   space->pid = machine->numberOfProcesses++;
   delete executable;
 
-  Thread *newThread = new Thread("New Process Thread");
+  Thread *newThread = new Thread(filename);
   newThread->space = space;
   newThread->SetTid(0);
 
@@ -53,44 +53,43 @@ int do_UserProcessCreate(char *filename) {
 
 void do_UserProcessExit() {
   // TODO should check process count and just finish when it's diff to 0
-  printf("do_UserProcessExit\n");
-  printf("%s\n", currentThread->getName());
+  printf("do_UserProcessExit = %s\n", currentThread->getName());
+  currentThread->space->activeThreads->PrintContent();
 
-  // currentThread->space->decreaseUserThreads();
 
-  // printf("Processes: %d\n", machine->numberOfProcesses);
+  // currentThread->JoinChildren();
+  
+
+  currentThread->space->decreaseUserThreads();
+  printf("Processes: %d\n", machine->numberOfProcesses);
+
+  while (currentThread->space->getNumberOfUserThreads() != 0) {
+    currentThread->space->ExitForMain->P();  
+  }
+
+  machine->numberOfProcesses--;
+
+  if (machine->numberOfProcesses == 0) {
+    printf("Halt.\n");
+    interrupt->Halt();
+  } else {
+    printf("Finish : %s\n", currentThread->getName());
+    currentThread->Finish();
+  }
+
+              
+  // Luan's version:
+
+  // DEBUG('t', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
+  // DEBUG('t', "Number of UserThread: %d\n", currentThread->space->getNumberOfUserThreads());            
+  
   // while (currentThread->space->getNumberOfUserThreads() != 0) {
   //   currentThread->space->ExitForMain->P();  
   // }
 
-  // if (machine->numberOfProcesses == 0) {
-  //   printf("Halt.\n");
-  //   interrupt->Halt();
-  // } else {
-  //   printf("Current Thread: %s\n", currentThread->getName());
-  //   //currentThread->Finish();
-  // }
-
-              // currentThread->space->decreaseUserThreads();
-              
-              // Luan's version:
-            
-              // DEBUG('t', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
-              // DEBUG('t', "Number of UserThread: %d\n", currentThread->space->getNumberOfUserThreads());            
-              
-              // while (currentThread->space->getNumberOfUserThreads() != 0) {
-              //   currentThread->space->ExitForMain->P();  
-              // }
-
-              // int value = machine->ReadRegister(4);          
-              // DEBUG('a', "Exit program, return value: %d.\n", value);
-              // interrupt->Halt();
-
-  /*
-  current children, join
-  if processes count = 0 -> int Halt
-  else currentThread finish() ?
-  */
+  // int value = machine->ReadRegister(4);          
+  // DEBUG('a', "Exit program, return value: %d.\n", value);
+  // interrupt->Halt();
 }
 
 #endif

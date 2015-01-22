@@ -502,5 +502,11 @@ int Thread::Join(int tidToWait) {
     return 1;   // return after being woke up :D
 }
 
+void Thread::JoinChildren() {
+  if (!space->activeThreads->isEmpty()) {
+    
+  }
+}
+
 #endif
 

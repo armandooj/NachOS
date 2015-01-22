@@ -340,4 +340,9 @@ ListForJoin::PrintContent() {
     DEBUG('l', "\n");
 }
 
+bool
+ListForJoin::isEmpty() {
+    return IsEmpty();
+}
+
 #endif
