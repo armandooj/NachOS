@@ -39,6 +39,7 @@ Directory::Directory(int size)
 {
     table = new DirectoryEntry[size];
     tableSize = size;
+    
     for (int i = 0; i < tableSize; i++)
 	table[i].inUse = FALSE;
 }
@@ -63,6 +64,7 @@ Directory::~Directory()
 void
 Directory::FetchFrom(OpenFile *file)
 {
+//store everything into array table containing all directory entries from file
     (void) file->ReadAt((char *)table, tableSize * sizeof(DirectoryEntry), 0);
 }
 
@@ -169,9 +171,15 @@ Directory::Remove(const char *name)
 void
 Directory::List()
 {
-   for (int i = 0; i < tableSize; i++)
-	if (table[i].inUse)
-	    printf("%s\n", table[i].name);
+   for (int i = 0; i < tableSize; i++) 
+	if (table[i].inUse) 
+        {
+            FileHeader *fileheader = new FileHeader;
+            fileheader->FetchFrom(table[i].sector);
+	    printf("Name: %s Size: %dbytes\n", table[i].name,fileheader->FileLength());
+            //printf("%s\n", table[i].name);
+            delete fileheader;
+        }
 }
 
 //----------------------------------------------------------------------
@@ -188,8 +196,8 @@ Directory::Print()
     printf("Directory contents:\n");
     for (int i = 0; i < tableSize; i++)
 	if (table[i].inUse) {
-	    printf("Name: %s, Sector: %d\n", table[i].name, table[i].sector);
-	    hdr->FetchFrom(table[i].sector);
+            hdr->FetchFrom(table[i].sector);
+	    printf("Name: %s, Sector: %d, Size: %d\n", table[i].name, table[i].sector,hdr->FileLength());
 	    hdr->Print();
 	}
     printf("\n");

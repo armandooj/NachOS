@@ -81,21 +81,30 @@ FileSystem::FileSystem(bool format)
 { 
     DEBUG('f', "Initializing the file system.\n");
     if (format) {
+
+//1 create new bitmap
         BitMap *freeMap = new BitMap(NumSectors);
+
+//2 create new root directory
         Directory *directory = new Directory(NumDirEntries);
-	FileHeader *mapHdr = new FileHeader;
-	FileHeader *dirHdr = new FileHeader;
+
+//3 create new fileheaders for both bitmap file and directory file
+	FileHeader *mapHdr = new FileHeader; //new bitmap file header
+	FileHeader *dirHdr = new FileHeader; //new directory file header
 
         DEBUG('f', "Formatting the file system.\n");
 
     // First, allocate space for FileHeaders for the directory and bitmap
     // (make sure no one else grabs these!)
-	freeMap->Mark(FreeMapSector);	    
-	freeMap->Mark(DirectorySector);
+
+//4 mark the sector number in bitmap indicating both #0 and #1 are occupied
+	freeMap->Mark(FreeMapSector);	   //#0 
+	freeMap->Mark(DirectorySector);    //#1
 
     // Second, allocate space for the data blocks containing the contents
     // of the directory and bitmap files.  There better be enough space!
 
+//5 allocate space for both bitmap file and directory file via fileheaders respectively
 	ASSERT(mapHdr->Allocate(freeMap, FreeMapFileSize));
 	ASSERT(dirHdr->Allocate(freeMap, DirectoryFileSize));
 
@@ -105,6 +114,8 @@ FileSystem::FileSystem(bool format)
     // on it!).
 
         DEBUG('f', "Writing headers back to disk.\n");
+
+//6 write allocated content back into bitmap and directory files individually
 	mapHdr->WriteBack(FreeMapSector);    
 	dirHdr->WriteBack(DirectorySector);
 
@@ -112,6 +123,7 @@ FileSystem::FileSystem(bool format)
     // The file system operations assume these two files are left open
     // while Nachos is running.
 
+//7 open two files and keep opening status
         freeMapFile = new OpenFile(FreeMapSector);
         directoryFile = new OpenFile(DirectorySector);
      
@@ -122,6 +134,8 @@ FileSystem::FileSystem(bool format)
     // to hold the file data for the directory and bitmap.
 
         DEBUG('f', "Writing bitmap and directory back to disk.\n");
+
+//8 update content of bitmap due to two new files created (bitmap and directory)
 	freeMap->WriteBack(freeMapFile);	 // flush changes to disk
 	directory->WriteBack(directoryFile);
 
@@ -171,8 +185,9 @@ FileSystem::FileSystem(bool format)
 //	"initialSize" -- size of file to be created
 //----------------------------------------------------------------------
 
+//modified version to make the size of newly created file to be zero but increment dynamicallly
 bool
-FileSystem::Create(const char *name, int initialSize)
+FileSystem::Create(const char *name)
 {
     Directory *directory;
     BitMap *freeMap;
@@ -180,16 +195,29 @@ FileSystem::Create(const char *name, int initialSize)
     int sector;
     bool success;
 
-    DEBUG('f', "Creating file %s, size %d\n", name, initialSize);
+    DEBUG('f', "Creating file %s\n", name);
 
+//1 check if there exists a file with the same name
+
+//create new directory class object
     directory = new Directory(NumDirEntries);
+
+//read content of directory file into directory object
     directory->FetchFrom(directoryFile);
+
+//create new bitmap class object
+    freeMap = new BitMap(NumSectors);
+
+//read content of bitmap file into bitmap object
+    freeMap->FetchFrom(freeMapFile);
 
     if (directory->Find(name) != -1)
       success = FALSE;			// file is already in directory
+
     else {	
-        freeMap = new BitMap(NumSectors);
-        freeMap->FetchFrom(freeMapFile);
+
+//2 check if there has enough space to fulfill the new file header itself and required space 
+
         sector = freeMap->Find();	// find a sector to hold the file header
     	if (sector == -1) 		
             success = FALSE;		// no free block for file header 
@@ -197,11 +225,14 @@ FileSystem::Create(const char *name, int initialSize)
             success = FALSE;	// no space in directory
 	else {
     	    hdr = new FileHeader;
-	    if (!hdr->Allocate(freeMap, initialSize))
+	    if (!hdr->Allocate(freeMap, 0)) //zero space when initialized
             	success = FALSE;	// no space on disk for data
 	    else {	
 	    	success = TRUE;
 		// everthing worked, flush all changes back to disk
+
+//3 update new created fileheader into sector;update directory file;update bitmap file
+
     	    	hdr->WriteBack(sector); 		
     	    	directory->WriteBack(directoryFile);
     	    	freeMap->WriteBack(freeMapFile);
@@ -213,7 +244,6 @@ FileSystem::Create(const char *name, int initialSize)
     delete directory;
     return success;
 }
-
 //----------------------------------------------------------------------
 // FileSystem::Open
 // 	Open a file for reading and writing.  
@@ -235,6 +265,8 @@ FileSystem::Open(const char *name)
     directory->FetchFrom(directoryFile);
     sector = directory->Find(name); 
     if (sector >= 0) 		
+
+//OpenFile class for opening file object
 	openFile = new OpenFile(sector);	// name was found in directory 
     delete directory;
     return openFile;				// return NULL if not found
@@ -264,19 +296,26 @@ FileSystem::Remove(const char *name)
     
     directory = new Directory(NumDirEntries);
     directory->FetchFrom(directoryFile);
-    sector = directory->Find(name);
+    sector = directory->Find(name); //find sector number where holds the content of related file header
     if (sector == -1) {
        delete directory;
        return FALSE;			 // file not found 
     }
     fileHdr = new FileHeader;
+
+//read content of fileheader from specified sector
     fileHdr->FetchFrom(sector);
 
     freeMap = new BitMap(NumSectors);
     freeMap->FetchFrom(freeMapFile);
 
-    fileHdr->Deallocate(freeMap);  		// remove data blocks
+//deallocate all space for the file
+    fileHdr->Deallocate(freeMap,0);  		// remove data blocks
+
+//deallocate for the file header itself
     freeMap->Clear(sector);			// remove header block
+
+//remove file from directory
     directory->Remove(name);
 
     freeMap->WriteBack(freeMapFile);		// flush to disk
@@ -320,17 +359,21 @@ FileSystem::Print()
     BitMap *freeMap = new BitMap(NumSectors);
     Directory *directory = new Directory(NumDirEntries);
 
+//print file header of bitmap file
     printf("Bit map file header:\n");
     bitHdr->FetchFrom(FreeMapSector);
     bitHdr->Print();
 
+//print file header of directory file
     printf("Directory file header:\n");
     dirHdr->FetchFrom(DirectorySector);
     dirHdr->Print();
 
+//print content of bitmap file
     freeMap->FetchFrom(freeMapFile);
     freeMap->Print();
 
+//print content of directory file
     directory->FetchFrom(directoryFile);
     directory->Print();
 
@@ -339,3 +382,9 @@ FileSystem::Print()
     delete freeMap;
     delete directory;
 } 
+
+OpenFile *
+FileSystem::FreeMap()
+{
+    return freeMapFile;
+}

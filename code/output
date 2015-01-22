@@ -1,0 +1,12 @@
+make[1]: Entering directory `/home/peter/NachOS/code/build-origin'
+  [HOST CXX]       filesys-fstest.o      (../filesys/fstest.cc)
+make[1]: Leaving directory `/home/peter/NachOS/code/build-origin'
+=========================================================================
+=========================================================================
+=========================================================================
+Initial compilation of nachos does not work in the following directory:
+build-origin
+Did you forget to protect your modifications with '#ifdef CHANGED'?
+=========================================================================
+=========================================================================
+=========================================================================

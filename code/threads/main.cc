@@ -60,6 +60,7 @@ extern void Print (char *file), PerformanceTest (void);
 extern void StartProcess (char *file), ConsoleTest (char *in, char *out);
 extern void SynchConsoleTest (char *in, char *out);
 extern void MailTest (int networkID);
+extern void nachcopy (const char* from, const char* to);
 
 //----------------------------------------------------------------------
 // main
@@ -137,6 +138,12 @@ main (int argc, char **argv)
 		Copy (*(argv + 1), *(argv + 2));
 		argCount = 3;
 	    }
+          else if(!strcmp (*argv, "-ncp"))
+            {
+                ASSERT (argc > 2);
+                nachcopy (*(argv + 1), *(argv + 2));
+                argCount = 3;
+            }
 	  else if (!strcmp (*argv, "-p"))
 	    {			// print a Nachos file
 		ASSERT (argc > 1);
@@ -161,6 +168,14 @@ main (int argc, char **argv)
 	    {			// performance test
 		PerformanceTest ();
 	    }
+/*
+          else if (!strcmp (*argv, "-create"))
+            {
+                ASSERT (argc > 1);
+                fileSystem->Create (*(argv + 1), 1024);
+                argCount = 2;
+            }
+*/
 #endif // FILESYS
 #ifdef NETWORK
 	  if (!strcmp (*argv, "-o"))

@@ -17,8 +17,15 @@
 #include "disk.h"
 #include "bitmap.h"
 
-#define NumDirect 	((SectorSize - 2 * sizeof(int)) / sizeof(int))
-#define MaxFileSize 	(NumDirect * SectorSize)
+#define MaxPerSector    ((SectorSize) / sizeof(int))
+
+// number of direct index for each fileheader(inode) increase from 3kb to 120kb
+#define NumDirect 	((SectorSize - 2 * sizeof(int)) / sizeof(int)) 
+
+#define MaxSector       (NumDirect * MaxPerSector)
+
+// max size per file = number of direct index per fileheader(inode) * sectorsize
+#define MaxFileSize 	(NumDirect * SectorSize * MaxPerSector)
 
 // The following class defines the Nachos "file header" (in UNIX terms,  
 // the "i-node"), describing where on disk to find all of the data in the file.
@@ -37,10 +44,15 @@
 
 class FileHeader {
   public:
-    bool Allocate(BitMap *bitMap, int fileSize);// Initialize a file header, 
+
+    FileHeader();
+
+    ~FileHeader();
+
+    bool Allocate(BitMap *bitMap, int Size);// Initialize a file header, 
 						//  including allocating space 
 						//  on disk for the file data
-    void Deallocate(BitMap *bitMap);  		// De-allocate this file's 
+    void Deallocate(BitMap *bitMap, int reservebytes);  		// De-allocate this file's 
 						//  data blocks
 
     void FetchFrom(int sectorNumber); 	// Initialize file header from disk

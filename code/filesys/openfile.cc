@@ -15,6 +15,7 @@
 #include "filehdr.h"
 #include "openfile.h"
 #include "system.h"
+#include "filesys.h"
 
 #include <strings.h> /* for bzero */
 
@@ -31,6 +32,7 @@ OpenFile::OpenFile(int sector)
     hdr = new FileHeader;
     hdr->FetchFrom(sector);
     seekPosition = 0;
+    Sector = sector;
 }
 
 //----------------------------------------------------------------------
@@ -83,6 +85,20 @@ OpenFile::Write(const char *into, int numBytes)
 {
    int result = WriteAt(into, numBytes, seekPosition);
    seekPosition += result;
+   if (seekPosition < hdr->FileLength()) 
+   {
+        int left;
+        BitMap *freemap = new BitMap(NumSectors);
+        freemap->FetchFrom(fileSystem->FreeMap());
+        hdr->Deallocate(freemap,seekPosition);
+        if (hdr->FileLength() % SectorSize)
+        {
+             left = SectorSize * (1 + (hdr->FileLength() / SectorSize)) - hdr->FileLength();
+             char *empty = new char[left];
+             WriteAt(empty, left, seekPosition+1);
+             delete empty;
+        }
+   }
    return result;
 }
 
@@ -126,8 +142,13 @@ OpenFile::ReadAt(char *into, int numBytes, int position)
     DEBUG('f', "Reading %d bytes at %d, from file of length %d.\n", 	
 			numBytes, position, fileLength);
 
+//calculate the starting sector#
     firstSector = divRoundDown(position, SectorSize);
+
+//calculate the ending sector#
     lastSector = divRoundDown(position + numBytes - 1, SectorSize);
+
+//calculate the whole number of sectors that need to be readed
     numSectors = 1 + lastSector - firstSector;
 
     // read in all the full and partial sectors that we need
@@ -142,6 +163,7 @@ OpenFile::ReadAt(char *into, int numBytes, int position)
     return numBytes;
 }
 
+//this is a modified version to support dynamic adjust file length
 int
 OpenFile::WriteAt(const char *from, int numBytes, int position)
 {
@@ -150,10 +172,19 @@ OpenFile::WriteAt(const char *from, int numBytes, int position)
     bool firstAligned, lastAligned;
     char *buf;
 
-    if ((numBytes <= 0) || (position >= fileLength))
+    if ((numBytes <= 0) || (position > fileLength))
 	return 0;				// check request
     if ((position + numBytes) > fileLength)
-	numBytes = fileLength - position;
+    {
+	int extendsize = position + numBytes - fileLength;
+        BitMap *freemap = new BitMap(NumSectors);
+        freemap->FetchFrom(fileSystem->FreeMap());
+        if(hdr->Allocate(freemap,extendsize) == FALSE)
+           return 0;
+        hdr->WriteBack(Sector);
+        freemap->WriteBack(fileSystem->FreeMap());
+        delete freemap;
+    }   
     DEBUG('f', "Writing %d bytes at %d, from file of length %d.\n", 	
 			numBytes, position, fileLength);
 

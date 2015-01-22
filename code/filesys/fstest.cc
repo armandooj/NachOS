@@ -21,7 +21,7 @@
 #include "disk.h"
 #include "stats.h"
 
-#define TransferSize 	10 	// make it small, just to be difficult
+#define TransferSize 	100 	//make it small, just to be difficult
 
 //----------------------------------------------------------------------
 // Copy
@@ -33,7 +33,7 @@ Copy(const char *from, const char *to)
 {
     FILE *fp;
     OpenFile* openFile;
-    int amountRead, fileLength;
+    int totalread = 0,fileLength,amountRead;
     char *buffer;
 
 // Open UNIX file
@@ -48,20 +48,27 @@ Copy(const char *from, const char *to)
     fseek(fp, 0, 0);
 
 // Create a Nachos file of the same length
-    DEBUG('f', "Copying file %s, size %d, to file %s\n", from, fileLength, to);
-    if (!fileSystem->Create(to, fileLength)) {	 // Create Nachos file
-	printf("Copy: couldn't create output file %s\n", to);
-	fclose(fp);
-	return;
+    DEBUG('f', "Copying file %s with size %d to file %s\n", from, fileLength, to);
+    if ((openFile = fileSystem->Open(to)) == NULL) {	 // Create Nachos file
+	printf("creating a new file %s\n", to);
+        if (fileSystem->Create(to)) {
+          printf("create done\n");
+          openFile = fileSystem->Open(to);
+        }
+        else
+	  return;
     }
     
-    openFile = fileSystem->Open(to);
+    openFile->Seek(0);
     ASSERT(openFile != NULL);
     
 // Copy the data in TransferSize chunks
     buffer = new char[TransferSize];
-    while ((amountRead = fread(buffer, sizeof(char), TransferSize, fp)) > 0)
+    while ((amountRead = fread(buffer, sizeof(char), TransferSize, fp)) > 0) {
+        totalread += amountRead;
+        DEBUG('f',"%d\n",totalread);
 	openFile->Write(buffer, amountRead);	
+    }
     delete [] buffer;
 
 // Close the UNIX and the Nachos files
@@ -111,7 +118,7 @@ Print(char *name)
 #define FileName 	"TestFile"
 #define Contents 	"1234567890"
 #define ContentSize 	strlen(Contents)
-#define FileSize 	((int)(ContentSize * 5000))
+#define FileSize 	((int)(ContentSize * 12288))
 
 static void 
 FileWrite()
@@ -121,7 +128,7 @@ FileWrite()
 
     printf("Sequential write of %d byte file, in %zd byte chunks\n", 
 	FileSize, ContentSize);
-    if (!fileSystem->Create(FileName, 0)) {
+    if (!fileSystem->Create(FileName)) {
       printf("Perf test: can't create %s\n", FileName);
       return;
     }
@@ -183,3 +190,34 @@ PerformanceTest()
     stats->Print();
 }
 
+void nachcopy(const char *file1, const char *file2)
+{
+    OpenFile *fopen1 = NULL;
+    if((fopen1 = fileSystem->Open(file1)) == NULL) {
+     printf("fail to open file1 %s !\n",file1);
+     return;
+    }
+
+    int amountRead;
+    char *buffer = new char[TransferSize];
+    fopen1->Seek(0);
+
+    OpenFile *fopen2 = NULL;
+    if((fopen2 = fileSystem->Open(file2)) == NULL) {
+     printf("creating a new file %s\n",file2);
+     ASSERT(fileSystem->Create(file2));
+    }
+    if((fopen2 = fileSystem->Open(file2)) == NULL) {
+     printf("fail to open file2 %s !\n",file2);
+     return;
+    }
+    fopen2->Seek(0);
+    char *buffer2 = new char[TransferSize];
+    while((amountRead = fopen1->Read(buffer, TransferSize)) > 0)
+     fopen2->Write(buffer, amountRead);
+    printf("finish copy");
+    printf("\n------------------------\n");
+    delete [] buffer2;
+
+    return;
+}

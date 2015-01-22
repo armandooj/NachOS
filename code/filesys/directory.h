@@ -18,6 +18,8 @@
 #define DIRECTORY_H
 
 #include "openfile.h"
+#include "filehdr.h"
+#include "filesys.h"
 
 #define FileNameMaxLen 		9	// for simplicity, we assume 
 					// file names are <= 9 characters long
@@ -70,6 +72,11 @@ class Directory {
     void Print();			// Verbose print of the contents
 					//  of the directory -- all the file
 					//  names and their contents.
+/*
+#ifdef CHANGED
+    int NumFiles();                     // return the number of valid files except '.' and '..'
+#endif
+*/
 
   private:
     int tableSize;			// Number of directory entries
