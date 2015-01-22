@@ -181,9 +181,9 @@ if (!strcmp (*argv, "-cp"))
     }
 
 
-    printf("FINISH\n");
-    //currentThread->Finish ();	// NOTE: if the procedure "main" 
-    do_UserProcessExit();
+    printf("Finishing from Main Thread\n");
+    currentThread->Finish ();	// NOTE: if the procedure "main" 
+    // do_UserProcessExit();
 
     // returns, then the program "nachos"
     // will exit (as any other normal program

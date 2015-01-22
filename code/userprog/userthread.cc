@@ -59,13 +59,13 @@ int do_UserThreadCreate(int f, int arg, int ret_function) {
   Thread *newThread = new Thread("New User Thread");
   
   // put increase counter here for synchonization problem
-  currentThread->space->increaseUserProcesses();    // PROBLEM??? 
+  currentThread->space->increaseUserThreads();    // PROBLEM??? 
 
   // The thread's id is also its location on the stack
   newThread->SetTid(currentThread->space);  // wrong if set after fork.
 
   if (newThread->GetTid() < 0) {
-    currentThread->space->decreaseUserProcesses();
+    currentThread->space->decreaseUserThreads();
     return -1;
   }
   
@@ -84,12 +84,12 @@ void do_UserThreadExit() {
 
     DEBUG('t', "Thread \"%s\" uses User Exit\n", currentThread->getName());
     DEBUG('t', "Status: number of current userthreads: %d\n", 
-                            currentThread->space->getNumberOfUserProcesses());
+                            currentThread->space->getNumberOfUserThreads());
     
     DEBUG('l', "Thread \"%s\" uses User Exit\n", currentThread->getName() );
     
-    currentThread->space->decreaseUserProcesses();
-    if (currentThread->space->getNumberOfUserProcesses() == 0) {
+    currentThread->space->decreaseUserThreads();
+    if (currentThread->space->getNumberOfUserThreads() == 0) {
         currentThread->space->ExitForMain->V();
     }
 

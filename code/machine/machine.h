@@ -182,6 +182,8 @@ class Machine {
     TranslationEntry *pageTable;
     unsigned int pageTableSize;
 
+    int numberOfProcesses;
+
   private:
     bool singleStep;		// drop back into the debugger after each
 				// simulated instruction

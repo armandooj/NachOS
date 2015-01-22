@@ -71,6 +71,10 @@ Machine::Machine(bool debug)
     pageTable = NULL;
 #endif
 
+#ifdef CHANGED
+    numberOfProcesses = 1;
+#endif
+
     singleStep = debug;
     CheckEndian();
 }

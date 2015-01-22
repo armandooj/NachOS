@@ -51,6 +51,10 @@ class AddrSpace
     void FreeStackLocation (int position);
 
 #ifdef CHANGED    
+    void increaseUserThreads();
+    void decreaseUserThreads();
+    int getNumberOfUserThreads();
+
     void increaseUserProcesses();
     void decreaseUserProcesses();
     int getNumberOfUserProcesses();
@@ -68,12 +72,14 @@ class AddrSpace
     // address space
 
 #ifdef CHANGED
-    int numberOfUserProcesses;    
+    int numberOfUserThreads;  
+    int numberOfUserProcesses;
     
     // Available pages
     BitMap *stackBitMap;
     Lock *stackBitMapLock;
-    Lock *processCountLock;
+    Lock *threadsCountLock;
+    Lock *processesCountLock;
 
 #endif   // END CHANGED
 

@@ -71,7 +71,7 @@ AddrSpace::AddrSpace (OpenFile *executable)
   NoffHeader noffH;
   unsigned int i, size;
 
-  executable->ReadAt ((char *) &noffH, sizeof (noffH), 0);
+  executable->ReadAt((char *) &noffH, sizeof (noffH), 0);
   if ((noffH.noffMagic != NOFFMAGIC) && (WordToHost (noffH.noffMagic) == NOFFMAGIC))
     SwapHeader (&noffH);
   ASSERT (noffH.noffMagic == NOFFMAGIC);
@@ -121,6 +121,7 @@ AddrSpace::AddrSpace (OpenFile *executable)
   if (noffH.code.size > 0) {
     DEBUG ('a', "Initializing code segment, at 0x%x, size %d\n", noffH.code.virtualAddr, noffH.code.size);
 #ifdef CHANGED
+    printf("Code\n");
     ReadAtVirtual(executable, noffH.code.virtualAddr, noffH.code.size, noffH.code.inFileAddr, pageTable, numPages);
 #else
     executable->ReadAt (&(machine->mainMemory[noffH.code.virtualAddr]), noffH.code.size, noffH.code.inFileAddr);
@@ -129,6 +130,7 @@ AddrSpace::AddrSpace (OpenFile *executable)
   if (noffH.initData.size > 0) {
     DEBUG ('a', "Initializing data segment, at 0x%x, size %d\n", noffH.initData.virtualAddr, noffH.initData.size);
 #ifdef CHANGED
+    printf("Data\n");
     ReadAtVirtual(executable, noffH.initData.virtualAddr, noffH.initData.size, noffH.initData.inFileAddr, pageTable, numPages);
 #else
     executable->ReadAt (&(machine->mainMemory[noffH.initData.virtualAddr]), noffH.initData.size, noffH.initData.inFileAddr);
@@ -139,14 +141,16 @@ AddrSpace::AddrSpace (OpenFile *executable)
   // Initialize the bitmap, lock and variables
   stackBitMap = new BitMap(GetMaxNumThreads());
   stackBitMapLock = new Lock("Stack Lock");
-  processCountLock = new Lock("Process Count Lock");
-  numberOfUserProcesses = 1;    // counting the main process      
+  threadsCountLock = new Lock("Threads Count Lock");
+  processesCountLock = new Lock("Processes Count Lock");
+  numberOfUserThreads = 1;    // counting the main thread
+  numberOfUserProcesses = 1;      
   ExitForMain = new Semaphore("Exit for Main", 1);
 
   //For Join Functionality
   activeThreads = new ListForJoin();
   activeLocks = new ListForJoin();
-#endif   // END CHANGED      
+#endif   // END CHANGED
 }
 
 //----------------------------------------------------------------------
@@ -163,7 +167,8 @@ AddrSpace::~AddrSpace ()
 #ifdef CHANGED  
   delete stackBitMap;
   delete stackBitMapLock;
-  delete processCountLock;
+  delete threadsCountLock;
+  delete processesCountLock;
 #endif
   // End of modification
 }
@@ -271,21 +276,36 @@ void AddrSpace::FreeStackLocation (int location) {
 }
 
 //----------------------------------------------------------------------
-// Manipulate User Process
-//      These are function to munipulate the numberOfUserProcesses 
-//      variable
+// Manipulate User Process and Threads
+//      These are functionts to munipulate the numberOfUserProcesses 
+//      and numberOfUserThreads variables.
 //
 //----------------------------------------------------------------------
 
+void AddrSpace::increaseUserThreads() {
+    threadsCountLock->Acquire();
+    numberOfUserThreads++;
+    threadsCountLock->Release();
+}
+void AddrSpace::decreaseUserThreads() {
+    threadsCountLock->Acquire();
+    numberOfUserThreads--;
+    threadsCountLock->Release();
+}
+
+int AddrSpace::getNumberOfUserThreads() {
+    return numberOfUserThreads;
+}
+
 void AddrSpace::increaseUserProcesses() {
-    processCountLock->Acquire();
+    processesCountLock->Acquire();
     numberOfUserProcesses++;
-    processCountLock->Release();
+    processesCountLock->Release();
 }
 void AddrSpace::decreaseUserProcesses() {
-    processCountLock->Acquire();
+    processesCountLock->Acquire();
     numberOfUserProcesses--;
-    processCountLock->Release();
+    processesCountLock->Release();
 }
 
 int AddrSpace::getNumberOfUserProcesses() {
@@ -300,33 +320,21 @@ Virtual Memory
 static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, int position, 
   TranslationEntry *pageTable, unsigned numPages) {
 
-    // // Start by reading from the physical memory into a temporary buffer
-    // char temp_buffer[numBytes];
-    // int read_bytes = executable->ReadAt(temp_buffer, numBytes, position);
+    // Start by reading from the physical memory into a temporary buffer
+    char temp_buffer[numBytes];
+    int read_bytes = executable->ReadAt(temp_buffer, numBytes, position);
 
-    // // Since we need to write to pageTable, we need to keep a reference of the current table (entry) and size
-    // TranslationEntry *old_table = machine->pageTable;
-    // int old_size = machine->pageTableSize;
-
-    // // Now change the machine to pageTable and proceed to write
-    // machine->pageTable = pageTable;
-    // machine->pageTableSize = numPages;
-    // for (int i = 0; i < read_bytes; i++) {
-    //     machine->WriteMem(virtualaddr + i, 1, temp_buffer[i]);
-    // }
-
-    // // Go back
-    // machine->pageTable = old_table;
-    // machine->pageTableSize = old_size;
-  
-    char *buffer = new char[numBytes];
-    executable->ReadAt(buffer, numBytes, position);
+    // Now change the machine to pageTable and proceed to write
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
-    for (int i = 0; i < numBytes; i+=4) {
-        machine->WriteMem(virtualaddr + i, 4, *((int *)(buffer+i)));
-    }
 
+    // int physicalAddress;
+    // machine->Translate(position, &physicalAddress, 1, FALSE);
+    // printf("-> %d, %d, %d\n", physicalAddress, physicalAddress + numBytes, machine->ReadRegister(PCReg));
+
+    for (int i = 0; i < read_bytes; i++) {
+        machine->WriteMem(virtualaddr + i, 1, temp_buffer[i]);
+    }
 }
 
 #endif   // END CHANGED

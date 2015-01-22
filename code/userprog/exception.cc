@@ -151,36 +151,26 @@ ExceptionHandler (ExceptionType which)
            switch (type) {
             case SC_Exit: 
             {
-
-              printf("SC_Exit\n");
-              currentThread->space->decreaseUserProcesses();
+              // currentThread->space->decreaseUserThreads();
             
-              DEBUG('t', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
-              DEBUG('t', "Number of UserThread: %d\n", currentThread->space->getNumberOfUserProcesses() );
+              // DEBUG('t', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
+              // DEBUG('t', "Number of UserThread: %d\n", currentThread->space->getNumberOfUserThreads());            
               
-              //busy waiting
-              /*
-              while (currentThread->space->getNumberOfUserProcesses() != 0) {
-                currentThread->space->ExitForMain->V();
-                currentThread->Yield();
-              }
-              */
-              
-              while (currentThread->space->getNumberOfUserProcesses() != 0) {
-                currentThread->space->ExitForMain->P();  
-              }
+              // while (currentThread->space->getNumberOfUserThreads() != 0) {
+              //   currentThread->space->ExitForMain->P();  
+              // }
 
-              int value = machine->ReadRegister(4);          
-              DEBUG('a', "Exit program, return value: %d.\n", value);
-              interrupt->Halt();
+              // int value = machine->ReadRegister(4);          
+              // DEBUG('a', "Exit program, return value: %d.\n", value);
+              // interrupt->Halt();
+              do_UserProcessExit();
               break;
             }
             case SC_Halt: 
             {
-                printf("SC_Halt\n");
-                DEBUG('a', "Shutdown, initiated by user program.\n");
-                interrupt->Halt();
-                break;
+               DEBUG('a', "Shutdown, initiated by user program.\n");
+               interrupt->Halt();
+               break;
             }
             case SC_PutChar: 
             {  
@@ -283,9 +273,6 @@ ExceptionHandler (ExceptionType which)
                 printf("New file name: %s\n", str);
 
                 do_UserProcessCreate(str);
-                printf("finish do_UserProcessCreate\n");
-                //do_UserProcessExit();
-                //interrupt->Halt();
                 break;
             }
             default: {

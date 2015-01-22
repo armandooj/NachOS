@@ -9,7 +9,7 @@ void print (char c, int n)
 }
 
 int main() {
-  print('a',4);
+  print('a', 2);
   //Halt(); 
   return 0;
 }
