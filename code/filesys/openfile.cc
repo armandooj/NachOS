@@ -15,6 +15,9 @@
 #include "filehdr.h"
 #include "openfile.h"
 #include "system.h"
+#ifdef CHANGED
+#include "filesys.h"
+#endif
 
 #include <strings.h> /* for bzero */
 
@@ -31,6 +34,9 @@ OpenFile::OpenFile(int sector)
     hdr = new FileHeader;
     hdr->FetchFrom(sector);
     seekPosition = 0;
+#ifdef CHANGED
+    Sector = sector;
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -150,10 +156,31 @@ OpenFile::WriteAt(const char *from, int numBytes, int position)
     bool firstAligned, lastAligned;
     char *buf;
 
+#ifndef CHANGED
+
     if ((numBytes <= 0) || (position >= fileLength))
 	return 0;				// check request
     if ((position + numBytes) > fileLength)
 	numBytes = fileLength - position;
+
+#else
+
+    if ((numBytes <= 0) || (position > fileLength))
+        return 0;                               // check request
+    if ((position + numBytes) > fileLength)
+    {
+        int extendsize = position + numBytes - fileLength;
+        BitMap *freemap = new BitMap(NumSectors);
+        freemap->FetchFrom(fileSystem->FreeMap());
+        if(hdr->Allocate(freemap,extendsize) == FALSE)
+           return 0;
+        hdr->WriteBack(Sector);
+        freemap->WriteBack(fileSystem->FreeMap());
+        delete freemap;
+    }
+
+#endif
+
     DEBUG('f', "Writing %d bytes at %d, from file of length %d.\n", 	
 			numBytes, position, fileLength);
 

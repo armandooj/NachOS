@@ -33,7 +33,10 @@ Copy(const char *from, const char *to)
 {
     FILE *fp;
     OpenFile* openFile;
-    int amountRead, fileLength;
+    int amountRead;
+#ifndef CHANGED
+    int fileLength;
+#endif
     char *buffer;
 
 // Open UNIX file
@@ -44,12 +47,22 @@ Copy(const char *from, const char *to)
 
 // Figure out length of UNIX file
     fseek(fp, 0, 2);		
+#ifndef CHANGED
     fileLength = ftell(fp);
+#endif
     fseek(fp, 0, 0);
 
 // Create a Nachos file of the same length
+#ifndef CHANGED
     DEBUG('f', "Copying file %s, size %d, to file %s\n", from, fileLength, to);
-    if (!fileSystem->Create(to, fileLength)) {	 // Create Nachos file
+#else
+    DEBUG('f', "Copying file %s to file %s\n",from, to);
+#endif
+#ifndef CHANGED
+    if (!fileSystem->Create(to,fileLength)) {	 // Create Nachos file
+#else
+    if (!fileSystem->Create(to)) {
+#endif
 	printf("Copy: couldn't create output file %s\n", to);
 	fclose(fp);
 	return;
@@ -111,7 +124,7 @@ Print(char *name)
 #define FileName 	"TestFile"
 #define Contents 	"1234567890"
 #define ContentSize 	strlen(Contents)
-#define FileSize 	((int)(ContentSize * 5000))
+#define FileSize 	((int)(ContentSize * 12000))
 
 static void 
 FileWrite()
@@ -121,7 +134,11 @@ FileWrite()
 
     printf("Sequential write of %d byte file, in %zd byte chunks\n", 
 	FileSize, ContentSize);
-    if (!fileSystem->Create(FileName, 0)) {
+#ifndef CHANGED
+    if (!fileSystem->Create(FileName,0)) {
+#else
+    if (!fileSystem->Create(FileName)) {
+#endif
       printf("Perf test: can't create %s\n", FileName);
       return;
     }

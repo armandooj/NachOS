@@ -15,6 +15,10 @@
 #include "addrspace.h"
 #include "synch.h"
 
+#ifdef CHANGED
+#include <iostream>
+#endif
+
 //----------------------------------------------------------------------
 // StartProcess
 //      Run a user program.  Open the executable, load it into
@@ -121,3 +125,31 @@ StartProcess (char *filename)
 #endif
 
 
+#ifdef CHANGED
+
+extern void Copy(const char *unixFile, const char *nachosFile);
+
+
+#ifdef FILESYS
+
+
+void Test_FileSystem() {
+    
+    Copy("../filesys/test/medium", "Medium1");
+    fileSystem->CreateDirectory("Pdir");
+    fileSystem->Directory_path("Pdir/");
+
+    Copy("../filesys/test/small", "Small1");
+    fileSystem->CreateDirectory("Cdir");
+          fileSystem->List ();
+    fileSystem->Directory_path("Cdir/");
+
+    Copy("../filesys/test/big", "Big1");
+          
+    fileSystem->Directory_path("../");
+    fileSystem->Directory_path("../");
+}
+
+#endif
+
+#endif  //CHANGED

@@ -170,8 +170,18 @@ void
 Directory::List()
 {
    for (int i = 0; i < tableSize; i++)
-    if (table[i].inUse)
-	    printf("%s \n", table[i].name);
+	if (table[i].inUse)
+#ifndef CHANGED
+	    printf("%s\n", table[i].name);
+#else
+        {
+            FileHeader *fileheader = new FileHeader;
+            fileheader->FetchFrom(table[i].sector);
+            printf("Name: %s Size: %dbytes\n", table[i].name,fileheader->FileLength());
+            //printf("%s\n", table[i].name);
+            delete fileheader;
+        }
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -188,8 +198,13 @@ Directory::Print()
     printf("Directory contents:\n");
     for (int i = 0; i < tableSize; i++)
 	if (table[i].inUse) {
+#ifndef CHANGED
 	    printf("Name: %s, Sector: %d\n", table[i].name, table[i].sector);
 	    hdr->FetchFrom(table[i].sector);
+#else
+            hdr->FetchFrom(table[i].sector);
+            printf("Name: %s, Sector: %d, Size: %d\n", table[i].name, table[i].sector,hdr->FileLength());
+#endif
 	    hdr->Print();
 	}
     printf("\n");

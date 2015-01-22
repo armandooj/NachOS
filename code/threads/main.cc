@@ -50,10 +50,17 @@
 #define MAIN
 #include "copyright.h"
 #undef MAIN
-
 #include "utility.h"
 #include "system.h"
-//#include "../filesys/filesys.h"
+#include "../filesys/filesys.h"
+
+#ifdef CHANGED
+#include <dirent.h>
+#include <fstream>
+#include <iostream>
+#include <unistd.h>
+#endif
+
 
 // External functions used by this file
 
@@ -62,6 +69,12 @@ extern void Print (char *file), PerformanceTest (void);
 extern void StartProcess (char *file), ConsoleTest (char *in, char *out);
 extern void SynchConsoleTest (char *in, char *out);
 extern void MailTest (int networkID);
+
+#ifdef CHANGED
+#ifdef FILESYS
+extern void Test_FileSystem();
+#endif
+#endif
 
 //----------------------------------------------------------------------
 // main
@@ -143,6 +156,7 @@ main (int argc, char **argv)
 		ASSERT (argc > 2);
 		Copy (*(argv + 1), *(argv + 2));
 		argCount = 3;
+		interrupt->Halt ();
 	    }
 	  else if (!strcmp (*argv, "-p"))
 	    {			// print a Nachos file
@@ -159,23 +173,32 @@ main (int argc, char **argv)
 	  else if (!strcmp (*argv, "-l"))
 	    {			// list Nachos directory
 		fileSystem->List ();
+		interrupt->Halt ();
 	    }
+		
+		#ifdef CHANGED
+
+	    else if (!strcmp (*argv, "-md"))
+        {			// create Nachos directory
+            fileSystem->CreateDirectory(*(argv + 1));
+            argCount = 2;
+            interrupt->Halt ();
+        }
+        else if (!strcmp(*argv, "-ftest")) {
+			Test_FileSystem();
+			argCount =2;
+			interrupt->Halt ();
+		}
+        #endif
+
 	  else if (!strcmp (*argv, "-D"))
 	    {			// print entire filesystem
 		fileSystem->Print ();
 	    }
-
-	    else if (!strcmp (*argv, "-md"))
-	    {		
-	    	FileSystem *obj;
-	    	obj = new FileSystem (true);
-
-		 obj->CreateDirectory(*(argv+1));
-	    }
-
 	  else if (!strcmp (*argv, "-t"))
 	    {			// performance test
 		PerformanceTest ();
+		interrupt->Halt ();
 	    }
 
 #endif // FILESYS
