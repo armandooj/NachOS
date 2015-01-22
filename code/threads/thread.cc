@@ -108,14 +108,22 @@ Thread::Fork (VoidFunctionPtr func, int arg)
     StackAllocate (func, arg);
 
 #ifdef USER_PROGRAM
+#ifdef CHANGED
 
-    // LB: The addrspace should be tramsitted here, instead of later in
-    // StartProcess, so that the pageTable can be restored at
-    // launching time. This is crucial if the thread is launched with
-    // an already running program, as in the "fork" Unix system call. 
-    
-    // LB: Observe that currentThread->space may be NULL at that time.
+    ThreadParam *threadParam = (ThreadParam *) arg;
+    if (!threadParam->isProcess) {
+      // LB: The addrspace should be tramsitted here, instead of later in
+      // StartProcess, so that the pageTable can be restored at
+      // launching time. This is crucial if the thread is launched with
+      // an already running program, as in the "fork" Unix system call. 
+      
+      // LB: Observe that currentThread->space may be NULL at that time.
+      this->space = currentThread->space;
+    }
+
+#else
     this->space = currentThread->space;
+#endif
 
 #endif // USER_PROGRAM
 
@@ -124,6 +132,7 @@ Thread::Fork (VoidFunctionPtr func, int arg)
     // are disabled!
     (void) interrupt->SetLevel (oldLevel);
 }
+
 
 //----------------------------------------------------------------------
 // Thread::CheckOverflow
@@ -443,6 +452,11 @@ Thread::SetTid(AddrSpace *thisThreadSpace) {
   // Since main is the thread 0, we don't wan't user threads to start from 0. Make them start from 1
   // except when something went wrong
   tid = tid >= 0 ? tid + 1 : -1;
+}
+
+void
+Thread::SetTid(int id) {
+  tid = id;
 }
 
 #endif

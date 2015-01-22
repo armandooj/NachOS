@@ -95,8 +95,13 @@ AddrSpace::AddrSpace (OpenFile *executable)
 	  pageTable[i].virtualPage = i;	
     // physical page # = virtual page # + 1 // machine->frameProvider->GetEmptyFrame();
 #ifdef CHANGED
-    int frame = frameProvider->GetEmptyFrame();
-	  pageTable[i].physicalPage = frame;
+    if (frameProvider->NumAvailFrame() > 0) {
+      int frame = frameProvider->GetEmptyFrame();
+      pageTable[i].physicalPage = frame;
+    } else {
+      // TODO proper error
+      return;
+    }
 #else
     pageTable[i].physicalPage = i;
 #endif

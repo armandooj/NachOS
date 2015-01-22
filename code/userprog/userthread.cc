@@ -29,18 +29,19 @@ static void StartUserThread(int data) {
 
   currentThread->space->InitRegisters();
   currentThread->space->RestoreState(); // TODO: Check if this need to reverse
-  
+
   // Retrieve the function and arg
-  ParamFunction *paramFunction = (ParamFunction *) data;
+  ThreadParam *threadParam = (ThreadParam *) data;
+
   // Write the argument in the register 4
-  machine->WriteRegister(4, paramFunction->arg);
+  machine->WriteRegister(4, threadParam->arg);
   // Initial program counter -- must be location of "Start"
-  machine->WriteRegister(RetAddrReg, paramFunction->ret_function);
-  machine->WriteRegister(PCReg, paramFunction->function);
-  machine->WriteRegister(NextPCReg, paramFunction->function + 4);
+  machine->WriteRegister(RetAddrReg, threadParam->ret_function);
+  machine->WriteRegister(PCReg, threadParam->function);
+  machine->WriteRegister(NextPCReg, threadParam->function + 4);
   
   //reset stack pointer 
-  currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetTid())); 
+  currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetTid()));
 
   machine->Run();
 }
@@ -50,10 +51,10 @@ int do_UserThreadCreate(int f, int arg, int ret_function) {
   DEBUG('t', "Enter User Create Thread\n");
 
   // Use a struct to pass both the function and argument to the fork function
-  ParamFunction *paramFunction = new ParamFunction();
-  paramFunction->function = f;
-  paramFunction->arg = arg;
-  paramFunction->ret_function = ret_function;
+  ThreadParam *threadParam = new ThreadParam();
+  threadParam->function = f;
+  threadParam->arg = arg;
+  threadParam->ret_function = ret_function;
 
   Thread *newThread = new Thread("New User Thread");
   
@@ -68,13 +69,13 @@ int do_UserThreadCreate(int f, int arg, int ret_function) {
     return -1;
   }
   
-    // Add to active list
+  // Add to active list
   currentThread->space->activeThreads->AppendTraverse(NULL, newThread->GetTid());
   DEBUG('l', "Add new thread: %d\n", newThread->GetTid());
   DEBUG('l', "Thread list: \n");
   currentThread->space->activeThreads->PrintContent();                          
 
-  newThread->Fork(StartUserThread, (int) paramFunction);
+  newThread->Fork(StartUserThread, (int) threadParam);
   
   return newThread->GetTid();
 }
@@ -155,48 +156,6 @@ int do_UserThreadJoin(int tid) {
         DEBUG('l', "Waking up \n");
     }    
     return 1;   // return after being wake up :D
-}
-
-//TODO DELETE DUMMY
-static void StartProcess(int dummy) {
-
-  DEBUG('t', "StartUserThread with Stack Position: %d\n", currentThread->GetTid());
-
-  if (currentThread->GetTid() < 0) {
-    DEBUG('t', "Error, new Thread doesn't have a valid stack space");
-    return;    
-  }
-
-  currentThread->space->InitRegisters();
-  //currentThread->space->RestoreState();
-
-  machine->Run();
-}
-
-int do_ProcessCreate(char *filename) {
-
-  //TODO: NEED A FORK HERE :DDDDD
-
-  OpenFile *executable = fileSystem->Open (filename);
-  AddrSpace *space;
-
-  if (executable == NULL)
-  {
-   printf ("Unable to open file %s\n", filename);
-   return -1;
-  }
-
-  space = new AddrSpace (executable);
-  delete executable;		// close file
-
-  Thread *newThread = new Thread("New Process Thread");
-  newThread->space = space;
-  newThread->setStatus(JUST_CREATED);
-  
-  //Do FORK HERE
-  newThread->Fork(StartProcess, 2);
-    
-  return 0;
 }
 
 #endif

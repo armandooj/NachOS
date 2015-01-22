@@ -12,6 +12,7 @@ typedef struct {
   int function;
   int arg;
   int ret_function;
+  bool isProcess;
 } ParamFunction;
 
 typedef struct {

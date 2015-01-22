@@ -278,9 +278,8 @@ ExceptionHandler (ExceptionType which)
                 char str[100] = {};
                 copyStringFromMachine(s, str, 100);
                 printf("New file name: %s\n", str);
-                
-                //create new process here
-                do_ProcessCreate(str);                
+
+                do_UserProcessCreate(str);
                 break;
             }
             default: {

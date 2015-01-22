@@ -61,6 +61,15 @@
 enum ThreadStatus
 { JUST_CREATED, RUNNING, READY, BLOCKED };
 
+#ifdef CHANGED
+typedef struct {  
+  int function;
+  int arg;
+  int ret_function;
+  bool isProcess;
+} ThreadParam;
+#endif
+
 // external function, dummy routine whose sole job is to call Thread::Print
 extern void ThreadPrint (int arg);
 
@@ -93,6 +102,7 @@ class Thread
     // basic thread operations
 
     void Fork (VoidFunctionPtr func, int arg);	// Make thread run (*func)(arg)
+
     void Yield ();		// Relinquish the CPU if any 
     // other thread is runnable
     void Sleep ();		// Put the thread to sleep and 
@@ -143,6 +153,7 @@ class Thread
     void FreeTid();
     int GetTid();
     void SetTid(AddrSpace *thisThreadSpace);
+    void SetTid(int id);
     
     Semaphore *joinCondition; // Use this variable to sleep while waiting on Join
 #endif

@@ -52,6 +52,7 @@
 
 #include "utility.h"
 #include "system.h"
+#include "userprocess.h"
 
 // External functions used by this file
 
@@ -176,6 +177,7 @@ main (int argc, char **argv)
       }
 
     currentThread->Finish ();	// NOTE: if the procedure "main" 
+    do_UserProcessExit();
     // returns, then the program "nachos"
     // will exit (as any other normal program
     // would).  But there may be other
