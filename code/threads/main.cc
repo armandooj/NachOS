@@ -90,91 +90,95 @@ main (int argc, char **argv)
 #endif
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount)
-      {
-	  argCount = 1;
-	  if (!strcmp (*argv, "-z"))	// print copyright
-	      printf ("%s", copyright);
+    {
+      argCount = 1;
+      if (!strcmp (*argv, "-z"))	// print copyright
+        printf ("%s", copyright);
 #ifdef USER_PROGRAM
-	  if (!strcmp (*argv, "-x"))
+      if (!strcmp (*argv, "-x"))
 	    {			// run a user program
-		ASSERT (argc > 1);
-		StartProcess (*(argv + 1));
-		argCount = 2;
-	    }
-	  else if (!strcmp (*argv, "-c"))
+        ASSERT (argc > 1);
+        StartProcess (*(argv + 1));
+        argCount = 2;
+      }
+      else if (!strcmp (*argv, "-c"))
 	    {			// test the console
-		if (argc == 1)
-		    ConsoleTest (NULL, NULL);
-		else
-		  {
-		      ASSERT (argc > 2);
-		      ConsoleTest (*(argv + 1), *(argv + 2));
-		      argCount = 3;
-		  }
-		interrupt->Halt ();	// once we start the console, then 
-		// Nachos will loop forever waiting 
-		// for console input
-	    }
-      #ifdef CHANGED
-        // Synch console
-        else if (!strcmp (*argv, "-sc")) 
+        if (argc == 1)
+          ConsoleTest (NULL, NULL);
+        else
         {
-          if (argc == 1)
-            SynchConsoleTest (NULL, NULL);
-          else
-    	    {
-    			  ASSERT (argc > 2);
-    			  SynchConsoleTest (*(argv + 1), *(argv + 2));
-    	      argCount = 3;
-    	    }
-          interrupt->Halt ();
+          ASSERT (argc > 2);
+          ConsoleTest (*(argv + 1), *(argv + 2));
+          argCount = 3;
         }
-      #endif
+		    interrupt->Halt ();	// once we start the console, then 
+  		  // Nachos will loop forever waiting 
+  		  // for console input
+      }
+
+#ifdef CHANGED
+      // Synch console
+      else if (!strcmp (*argv, "-sc")) 
+      {
+        if (argc == 1)
+          SynchConsoleTest (NULL, NULL);
+        else
+        {
+          ASSERT (argc > 2);
+          SynchConsoleTest (*(argv + 1), *(argv + 2));
+          argCount = 3;
+        }
+        interrupt->Halt ();
+      }
+#endif
 #endif // USER_PROGRAM
+
 #ifdef FILESYS
-	  if (!strcmp (*argv, "-cp"))
+if (!strcmp (*argv, "-cp"))
 	    {			// copy from UNIX to Nachos
-		ASSERT (argc > 2);
-		Copy (*(argv + 1), *(argv + 2));
-		argCount = 3;
-	    }
-	  else if (!strcmp (*argv, "-p"))
-	    {			// print a Nachos file
-		ASSERT (argc > 1);
-		Print (*(argv + 1));
-		argCount = 2;
-	    }
-	  else if (!strcmp (*argv, "-r"))
-	    {			// remove Nachos file
-		ASSERT (argc > 1);
-		fileSystem->Remove (*(argv + 1));
-		argCount = 2;
-	    }
-	  else if (!strcmp (*argv, "-l"))
+        ASSERT (argc > 2);
+        Copy (*(argv + 1), *(argv + 2));
+        argCount = 3;
+      }
+      else if (!strcmp (*argv, "-p"))
+	    {			
+        // print a Nachos file
+        ASSERT (argc > 1);
+        Print (*(argv + 1));
+        argCount = 2;
+      }
+      else if (!strcmp (*argv, "-r"))
+	    {			
+        // remove Nachos file
+        ASSERT (argc > 1);
+        fileSystem->Remove (*(argv + 1));
+        argCount = 2;
+      }
+      else if (!strcmp (*argv, "-l"))
 	    {			// list Nachos directory
-		fileSystem->List ();
-	    }
-	  else if (!strcmp (*argv, "-D"))
+        fileSystem->List ();
+      }
+      else if (!strcmp (*argv, "-D"))
 	    {			// print entire filesystem
-		fileSystem->Print ();
-	    }
-	  else if (!strcmp (*argv, "-t"))
+        fileSystem->Print ();
+      }
+      else if (!strcmp (*argv, "-t"))
 	    {			// performance test
-		PerformanceTest ();
-	    }
+        PerformanceTest ();
+      }
 #endif // FILESYS
 #ifdef NETWORK
-	  if (!strcmp (*argv, "-o"))
-	    {
-		ASSERT (argc > 1);
-		Delay (2);	// delay for 2 seconds
-		// to give the user time to 
-		// start up another nachos
-		MailTest (atoi (*(argv + 1)));
-		argCount = 2;
-	    }
-#endif // NETWORK
+      if (!strcmp (*argv, "-o"))
+      {
+        ASSERT (argc > 1);
+		    Delay (2);	// delay for 2 seconds
+    		// to give the user time to 
+    		// start up another nachos
+    		MailTest (atoi (*(argv + 1)));
+    		argCount = 2;
       }
+#endif // NETWORK
+    }
 
     currentThread->Finish ();	// NOTE: if the procedure "main" 
     do_UserProcessExit();
