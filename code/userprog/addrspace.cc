@@ -19,15 +19,8 @@
 #include "system.h"
 #include "addrspace.h"
 #include "noff.h"
-#include "synch.h"
-#include "list.h"
 
 #include <strings.h>		/* for bzero */
-
-#ifdef CHANGED
-static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, int position, 
-  TranslationEntry *pageTable, unsigned numPages);
-#endif
 
 //----------------------------------------------------------------------
 // SwapHeader
@@ -47,7 +40,8 @@ SwapHeader (NoffHeader * noffH)
     noffH->initData.virtualAddr = WordToHost (noffH->initData.virtualAddr);
     noffH->initData.inFileAddr = WordToHost (noffH->initData.inFileAddr);
     noffH->uninitData.size = WordToHost (noffH->uninitData.size);
-    noffH->uninitData.virtualAddr = WordToHost (noffH->uninitData.virtualAddr);
+    noffH->uninitData.virtualAddr =
+	WordToHost (noffH->uninitData.virtualAddr);
     noffH->uninitData.inFileAddr = WordToHost (noffH->uninitData.inFileAddr);
 }
 
@@ -66,76 +60,66 @@ SwapHeader (NoffHeader * noffH)
 //      "executable" is the file containing the object code to load into memory
 //----------------------------------------------------------------------
 
-AddrSpace::AddrSpace (OpenFile *executable)
+AddrSpace::AddrSpace (OpenFile * executable)
 {
-  NoffHeader noffH;
-  unsigned int i, size;
+    NoffHeader noffH;
+    unsigned int i, size;
 
-  executable->ReadAt ((char *) &noffH, sizeof (noffH), 0);
-  if ((noffH.noffMagic != NOFFMAGIC) && (WordToHost (noffH.noffMagic) == NOFFMAGIC))
-    SwapHeader (&noffH);
-  ASSERT (noffH.noffMagic == NOFFMAGIC);
+    executable->ReadAt ((char *) &noffH, sizeof (noffH), 0);
+    if ((noffH.noffMagic != NOFFMAGIC) &&
+	(WordToHost (noffH.noffMagic) == NOFFMAGIC))
+	SwapHeader (&noffH);
+    ASSERT (noffH.noffMagic == NOFFMAGIC);
 
-  // how big is address space?
-  size = noffH.code.size + noffH.initData.size + noffH.uninitData.size + UserStackSize;	// we need to increase the size
-  // to leave room for the stack
-  numPages = divRoundUp (size, PageSize);
-  size = numPages * PageSize;
+// how big is address space?
+    size = noffH.code.size + noffH.initData.size + noffH.uninitData.size + UserStackSize;	// we need to increase the size
+    // to leave room for the stack
+    numPages = divRoundUp (size, PageSize);
+    size = numPages * PageSize;
 
-  ASSERT (numPages <= NumPhysPages);	// check we're not trying
-  // to run anything too big --
-  // at least until we have
-  // virtual memory
+    ASSERT (numPages <= NumPhysPages);	// check we're not trying
+    // to run anything too big --
+    // at least until we have
+    // virtual memory
 
-  DEBUG ('a', "Initializing address space, num pages %d, size %d\n", numPages, size);
-  // first, set up the translation 
-  pageTable = new TranslationEntry[numPages];
-  for (i = 0; i < numPages; i++)
-  {
-	  pageTable[i].virtualPage = i;	
-	  pageTable[i].physicalPage = i + 1; // physical page # = virtual page # + 1
+    DEBUG ('a', "Initializing address space, num pages %d, size %d\n",
+	   numPages, size);
+// first, set up the translation 
+    pageTable = new TranslationEntry[numPages];
+    for (i = 0; i < numPages; i++)
+      {
+	  pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+	  pageTable[i].physicalPage = i;
 	  pageTable[i].valid = TRUE;
 	  pageTable[i].use = FALSE;
 	  pageTable[i].dirty = FALSE;
 	  pageTable[i].readOnly = FALSE;	// if the code segment was entirely on 
-  // a separate page, we could set its 
-  // pages to be read-only
-  }
+	  // a separate page, we could set its 
+	  // pages to be read-only
+      }
 
-  // zero out the entire address space, to zero the unitialized data segment 
-  // and the stack segment
-  bzero (machine->mainMemory, size);
+// zero out the entire address space, to zero the unitialized data segment 
+// and the stack segment
+    bzero (machine->mainMemory, size);
 
-  // then, copy in the code and data segments into memory
-  if (noffH.code.size > 0) {
-    DEBUG ('a', "Initializing code segment, at 0x%x, size %d\n", noffH.code.virtualAddr, noffH.code.size);
-#ifdef CHANGED    
-    ReadAtVirtual(executable, noffH.code.virtualAddr, noffH.code.size, noffH.code.inFileAddr, pageTable, numPages);
-#else
-    executable->ReadAt (&(machine->mainMemory[noffH.code.virtualAddr]), noffH.code.size, noffH.code.inFileAddr);
-#endif
-  }
-  if (noffH.initData.size > 0) {
-    DEBUG ('a', "Initializing data segment, at 0x%x, size %d\n", noffH.initData.virtualAddr, noffH.initData.size);
-#ifdef CHANGED    
-    ReadAtVirtual(executable, noffH.initData.virtualAddr, noffH.initData.size, noffH.initData.inFileAddr, pageTable, numPages);
-#else
-    executable->ReadAt (&(machine->mainMemory[noffH.initData.virtualAddr]), noffH.initData.size, noffH.initData.inFileAddr);
-#endif
-  }
+// then, copy in the code and data segments into memory
+    if (noffH.code.size > 0)
+      {
+	  DEBUG ('a', "Initializing code segment, at 0x%x, size %d\n",
+		 noffH.code.virtualAddr, noffH.code.size);
+	  executable->ReadAt (&(machine->mainMemory[noffH.code.virtualAddr]),
+			      noffH.code.size, noffH.code.inFileAddr);
+      }
+    if (noffH.initData.size > 0)
+      {
+	  DEBUG ('a', "Initializing data segment, at 0x%x, size %d\n",
+		 noffH.initData.virtualAddr, noffH.initData.size);
+	  executable->ReadAt (&
+			      (machine->mainMemory
+			       [noffH.initData.virtualAddr]),
+			      noffH.initData.size, noffH.initData.inFileAddr);
+      }
 
-#ifdef CHANGED
-  // Initialize the bitmap, lock and variables
-  stackBitMap = new BitMap(GetMaxNumThreads());
-  stackBitMapLock = new Lock("Stack Lock");
-  processCountLock = new Lock("Process Count Lock");
-  numberOfUserProcesses = 1;    // counting the main process      
-  ExitForMain = new Semaphore("Exit for Main", 1);
-
-  //For Join Functionality
-  activeThreads = new ListForJoin();
-  activeLocks = new ListForJoin();
-#endif   // END CHANGED      
 }
 
 //----------------------------------------------------------------------
@@ -148,12 +132,6 @@ AddrSpace::~AddrSpace ()
   // LB: Missing [] for delete
   // delete pageTable;
   delete [] pageTable;
-
-#ifdef CHANGED  
-  delete stackBitMap;
-  delete stackBitMapLock;
-  delete processCountLock;
-#endif
   // End of modification
 }
 
@@ -173,7 +151,7 @@ AddrSpace::InitRegisters ()
     int i;
 
     for (i = 0; i < NumTotalRegs; i++)
-      machine->WriteRegister (i, 0);
+	machine->WriteRegister (i, 0);
 
     // Initial program counter -- must be location of "Start"
     machine->WriteRegister (PCReg, 0);
@@ -186,7 +164,8 @@ AddrSpace::InitRegisters ()
     // allocated the stack; but subtract off a bit, to make sure we don't
     // accidentally reference off the end!
     machine->WriteRegister (StackReg, numPages * PageSize - 16);
-    DEBUG ('a', "Initializing stack register to %d\n", numPages * PageSize - 16);
+    DEBUG ('a', "Initializing stack register to %d\n",
+	   numPages * PageSize - 16);
 }
 
 //----------------------------------------------------------------------
@@ -216,95 +195,3 @@ AddrSpace::RestoreState ()
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
 }
-
-
-
-#ifdef CHANGED
-
-//----------------------------------------------------------------------
-// AddrSpace::MultiThreadSetStackPointer
-//      Use in multithread function to set the new stack pointer to
-//      new position
-//----------------------------------------------------------------------
-
-void
-AddrSpace::MultiThreadSetStackPointer (unsigned int newPositionOffset)
-{
-    machine->WriteRegister (StackReg, (numPages * PageSize - newPositionOffset) - 16);
-    DEBUG ('a', "Initializing stack register to %d\n", (numPages * PageSize - newPositionOffset) - 16);
-}
-
-// Returns how many threads the system can handle
-int AddrSpace::GetMaxNumThreads() {
-    return UserStackSize / (PageSize * 3);
-}
-
-/*
-Stack BitMap Operations
-*/
-
-int AddrSpace::GetAndSetFreeStackLocation () {
-    stackBitMapLock->Acquire();
-    int location = stackBitMap->Find();
-    stackBitMapLock->Release();
-    return location;
-}
-
-void AddrSpace::FreeStackLocation (int location) {    
-    stackBitMapLock->Acquire();
-    DEBUG('a', "Freeing stack location %d\n", location);
-    stackBitMap->Clear(location);
-    stackBitMapLock->Release();
-}
-
-//----------------------------------------------------------------------
-// Manipulate User Process
-//      These are function to munipulate the numberOfUserProcesses 
-//      variable
-//
-//----------------------------------------------------------------------
-
-void AddrSpace::increaseUserProcesses() {
-    processCountLock->Acquire();
-    numberOfUserProcesses++;
-    processCountLock->Release();
-}
-void AddrSpace::decreaseUserProcesses() {
-    processCountLock->Acquire();
-    numberOfUserProcesses--;
-    processCountLock->Release();
-}
-
-int AddrSpace::getNumberOfUserProcesses() {
-    return numberOfUserProcesses;
-}
-
-
-/*
-Virtual Memory
-*/
-
-static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, int position, 
-  TranslationEntry *pageTable, unsigned numPages) {
-
-    // Start by reading from the physical memory into a temporary buffer
-    char temp_buffer[numBytes];
-    int read_bytes = executable->ReadAt(temp_buffer, numBytes, position);
-
-    // Since we need to write to pageTable, we need to keep a reference of the current table (entry) and size
-    TranslationEntry *old_table = machine->pageTable;
-    int old_size = machine->pageTableSize;
-
-    // Now change the machine to pageTable and proceed to write
-    machine->pageTable = pageTable;
-    machine->pageTableSize = numPages;
-    for (int i = 0; i < read_bytes; i++) {
-        machine->WriteMem(virtualaddr + i, 1, temp_buffer[i]);
-    }
-
-    // Go back
-    machine->pageTable = old_table;
-    machine->pageTableSize = old_size;
-}
-
-#endif   // END CHANGED

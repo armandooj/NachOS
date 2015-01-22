@@ -15,7 +15,7 @@
 #define FILEHDR_H
 
 #include "disk.h"
-#include "bitmap.h"
+#include "../userprog/bitmap.h"
 
 #define NumDirect 	((SectorSize - 2 * sizeof(int)) / sizeof(int))
 #define MaxFileSize 	(NumDirect * SectorSize)
@@ -37,6 +37,15 @@
 
 class FileHeader {
   public:
+ //   #ifdef CHANGED
+
+    enum FileType {
+        FILE,
+        DIRECTORY,
+        DOTLINK
+    };
+//#endif
+    
     bool Allocate(BitMap *bitMap, int fileSize);// Initialize a file header, 
 						//  including allocating space 
 						//  on disk for the file data
@@ -56,9 +65,23 @@ class FileHeader {
 
     void Print();			// Print the contents of the file.
 
+//#ifdef CHANGED
+   //static const char* GetTypeName(FileType t);
+
+    void Type_Set(FileType t);
+    FileType Type_Get();
+    void LinkSector_Set(int sector);
+    int LinkSector_Get();
+  //  bool EnlargeFile(BitMap *freeMap,int size);
+//#endif
+
+
   private:
     int numBytes;			// Number of bytes in the file
     int numSectors;			// Number of data sectors in the file
+//    #ifdef CHANGED
+    FileType type;
+//    #endif
     int dataSectors[NumDirect];		// Disk sector numbers for each data 
 					// block in the file
 };

@@ -43,7 +43,6 @@
 #ifdef USER_PROGRAM
 #include "machine.h"
 #include "addrspace.h"
-#include "synch.h"
 #endif
 
 // CPU register state to be saved on context switch.  
@@ -84,8 +83,8 @@ class Thread
     int machineState[MachineStateSize];	// all registers except for stackTop
 
   public:
-    Thread (const char *debugName);	// initialize a Thread 
-    ~Thread ();		// deallocate a Thread
+      Thread (const char *debugName);	// initialize a Thread 
+     ~Thread ();		// deallocate a Thread
     // NOTE -- thread being deleted
     // must not be running when delete 
     // is called
@@ -103,15 +102,15 @@ class Thread
     // overflowed its stack
     void setStatus (ThreadStatus st)
     {
-	   status = st;
+	status = st;
     }
     const char *getName ()
     {
-	   return (name);
+	return (name);
     }
     void Print ()
     {
-	   printf ("%s, ", name);
+	printf ("%s, ", name);
     }
 
   private:
@@ -138,22 +137,7 @@ class Thread
     void SaveUserState ();	// save user-level register state
     void RestoreUserState ();	// restore user-level register state
 
-#ifdef CHANGED
-    // Stack operations (used also for the ID)
-    void FreeTid();
-    int GetTid();
-    void SetTid(AddrSpace *thisThreadSpace);
-    
-    Semaphore *joinCondition; // Use this variable to sleep while waiting on Join
-#endif
-
     AddrSpace *space;		// User code this thread is running.
-
-#ifdef CHANGED
-  private:
-    int tid;
-#endif
-
 #endif
 };
 

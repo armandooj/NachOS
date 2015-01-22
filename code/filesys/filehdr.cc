@@ -148,3 +148,29 @@ FileHeader::Print()
     }
     delete [] data;
 }
+
+
+
+
+#ifdef CHANGED
+
+
+
+void FileHeader::Type_Set(FileHeader::FileType t) {
+    type = t;
+}
+
+FileHeader::FileType FileHeader::Type_Get() {
+    return type;
+}
+
+int FileHeader::LinkSector_Get() {
+    return dataSectors[0];
+}
+
+void FileHeader::LinkSector_Set(int sector) {
+    dataSectors[0] = sector;
+}
+
+#endif
+

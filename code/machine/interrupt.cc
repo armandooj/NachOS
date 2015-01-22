@@ -376,11 +376,3 @@ Interrupt::DumpState()
     printf("End of pending interrupts\n");
     fflush(stdout);
 }
-
-//----------------------------------------------------------------------
-// Interrupt::IsBlockingQueueEmpty
-//      Get the number of threads in block list.  
-//----------------------------------------------------------------------
-bool Interrupt::IsBlockingQueueEmpty() {
-    return pending->IsEmpty();
-}

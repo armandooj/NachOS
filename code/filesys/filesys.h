@@ -38,6 +38,14 @@
 #include "copyright.h"
 #include "openfile.h"
 
+#include "filehdr.h"
+#include <string>
+
+#define FreeMapSector     0
+#define DirectorySector   1
+
+
+
 #ifdef FILESYS_STUB 		// Temporarily implement file system calls as 
 				// calls to UNIX, until the real file system
 				// implementation is available
@@ -73,9 +81,19 @@ class FileSystem {
     					// If "format", there is nothing on
 					// the disk, so initialize the directory
     					// and the bitmap of free blocks.
-    bool CreateDirectory (char *name);
-    bool Create(const char *name, int initialSize);  	
+
+    //bool Create(const char *name, int initialSize);  	
 					// Create a file (UNIX creat)
+
+#ifndef CHANGED
+  bool Create(const char *name, int initialSize); // Create a file (UNIX creat)
+#else
+  bool Create(const char* name, int initialSize, FileHeader::FileType type = FileHeader::FILE); // Create a file (UNIX creat)
+
+  bool Directory_path(const char* name);
+#endif
+  
+
 
     OpenFile* Open(const char *name); 	// Open a file (UNIX open)
 
@@ -84,6 +102,10 @@ class FileSystem {
     void List();			// List all the files in the file system
 
     void Print();			// List all the files and their contents
+
+   #ifdef CHANGED
+     bool CreateDirectory(const char *name);
+  #endif
 
   private:
    OpenFile* freeMapFile;		// Bit map of free disk blocks,

@@ -24,9 +24,6 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
-#include "userthread.h"
-#include "scheduler.h"
-#include "synch.h"
 
 //----------------------------------------------------------------------
 // UpdatePC : Increments the Program Counter register in order to resume
@@ -43,69 +40,6 @@ UpdatePC ()
     machine->WriteRegister (NextPCReg, pc);
 }
 
-#ifdef CHANGED
-
-//------------------------------------------------------------
-// copyStringFromMachine
-//
-// Copies a string from the MIPS mode to the Linux mode.
-//   from: the address of the string
-//   to: the buffer
-//   size: the number of character to read from the address
-//------------------------------------------------------------
-unsigned int copyStringFromMachine(int from, char *to, unsigned size) {
-    
-    bool stop = false;
-    int iteration = 0;
-    unsigned int bytesRead = 0;
-    int buffer;
-    
-    //Must read from an address divisible by 4
-    int fromPosition = from;
-    if (from % 4 != 0 )
-        fromPosition = from - (from % 4);
-    
-    do {
-        machine -> ReadMem(fromPosition + iteration * 4, 4, &buffer);
-        unsigned char* charArray = (unsigned char*) &buffer;
-
-        //check condition to stop
-        for (int i = 0; i < 4; i ++) {
-        
-            //Skip some of the first element due to alignment issue :D
-            if (iteration == 0 && fromPosition + i < from)
-                continue;
-        
-            if (charArray[i] == '\0') {
-                stop = true;
-                break;
-            }
-            
-            if (bytesRead < size) {
-                to[bytesRead] = charArray [i];
-                bytesRead ++;
-            }
-            else {
-                stop = true;
-                break;
-            }
-            
-        }
-        iteration++;
-                
-    } while (!stop);   
-    
-    if (bytesRead == size) {
-        //WARNING: Replace the last character with \0
-        to[size - 1] = '\0';
-        bytesRead --;
-    }
-    else 
-        to[bytesRead] = '\0';
-    
-    return bytesRead;
-}
-#endif
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -133,151 +67,20 @@ unsigned int copyStringFromMachine(int from, char *to, unsigned size) {
 void
 ExceptionHandler (ExceptionType which)
 {
-    int type = machine->ReadRegister(2);
-    #ifndef CHANGED // Noter le if*n*def
-         if ((which == SyscallException) && (type == SC_Halt)) {
-             DEBUG('a', "Shutdown, initiated by user program.\n");
-             interrupt->Halt();
-         } else {
-             printf("Unexpected user mode exception %d %d\n", which, type);
-             ASSERT(FALSE);
-         }
+    int type = machine->ReadRegister (2);
 
-         UpdatePC();
-     
-     #else // CHANGED
-         if (which == SyscallException) {
-           switch (type) {
-            case SC_Exit: 
-            {
-              currentThread->space->decreaseUserProcesses();
-            
-              DEBUG('t', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
-              DEBUG('t', "Number of UserThread: %d\n", currentThread->space->getNumberOfUserProcesses() );
-              
-              //busy waiting
-              /*
-              while (currentThread->space->getNumberOfUserProcesses() != 0) {
-                currentThread->space->ExitForMain->V();
-                currentThread->Yield();
-              }
-              */
-              
-              while (currentThread->space->getNumberOfUserProcesses() != 0) {
-                currentThread->space->ExitForMain->P();  
-              }
+    if ((which == SyscallException) && (type == SC_Halt))
+      {
+	  DEBUG ('a', "Shutdown, initiated by user program.\n");
+	  interrupt->Halt ();
+      }
+    else
+      {
+	  printf ("Unexpected user mode exception %d %d\n", which, type);
+	  ASSERT (FALSE);
+      }
 
-              int value = machine->ReadRegister(4);          
-              DEBUG('a', "Exit program, return value: %d.\n", value);
-              interrupt->Halt();
-              break;
-            }
-            case SC_Halt: 
-            {
-               DEBUG('a', "Shutdown, initiated by user program.\n");
-               interrupt->Halt();
-               break;
-            }
-            case SC_PutChar: 
-            {  
-               int int_c = machine->ReadRegister(4);
-               char c = (char) int_c;
-               DEBUG('t', "Begin PutChar\n");
-               synchconsole->SynchPutChar(c);
-               DEBUG('t', "End PutChar\n");
-               break;
-            }
-            case SC_PutString: 
-            {                          
-                int startPosition = machine->ReadRegister(4);                
-                bool stop = false;
-                char buffer[MAX_STRING_SIZE] = {};
-                int iteration = 0;
-                do {
-                    unsigned int bytesRead = copyStringFromMachine(
-                                                    startPosition + (MAX_STRING_SIZE-1) * iteration,
-                                                    buffer, MAX_STRING_SIZE);
-
-                    // check condition to stop. Maximum read size is Max_size_length - 1. 
-                    // The last item must be \0
-                    if (bytesRead < MAX_STRING_SIZE - 1) {
-                        stop = true;
-                    }
-
-                    synchconsole->SynchPutString(buffer);
-                    iteration ++;
-                } while (!stop);
-                break;            
-            }            
-            case SC_UserThreadCreate: 
-            {
-                int f = machine->ReadRegister(4);
-                int arg = machine->ReadRegister(5);
-                int return_function = machine->ReadRegister(6);
-                int thread_id = do_UserThreadCreate(f, arg, return_function);
-                machine->WriteRegister(2, thread_id);                     
-                break;
-            }
-            case SC_UserThreadExit: 
-            {
-                do_UserThreadExit();                  
-                break;
-            }
-            case SC_UserThreadJoin:
-            {
-                int tid = machine->ReadRegister(4);
-                do_UserThreadJoin(tid);
-                break;
-            }
-            case SC_GetChar:
-            {
-                char ch = synchconsole->SynchGetChar();
-                machine->WriteRegister(2, int(ch));
-                break;
-            }
-            case SC_GetString:
-            {                
-                int phy_addr = machine->ReadRegister(4);
-                int size = machine->ReadRegister(5);
-
-                // Get char by char so that we can find the end of file.
-                int i, ch;
-                for (i = 0; i < size - 1; i++) {
-                    ch = synchconsole->SynchGetChar();
-                    if (ch == EOF) {
-                        break;
-                    } else {
-                        machine->WriteMem(phy_addr + i, 1, ch);
-                        if (ch == '\n' || ch == '\0') {
-                            break;
-                        }
-                    }
-                }
-
-                // End the String at the end
-                machine->WriteMem(phy_addr + i, 1, '\0');
-                break;
-            }
-            case SC_PutInt:
-            {
-                int val = machine->ReadRegister(4);                
-                synchconsole->SynchPutInt(val);
-                break;
-            }
-            case SC_GetInt:
-            {
-                int val = synchconsole->SynchGetInt();
-                machine->WriteMem(machine->ReadRegister(4), 4, val);
-                break;
-            }
-            default: {
-               printf("Unexpected user mode exception %d %d\n", which, type);
-               ASSERT(FALSE);
-             }
-           }
-           UpdatePC();
-        }
-     #endif // CHANGED
+    // LB: Do not forget to increment the pc before returning!
+    UpdatePC ();
+    // End of addition
 }
-
-

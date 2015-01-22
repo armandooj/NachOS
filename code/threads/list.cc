@@ -57,9 +57,8 @@ List::List ()
 
 List::~List ()
 {
-    // delete all the list elements
-    while (Remove () != NULL);			
-
+    while (Remove () != NULL)
+	;			// delete all the list elements
 }
 
 //----------------------------------------------------------------------
@@ -80,17 +79,15 @@ List::Append (void *item)
     ListElement *element = new ListElement (item, 0);
 
     if (IsEmpty ())
-    {				
-        // list is empty
-	    first = element;
-        last = element;
-    }
+      {				// list is empty
+	  first = element;
+	  last = element;
+      }
     else
-    {				
-        // else put it after last
-        last->next = element;
-        last = element;
-    }
+      {				// else put it after last
+	  last->next = element;
+	  last = element;
+      }
 }
 
 //----------------------------------------------------------------------
@@ -111,17 +108,15 @@ List::Prepend (void *item)
     ListElement *element = new ListElement (item, 0);
 
     if (IsEmpty ())
-    {				
-        // list is empty
-	    first = element;
-	    last = element;
-    }
+      {				// list is empty
+	  first = element;
+	  last = element;
+      }
     else
-    {				
-        // else put it before first
-	    element->next = first;
-	    first = element;
-    }
+      {				// else put it before first
+	  element->next = first;
+	  first = element;
+      }
 }
 
 //----------------------------------------------------------------------
@@ -152,10 +147,10 @@ void
 List::Mapcar (VoidFunctionPtr func)
 {
     for (ListElement * ptr = first; ptr != NULL; ptr = ptr->next)
-    {
-	   DEBUG ('l', "In mapcar, about to invoke %x(%x)\n", func, ptr->item);
-	   (*func) ((int) ptr->item);
-    }
+      {
+	  DEBUG ('l', "In mapcar, about to invoke %x(%x)\n", func, ptr->item);
+	  (*func) ((int) ptr->item);
+      }
 }
 
 //----------------------------------------------------------------------
@@ -194,31 +189,30 @@ List::SortedInsert (void *item, long long sortKey)
     ListElement *ptr;		// keep track
 
     if (IsEmpty ())
-    {				
-        // if list is empty, put
-        first = element;
-        last = element;
-    }
+      {				// if list is empty, put
+	  first = element;
+	  last = element;
+      }
     else if (sortKey < first->key)
-    {
-	    // item goes on front of list
-        element->next = first;
-        first = element;
-    }
+      {
+	  // item goes on front of list
+	  element->next = first;
+	  first = element;
+      }
     else
-    {				// look for first elt in list bigger than item
-        for (ptr = first; ptr->next != NULL; ptr = ptr->next)
-        {
-            if (sortKey < ptr->next->key)
-            {
-                element->next = ptr->next;
-                ptr->next = element;
-                return;
-            }
-        }
-        last->next = element;	// item goes at end of list
-        last = element;
-    }
+      {				// look for first elt in list bigger than item
+	  for (ptr = first; ptr->next != NULL; ptr = ptr->next)
+	    {
+		if (sortKey < ptr->next->key)
+		  {
+		      element->next = ptr->next;
+		      ptr->next = element;
+		      return;
+		  }
+	    }
+	  last->next = element;	// item goes at end of list
+	  last = element;
+      }
 }
 
 //----------------------------------------------------------------------
@@ -240,104 +234,21 @@ List::SortedRemove (long long *keyPtr)
     ListElement *element = first;
     void *thing;
 
-    if (IsEmpty())
+    if (IsEmpty ())
 	return NULL;
 
     thing = first->item;
     if (first == last)
-    {				
-        // list had one item, now has none 
-	    first = NULL;
-	    last = NULL;
-    }
+      {				// list had one item, now has none 
+	  first = NULL;
+	  last = NULL;
+      }
     else
-    {
-	    first = element->next;
-    }
+      {
+	  first = element->next;
+      }
     if (keyPtr != NULL)
 	*keyPtr = element->key;
     delete element;
     return thing;
 }
-
-#ifdef CHANGED
-
-void 
-ListForJoin::AppendTraverse(void*item, int key) {
-    List::Append(item);
-    last->key = (long long) key;    
-}
-
-void *
-ListForJoin::RemoveTraverse(int key) {
-
-    void *thing = NULL;    
-    ListElement *element = first;
-    ListElement *ptrPre = NULL;
-    ListElement *ptr = first;
-    long long newKey = (long long) key;
-
-    // special case of 1 element or no element
-    if (IsEmpty()) 
-        return NULL;
-    if (first == last) {
-        if (first->key == newKey) {
-            thing = first->item;
-            first = NULL;
-            last = NULL;
-            return thing;
-        }
-        else return NULL;
-    }
-    
-    // Case if there is at least 2 nodes
-    // loop through to find the item with the key
-    for (ptr = first; ptr != NULL; ptr = ptr->next) {
-
-        if (newKey == ptr->key) {
-            thing = ptr -> item;
-            element = ptr;
-
-            // remove node from the list
-            if (ptr == first) { 
-                first = ptr -> next;
-            } else if (ptr == last) { 
-                last = ptrPre; 
-                ptrPre->next = NULL;
-            } else {
-                ptrPre->next = ptr->next;            
-            }
-                        
-            // free memory
-            delete element;            
-            break;
-        }
-        ptrPre = ptr;
-    }    
-    return thing;
-}
-
-bool
-ListForJoin::seek(int key) {
-    bool result = false;
-    ListElement *ptr;
-    long long newKey = (long long) key;
-    
-    for (ptr = first; ptr != NULL; ptr = ptr->next) {
-        if (newKey == ptr->key) {
-            result = true;
-            break;
-        }
-    }
-    return result;
-}
-
-void
-ListForJoin::PrintContent() {
-    for (ListElement * ptr = first; ptr != NULL; ptr = ptr->next) {
-        DEBUG ('l', "%d->", ptr->key);
-    }    
-    DEBUG('l', "\n");
-}
-
-#endif

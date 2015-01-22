@@ -18,11 +18,8 @@
 #define SYNCH_H
 
 #include "copyright.h"
-#include "list.h"
-
-#ifndef CHANGED
 #include "thread.h"
-#endif
+#include "list.h"
 
 // The following class defines a "semaphore" whose value is a non-negative
 // integer.  The semaphore has only two operations P() and V():
@@ -74,10 +71,10 @@ class Lock
 {
   public:
     Lock (const char *debugName);	// initialize lock to be FREE
-    ~Lock ();			// deallocate lock
+     ~Lock ();			// deallocate lock
     const char *getName ()
     {
-	    return name;
+	return name;
     }				// debugging assist
 
     void Acquire ();		// these are the only operations on a lock
@@ -90,7 +87,7 @@ class Lock
 
   private:
     const char *name;		// for debugging
-    Semaphore *lock;
+    // plus some other stuff you'll need to define
 };
 
 // The following class defines a "condition variable".  A condition
