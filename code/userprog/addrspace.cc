@@ -120,7 +120,7 @@ AddrSpace::AddrSpace (OpenFile *executable)
   // then, copy in the code and data segments into memory
   if (noffH.code.size > 0) {
     DEBUG ('a', "Initializing code segment, at 0x%x, size %d\n", noffH.code.virtualAddr, noffH.code.size);
-#ifdef CHANGED    
+#ifdef CHANGED
     ReadAtVirtual(executable, noffH.code.virtualAddr, noffH.code.size, noffH.code.inFileAddr, pageTable, numPages);
 #else
     executable->ReadAt (&(machine->mainMemory[noffH.code.virtualAddr]), noffH.code.size, noffH.code.inFileAddr);
@@ -128,7 +128,7 @@ AddrSpace::AddrSpace (OpenFile *executable)
   }
   if (noffH.initData.size > 0) {
     DEBUG ('a', "Initializing data segment, at 0x%x, size %d\n", noffH.initData.virtualAddr, noffH.initData.size);
-#ifdef CHANGED    
+#ifdef CHANGED
     ReadAtVirtual(executable, noffH.initData.virtualAddr, noffH.initData.size, noffH.initData.inFileAddr, pageTable, numPages);
 #else
     executable->ReadAt (&(machine->mainMemory[noffH.initData.virtualAddr]), noffH.initData.size, noffH.initData.inFileAddr);
@@ -300,24 +300,33 @@ Virtual Memory
 static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, int position, 
   TranslationEntry *pageTable, unsigned numPages) {
 
-    // Start by reading from the physical memory into a temporary buffer
-    char temp_buffer[numBytes];
-    int read_bytes = executable->ReadAt(temp_buffer, numBytes, position);
+    // // Start by reading from the physical memory into a temporary buffer
+    // char temp_buffer[numBytes];
+    // int read_bytes = executable->ReadAt(temp_buffer, numBytes, position);
 
-    // Since we need to write to pageTable, we need to keep a reference of the current table (entry) and size
-    TranslationEntry *old_table = machine->pageTable;
-    int old_size = machine->pageTableSize;
+    // // Since we need to write to pageTable, we need to keep a reference of the current table (entry) and size
+    // TranslationEntry *old_table = machine->pageTable;
+    // int old_size = machine->pageTableSize;
 
-    // Now change the machine to pageTable and proceed to write
+    // // Now change the machine to pageTable and proceed to write
+    // machine->pageTable = pageTable;
+    // machine->pageTableSize = numPages;
+    // for (int i = 0; i < read_bytes; i++) {
+    //     machine->WriteMem(virtualaddr + i, 1, temp_buffer[i]);
+    // }
+
+    // // Go back
+    // machine->pageTable = old_table;
+    // machine->pageTableSize = old_size;
+  
+    char *buffer = new char[numBytes];
+    executable->ReadAt(buffer, numBytes, position);
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
-    for (int i = 0; i < read_bytes; i++) {
-        machine->WriteMem(virtualaddr + i, 1, temp_buffer[i]);
+    for (int i = 0; i < numBytes; i+=4) {
+        machine->WriteMem(virtualaddr + i, 4, *((int *)(buffer+i)));
     }
 
-    // Go back
-    machine->pageTable = old_table;
-    machine->pageTableSize = old_size;
 }
 
 #endif   // END CHANGED

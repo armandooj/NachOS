@@ -180,8 +180,11 @@ if (!strcmp (*argv, "-cp"))
 #endif // NETWORK
     }
 
-    currentThread->Finish ();	// NOTE: if the procedure "main" 
+
+    printf("FINISH\n");
+    //currentThread->Finish ();	// NOTE: if the procedure "main" 
     do_UserProcessExit();
+
     // returns, then the program "nachos"
     // will exit (as any other normal program
     // would).  But there may be other

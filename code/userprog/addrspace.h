@@ -77,7 +77,6 @@ class AddrSpace
 
 #endif   // END CHANGED
 
-
 };
 
 #endif // ADDRSPACE_H

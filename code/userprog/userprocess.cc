@@ -25,19 +25,21 @@ static void StartProcess(int dummy) {
 int do_UserProcessCreate(char *filename) {
 
   OpenFile *executable = fileSystem->Open(filename);
-  AddrSpace *space;
 
-  if (executable == NULL)
-  {
+  if (executable == NULL) {
     printf ("Unable to open file %s\n", filename);
     return -1;
   }
 
+
+  currentThread->space->SaveState();
+
+  AddrSpace *space;
   space = new AddrSpace(executable);
   delete executable;
 
-
   Thread *newThread = new Thread("New Process Thread");
+  // newThread->setStatus(JUST_CREATED);
   newThread->space = space;
   
   // newThread->SetTid(0);
@@ -53,9 +55,20 @@ int do_UserProcessCreate(char *filename) {
   return 0;
 }
 
+
 void do_UserProcessExit() {
   // TODO should check process count and just finish when it's diff to 0
-  interrupt->Halt();
+  printf("Finishing %s\n", currentThread->getName());
+  
+  //currentThread->Finish();
+  //interrupt->Halt();
+
+
+  /*
+  current children, join
+  if processes count = 0 -> int Halt
+  else currentThread finish() ?
+  */
 }
 
 #endif

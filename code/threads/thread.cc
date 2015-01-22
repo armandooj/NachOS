@@ -223,11 +223,10 @@ Thread::Yield ()
     DEBUG ('t', "Yielding thread \"%s\"\n", getName ());
 
     nextThread = scheduler->FindNextToRun ();
-    if (nextThread != NULL)
-      {
-	  scheduler->ReadyToRun (this);
-	  scheduler->Run (nextThread);
-      }
+    if (nextThread != NULL) {
+      scheduler->ReadyToRun (this);
+      scheduler->Run (nextThread);
+    }
     (void) interrupt->SetLevel (oldLevel);
 }
 

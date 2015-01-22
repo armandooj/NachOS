@@ -151,6 +151,8 @@ ExceptionHandler (ExceptionType which)
            switch (type) {
             case SC_Exit: 
             {
+
+              printf("SC_Exit\n");
               currentThread->space->decreaseUserProcesses();
             
               DEBUG('t', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
@@ -175,9 +177,10 @@ ExceptionHandler (ExceptionType which)
             }
             case SC_Halt: 
             {
-               DEBUG('a', "Shutdown, initiated by user program.\n");
-               interrupt->Halt();
-               break;
+                printf("SC_Halt\n");
+                DEBUG('a', "Shutdown, initiated by user program.\n");
+                interrupt->Halt();
+                break;
             }
             case SC_PutChar: 
             {  
@@ -280,6 +283,9 @@ ExceptionHandler (ExceptionType which)
                 printf("New file name: %s\n", str);
 
                 do_UserProcessCreate(str);
+                printf("finish do_UserProcessCreate\n");
+                //do_UserProcessExit();
+                //interrupt->Halt();
                 break;
             }
             default: {
