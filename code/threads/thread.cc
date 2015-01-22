@@ -458,5 +458,49 @@ Thread::SetTid(int id) {
   tid = id;
 }
 
+
+// Please, Work :(
+
+
+// return -1 if error, 0 if not running, 1 if success
+int Thread::Join(int tidToWait) {
+    
+    DEBUG('l', "Begin join, thread %d waiting for %d\n", tid, tidToWait);
+    
+    // Sanity check
+    if (tidToWait == tid)
+        return -1;
+    
+    // check if the thread is in the active thread,
+    if (!space->activeThreads->seek(tidToWait))
+        return 0;
+    
+    // build the structure to prepare to sleep, just the semaphore
+    // first, send it to the queue 
+    JoinWaiting* waitingCondition = new JoinWaiting();
+    waitingCondition->tid = tid;
+    waitingCondition->threadWaiting = joinCondition;
+    
+    // add to the queue
+    space->activeLocks->AppendTraverse((void*) waitingCondition, tidToWait);
+
+    DEBUG('l', "Insert to waiting thread: %d\n", tid);
+    DEBUG('l', "Waiting thread list: \n");
+    space->activeLocks->PrintContent();
+    
+    // the synchonization part
+    if (space->activeThreads->seek(tidToWait)) {
+        // take off the queue and returning
+        space->activeLocks->RemoveTraverse(tidToWait);
+        return 0;
+    } else {
+        // go to sleep
+        DEBUG('l', "Going to sleep: \n");
+        joinCondition->P();
+        DEBUG('l', "Waking up \n");
+    }    
+    return 1;   // return after being woke up :D
+}
+
 #endif
 

@@ -63,11 +63,16 @@ enum ThreadStatus
 
 #ifdef CHANGED
 typedef struct {  
-  int function;
-  int arg;
-  int ret_function;
-  bool isProcess;
+    int function;
+    int arg;
+    int ret_function;
+    bool isProcess;
 } ThreadParam;
+
+typedef struct {
+    int tid;
+    Semaphore *threadWaiting;
+} JoinWaiting;
 #endif
 
 // external function, dummy routine whose sole job is to call Thread::Print
@@ -154,8 +159,10 @@ class Thread
     int GetTid();
     void SetTid(AddrSpace *thisThreadSpace);
     void SetTid(int id);
+    int Join(int tidToWait);
     
     Semaphore *joinCondition; // Use this variable to sleep while waiting on Join
+
 #endif
 
     AddrSpace *space;		// User code this thread is running.

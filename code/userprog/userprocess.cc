@@ -4,90 +4,57 @@
 #include "userprocess.h"
 #include "thread.h"
 
-// // TODO DELETE DUMMY
-// static void StartProcess(int dummy) {
+// TODO DELETE DUMMY
+static void StartProcess(int dummy) {
 
-//   printf("StartProcess\n");
+  printf("StartProcess\n");
 
-//   DEBUG('t', "StartUserThread with Stack Position: %d\n", currentThread->GetTid());
+  DEBUG('t', "StartUserThread with Stack Position: %d\n", currentThread->GetTid());
 
-//   if (currentThread->GetTid() < 0) {
-//     DEBUG('t', "Error, new Thread doesn't have a valid stack space");
-//     return;
-//   }
-
-//   currentThread->space->InitRegisters();
-//   // currentThread->space->RestoreState();
-
-//   machine->Run();
-// }
-
-static void StartProcess2(int filename) {
-  OpenFile *executable = fileSystem->Open ((char *) filename);
-  AddrSpace *space;
-
-  if (executable == NULL)
-  {
-   printf ("Unable to open file %s\n", (char *) filename);
-   return;
+  if (currentThread->GetTid() < 0) {
+    DEBUG('t', "Error, new Thread doesn't have a valid stack space");
+    return;
   }
-  space = new AddrSpace (executable);
-  currentThread->space = space;
 
-  delete executable;    // close file
+  currentThread->space->InitRegisters();
+  //currentThread->space->RestoreState();
 
-  space->InitRegisters ();  // set the initial register values
-  space->RestoreState (); // load page table register
-
-  machine->Run ();    // jump to the user progam
-  ASSERT (FALSE);   // machine->Run never returns;
-  // the address space exits
-  // by doing the syscall "exit"
+  machine->Run();
 }
 
 int do_UserProcessCreate(char *filename) {
 
+  OpenFile *executable = fileSystem->Open(filename);
+
+  if (executable == NULL) {
+    printf ("Unable to open file %s\n", filename);
+    return -1;
+  }
+
+  AddrSpace *space;
+  space = new AddrSpace(executable);  
+  space->pid = machine->numberOfProcesses++;
+  delete executable;
+
   Thread *newThread = new Thread("New Process Thread");
-  newThread->Fork(StartProcess2, (int) filename);
-  currentThread->Yield();
+  newThread->space = space;
+  newThread->SetTid(0);
 
-  // OpenFile *executable = fileSystem->Open(filename);
+  // We'll use it to let Fork know it's a thread, and consecuently not setting the address space again
+  ThreadParam *threadParam = new ThreadParam();
+  threadParam->isProcess = true;  
 
-  // if (executable == NULL) {
-  //   printf ("Unable to open file %s\n", filename);
-  //   return -1;
-  // }
-
-
-  // // currentThread->space->SaveState();
-
-  // AddrSpace *space;
-  // space = new AddrSpace(executable);
-  // delete executable;
-
-  // Thread *newThread = new Thread("New Process Thread");
-  // // newThread->setStatus(JUST_CREATED);
-  // newThread->space = space;
-  
-  // // newThread->SetTid(0);
-
-  // // We'll use it to let Fork know it's a thread, and consecuently not setting the address space again
-  // ThreadParam *threadParam = new ThreadParam();
-  // threadParam->isProcess = true;
-
-  // //newThread->space->increaseUserThreads();
-  // machine->numberOfProcesses++;
-
-  // newThread->Fork(StartProcess, (int) threadParam);
-  // // currentThread->Yield();
+  newThread->Fork(StartProcess, (int) threadParam);
+  // currentThread->Yield();
     
-  return 0;
+  return space->pid;
 }
 
 
 void do_UserProcessExit() {
   // TODO should check process count and just finish when it's diff to 0
   printf("do_UserProcessExit\n");
+  printf("%s\n", currentThread->getName());
 
   // currentThread->space->decreaseUserThreads();
 

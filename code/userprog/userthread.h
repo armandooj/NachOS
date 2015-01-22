@@ -15,9 +15,9 @@ typedef struct {
   bool isProcess;
 } ParamFunction;
 
-typedef struct {
-  int tid;
-  Semaphore *threadWaiting;
-} JoinWaiting;
+// typedef struct {
+//   int tid;
+//   Semaphore *threadWaiting;
+// } JoinWaiting;
 
 #endif

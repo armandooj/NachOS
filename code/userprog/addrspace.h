@@ -61,9 +61,12 @@ class AddrSpace
     
     Semaphore *ExitForMain;    
     
-    //Variable for Join functionality
+    // Variable for Join functionality
     ListForJoin *activeThreads;
     ListForJoin *activeLocks;
+
+    int pid;
+
 #endif   // END CHANGED
   private:
     TranslationEntry * pageTable;	// Assume linear page table translation

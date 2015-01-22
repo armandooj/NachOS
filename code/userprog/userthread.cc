@@ -96,19 +96,19 @@ void do_UserThreadExit() {
     // Also frees the corresponding stack location
     currentThread->FreeTid();
     
-    //Remove from active list
+    // Remove from active list
     currentThread->space->activeThreads->RemoveTraverse(currentThread->GetTid());
     
-    //debugging -- delete later
+    // debugging -- delete later
     DEBUG('l', "Delete thread: %d\n", currentThread->GetTid());
     DEBUG('l', "Thread list: \n");
     currentThread->space->activeThreads->PrintContent();
     
-    //check queue of active lock to see anyone needs waking up
+    // check queue of active lock to see if anyone needs waking up
     void* thing = currentThread->space->activeLocks->RemoveTraverse(currentThread->GetTid());    
     if (thing != NULL ) {
         // waking up the receipient
-        ((JoinWaiting*) thing) -> threadWaiting->V();
+        ((JoinWaiting *) thing)->threadWaiting->V();
         
         DEBUG('l', "Delete from waiting thread: %d\n", currentThread->GetTid());
         DEBUG('l', "Waiting thread list: \n");
@@ -116,46 +116,6 @@ void do_UserThreadExit() {
     }
         
     currentThread->Finish();
-}
-
-// return -1 if error, 0 if not running, 1 if success
-int do_UserThreadJoin(int tid) {
-    
-    DEBUG('l', "Begin join, thread %d waiting for %d\n", currentThread->GetTid(), tid);
-    
-    //Sanity check
-    if (tid == currentThread->GetTid())
-        return -1;
-    
-    // check if the thread is in the active thread,
-    if (!currentThread->space->activeThreads->seek(tid))
-        return 0;
-    
-    //build the structure to prepare to sleep, just the semaphore
-    //first, send it to the queue 
-    JoinWaiting* waitingCondition = new JoinWaiting();
-    waitingCondition->tid = currentThread->GetTid();
-    waitingCondition->threadWaiting = currentThread->joinCondition;
-    
-    // add to the queue
-    currentThread->space->activeLocks->AppendTraverse((void*) waitingCondition, tid);
-
-    DEBUG('l', "Insert to waiting thread: %d\n", currentThread->GetTid());
-    DEBUG('l', "Waiting thread list: \n");
-    currentThread->space->activeLocks->PrintContent();
-    
-    // the synchonization part
-    if (!currentThread->space->activeThreads->seek(tid)) {
-        //take off the queue and returning
-        currentThread->space->activeLocks->RemoveTraverse(tid);
-        return 0;
-    } else {
-        // go to sleep
-        DEBUG('l', "Going to sleep: \n");
-        currentThread->joinCondition->P();
-        DEBUG('l', "Waking up \n");
-    }    
-    return 1;   // return after being wake up :D
 }
 
 #endif
