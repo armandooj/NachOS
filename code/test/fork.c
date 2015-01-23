@@ -2,10 +2,9 @@
 
 int main() {
 
-  ForkExec("putchar2");
-
-  ForkExec("putchar3");
-  
-  PutChar('*');
+  ForkExec("userpages0");
+  // PutChar('b');
+  ForkExec("userpages1"); 
+  // PutChar('c');
   return 0;
 }

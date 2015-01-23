@@ -1,23 +1,24 @@
 #include "syscall.h"
+#define THIS "xxx"
+#define THAT "yyy"
 
-void print(void *c)
-{
-    int i;
-    for (i = 0; i < 5; i++) {
+const int N = 10; // Choose it large enough!
+
+void my_puts(void *c) {
+    char *p; 
+    for (p = c; *p != '\0'; p++) 
         PutChar(* ((char *) c));
-    }
+}
+
+
+void f(void *s) {
+    int i; 
+    for (i = 0; i < N; i++) 
+        my_puts((char *) s);
 }
 
 int main() {
-
-    int t1, t2;
-    char ch1 = 'x';
-    char ch2 = 'y';
-    char *c1 = &ch1;
-    char *c2 = &ch2;
-    t1 = UserThreadCreate(print, (void *) c1);
-    t2 = UserThreadCreate(print, (void *) c2);
-    
+    UserThreadCreate(f, (void *) THIS);
+    f((void*) THAT);
     return 0;
 }
-
