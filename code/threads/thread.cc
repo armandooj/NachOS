@@ -115,7 +115,8 @@ Thread::Fork (VoidFunctionPtr func, int arg)
     // an already running program, as in the "fork" Unix system call. 
     
     // LB: Observe that currentThread->space may be NULL at that time.
-    this->space = currentThread->space;
+    if (this->space == NULL)
+        this->space = currentThread->space;
 
 #endif // USER_PROGRAM
 

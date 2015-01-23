@@ -1,7 +1,11 @@
 #include "syscall.h"
 
 int main() {
-  ForkExec("putstring");
-  //ForkExec("userpages1");
+
+  ForkExec("putchar2");
+
+  ForkExec("putchar3");
+  
+  PutChar('*');
   return 0;
 }

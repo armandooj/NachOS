@@ -157,6 +157,7 @@ int do_UserThreadJoin(int tid) {
     return 1;   // return after being wake up :D
 }
 
+
 //TODO DELETE DUMMY
 static void StartProcess(int dummy) {
 
@@ -168,14 +169,13 @@ static void StartProcess(int dummy) {
   }
 
   currentThread->space->InitRegisters();
-  //currentThread->space->RestoreState();
-
+  currentThread->space->RestoreState();
+  
   machine->Run();
 }
 
-int do_ProcessCreate(char *filename) {
 
-  //TODO: NEED A FORK HERE :DDDDD
+int do_ProcessCreate(char *filename) {
 
   OpenFile *executable = fileSystem->Open (filename);
   AddrSpace *space;
@@ -192,9 +192,10 @@ int do_ProcessCreate(char *filename) {
   Thread *newThread = new Thread("New Process Thread");
   newThread->space = space;
   newThread->setStatus(JUST_CREATED);
-  
+
   //Do FORK HERE
   newThread->Fork(StartProcess, 2);
+  //currentThread->Yield();
     
   return 0;
 }
