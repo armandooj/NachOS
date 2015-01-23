@@ -323,6 +323,26 @@ int AddrSpace::getNumberOfUserProcesses() {
 Virtual Memory
 */
 
+// static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, int position, 
+//   TranslationEntry *pageTable, unsigned numPages) {
+
+//     // Start by reading from the physical memory into a temporary buffer
+//     char temp_buffer[numBytes];
+//     int read_bytes = executable->ReadAt(temp_buffer, numBytes, position);
+
+//     // Now change the machine to pageTable and proceed to write
+//     machine->pageTable = pageTable;
+//     machine->pageTableSize = numPages;
+
+//     // int physicalAddress;
+//     // machine->Translate(position, &physicalAddress, 1, FALSE);
+//     // printf("-> %d, %d, %d\n", physicalAddress, physicalAddress + numBytes, machine->ReadRegister(PCReg));
+
+//     for (int i = 0; i < read_bytes; i++) {
+//         machine->WriteMem(virtualaddr + i, 1, temp_buffer[i]);
+//     }
+// }
+
 static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, int position, 
   TranslationEntry *pageTable, unsigned numPages) {
 
@@ -330,17 +350,32 @@ static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, i
     char temp_buffer[numBytes];
     int read_bytes = executable->ReadAt(temp_buffer, numBytes, position);
 
+    // Since we need to write to pageTable, we need to keep a reference of the current table (entry) and size
+    TranslationEntry *old_table = machine->pageTable;
+    int old_size = machine->pageTableSize;
+
     // Now change the machine to pageTable and proceed to write
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
-
+    
     // int physicalAddress;
-    // machine->Translate(position, &physicalAddress, 1, FALSE);
-    // printf("-> %d, %d, %d\n", physicalAddress, physicalAddress + numBytes, machine->ReadRegister(PCReg));
-
+    // machine->Translate(virtualaddr, &physicalAddress, 1, FALSE);    
+    // DEBUG('l', "Start address: %d\n", physicalAddress );
+    
+    // machine->Translate(virtualaddr + read_bytes, &physicalAddress, 1, FALSE);
+    // DEBUG('l', "End address: %d\n", physicalAddress );
+    
+    // int PC = machine->ReadRegister(PCReg);
+    // machine->Translate(PC , &physicalAddress, 1, FALSE);
+    // DEBUG('l', "PC: %d\n", PC);
+    
     for (int i = 0; i < read_bytes; i++) {
         machine->WriteMem(virtualaddr + i, 1, temp_buffer[i]);
     }
+
+    // Go back
+    machine->pageTable = old_table;
+    machine->pageTableSize = old_size;
 }
 
 #endif   // END CHANGED

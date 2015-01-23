@@ -53,7 +53,7 @@ int do_UserProcessCreate(char *filename) {
 
 void do_UserProcessExit() {
   // TODO should check process count and just finish when it's diff to 0
-  printf("do_UserProcessExit = %s\n", currentThread->getName());
+  // printf("do_UserProcessExit = %s\n", currentThread->getName());
   currentThread->space->activeThreads->PrintContent();
 
 
@@ -61,7 +61,7 @@ void do_UserProcessExit() {
   
 
   currentThread->space->decreaseUserThreads();
-  printf("Processes: %d\n", machine->numberOfProcesses);
+  // printf("Processes: %d\n", machine->numberOfProcesses);
 
   while (currentThread->space->getNumberOfUserThreads() != 0) {
     currentThread->space->ExitForMain->P();  
@@ -70,11 +70,11 @@ void do_UserProcessExit() {
   machine->numberOfProcesses--;
 
   if (machine->numberOfProcesses == 0) {
-    printf("Halt.\n");
+    // printf("Halt.\n");
     interrupt->Halt();
   } else {
     printf("Finish : %s\n", currentThread->getName());
-    currentThread->Finish();
+    // currentThread->Finish();
   }
 
               
