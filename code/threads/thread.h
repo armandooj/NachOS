@@ -154,11 +154,16 @@ class Thread
     void RestoreUserState ();	// restore user-level register state
 
 #ifdef CHANGED
-    // Stack operations (used also for the ID)
-    void FreeTid();
+    // Stack operations (used also for the ID)        
+    int SetStackLocation(AddrSpace *thisThreadSpace);
+    void FreeStackLocation();
+
     int GetTid();
-    void SetTid(AddrSpace *thisThreadSpace);
     void SetTid(int id);
+
+    int GetPid();
+    void SetPid(int id);
+
     int Join(int tidToWait);
     void JoinChildren();
     
@@ -171,6 +176,8 @@ class Thread
 #ifdef CHANGED
   private:
     int tid;
+    int pid;
+    int stackLocation;
 #endif
 
 #endif

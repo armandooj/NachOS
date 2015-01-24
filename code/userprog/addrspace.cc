@@ -303,22 +303,6 @@ int AddrSpace::getNumberOfUserThreads() {
     return numberOfUserThreads;
 }
 
-void AddrSpace::increaseUserProcesses() {
-    processesCountLock->Acquire();
-    numberOfUserProcesses++;
-    processesCountLock->Release();
-}
-void AddrSpace::decreaseUserProcesses() {
-    processesCountLock->Acquire();
-    numberOfUserProcesses--;
-    processesCountLock->Release();
-}
-
-int AddrSpace::getNumberOfUserProcesses() {
-    return numberOfUserProcesses;
-}
-
-
 /*
 Virtual Memory
 */

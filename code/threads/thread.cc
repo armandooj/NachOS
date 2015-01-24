@@ -424,8 +424,8 @@ Thread::SaveUserState ()
 void
 Thread::RestoreUserState ()
 {
-    for (int i = 0; i < NumTotalRegs; i++)
-	machine->WriteRegister (i, userRegisters[i]);
+  for (int i = 0; i < NumTotalRegs; i++)
+    machine->WriteRegister (i, userRegisters[i]);
 }
 #endif
 
@@ -434,33 +434,31 @@ Thread::RestoreUserState ()
 
 // Stack BitMap
 
-void
-Thread::FreeTid() {
-  space->FreeStackLocation(tid - 1);
+int Thread::SetStackLocation(AddrSpace *thisThreadSpace) {
+  // WARNING: We need to set it's address space first so that we can access the stack!
+  stackLocation = thisThreadSpace->GetAndSetFreeStackLocation();
+  return stackLocation;
 }
 
-int
-Thread::GetTid() {
+void Thread::FreeStackLocation() {
+  space->FreeStackLocation(stackLocation);
+}
+
+int Thread::GetTid() {
   return tid;
 }
 
-void
-Thread::SetTid(AddrSpace *thisThreadSpace) {
-  // WARNING: We need to set it's address space first so that we can access the stack!
-  tid = thisThreadSpace->GetAndSetFreeStackLocation();
-  // Since main is the thread 0, we don't wan't user threads to start from 0. Make them start from 1
-  // except when something went wrong
-  tid = tid >= 0 ? tid + 1 : -1;
-}
-
-void
-Thread::SetTid(int id) {
+void Thread::SetTid(int id) {
   tid = id;
 }
 
+int Thread::GetPid() {
+  return pid;
+}
 
-// Please, Work :(
-
+void Thread::SetPid(int id) {
+  pid = id;
+}
 
 // return -1 if error, 0 if not running, 1 if success
 int Thread::Join(int tidToWait) {

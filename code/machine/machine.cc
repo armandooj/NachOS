@@ -73,6 +73,8 @@ Machine::Machine(bool debug)
 
 #ifdef CHANGED
     numberOfProcesses = 1;
+    processCountLock = new Lock("Process count lock");
+    threadCountLock = new Lock("Thread count lock");
 #endif
 
     singleStep = debug;
@@ -89,6 +91,10 @@ Machine::~Machine()
     delete [] mainMemory;
     if (tlb != NULL)
         delete [] tlb;
+#ifdef CHANGED
+    delete processCountLock;
+    delete threadCountLock;
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -210,15 +216,51 @@ Machine::DumpState()
 //----------------------------------------------------------------------
 
 int Machine::ReadRegister(int num)
-    {
+{
 	ASSERT((num >= 0) && (num < NumTotalRegs));
 	return registers[num];
-    }
+}
 
 void Machine::WriteRegister(int num, int value)
-    {
+{
 	ASSERT((num >= 0) && (num < NumTotalRegs));
 	// DEBUG('m', "WriteRegister %d, value %d\n", num, value);
 	registers[num] = value;
-    }
+}
+
+
+#ifdef CHANGED
+/*
+Thread and process counters
+*/
+
+int Machine::IncrementThreads() {
+    threadCountLock->Acquire();
+    numberOfThreads++;
+    threadCountLock->Release();
+    return numberOfThreads;
+}
+
+int Machine::DecrementThreads() {
+    threadCountLock->Acquire();
+    numberOfThreads--;
+    threadCountLock->Release();
+    return numberOfThreads;
+}
+
+int Machine::IncrementProcesses() {
+    processCountLock->Acquire();
+    numberOfProcesses++;
+    processCountLock->Release();
+    return numberOfThreads;
+}
+
+int Machine::DecrementProcesses() {
+    processCountLock->Acquire();
+    numberOfProcesses--;
+    processCountLock->Release();
+    return numberOfProcesses;
+}
+
+#endif
 

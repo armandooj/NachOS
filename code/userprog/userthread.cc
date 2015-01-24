@@ -59,15 +59,18 @@ int do_UserThreadCreate(int f, int arg, int ret_function) {
   Thread *newThread = new Thread("New User Thread");
   
   // put increase counter here for synchonization problem
-  currentThread->space->increaseUserThreads();    // PROBLEM??? 
-
+  currentThread->space->increaseUserThreads();
   // The thread's id is also its location on the stack
-  newThread->SetTid(currentThread->space);  // wrong if set after fork.
+  int location = newThread->SetStackLocation(currentThread->space);
 
-  if (newThread->GetTid() < 0) {
+  if (location < 0) {
+    // Thread limit reached!
     currentThread->space->decreaseUserThreads();
     return -1;
   }
+
+  // TODO Catch errors
+  newThread->SetTid(machine->IncrementThreads());
   
   // Add to active list
   currentThread->space->activeThreads->AppendTraverse(NULL, newThread->GetTid());
@@ -94,7 +97,7 @@ void do_UserThreadExit() {
     }
 
     // Also frees the corresponding stack location
-    currentThread->FreeTid();
+    currentThread->FreeStackLocation();
     
     // Remove from active list
     currentThread->space->activeThreads->RemoveTraverse(currentThread->GetTid());

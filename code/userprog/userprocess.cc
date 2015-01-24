@@ -9,7 +9,7 @@ static void StartProcess(int dummy) {
 
   printf("StartProcess\n");
 
-  DEBUG('t', "StartUserThread with Stack Position: %d\n", currentThread->GetTid());
+  DEBUG('t', "StartUserThread with id: %d\n", currentThread->GetTid());
 
   if (currentThread->GetTid() < 0) {
     DEBUG('t', "Error, new Thread doesn't have a valid stack space");
@@ -33,21 +33,20 @@ int do_UserProcessCreate(char *filename) {
 
   AddrSpace *space;
   space = new AddrSpace(executable);  
-  space->pid = machine->numberOfProcesses++;
   delete executable;
 
   Thread *newThread = new Thread(filename);
   newThread->space = space;
-  newThread->SetTid(0);
+  newThread->SetTid(machine->IncrementThreads());
+  newThread->SetPid(machine->IncrementProcesses());
 
   // We'll use it to let Fork know it's a thread, and consecuently not setting the address space again
   ThreadParam *threadParam = new ThreadParam();
   threadParam->isProcess = true;  
 
   newThread->Fork(StartProcess, (int) threadParam);
-  // currentThread->Yield();
     
-  return space->pid;
+  return newThread->GetPid();
 }
 
 
@@ -56,18 +55,16 @@ void do_UserProcessExit() {
   // printf("do_UserProcessExit = %s\n", currentThread->getName());
   currentThread->space->activeThreads->PrintContent();
 
-
   // currentThread->JoinChildren();
-  
 
   currentThread->space->decreaseUserThreads();
-  // printf("Processes: %d\n", machine->numberOfProcesses);
+  printf("Processes: %d\n", machine->numberOfProcesses);
 
   while (currentThread->space->getNumberOfUserThreads() != 0) {
     currentThread->space->ExitForMain->P();  
   }
 
-  machine->numberOfProcesses--;
+  machine->DecrementProcesses();
 
   if (machine->numberOfProcesses == 0) {
     // printf("Halt.\n");
