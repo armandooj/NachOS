@@ -252,7 +252,6 @@ int Machine::DecrementProcesses() {
 }
 
 int Machine::GetPIDSeed() {
-
     PIDseedLock->Acquire();
     PIDseed++;
     PIDseedLock->Release();

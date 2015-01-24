@@ -33,9 +33,8 @@ static void StartUserThread(int data) {
   machine->WriteRegister(PCReg, threadParam->function);
   machine->WriteRegister(NextPCReg, threadParam->function + 4);
   
-  //reset stack pointer 
+  // set the stack. Internally we make sure it's not 0
   currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetStackLocation()));
-  //currentThread->SetStackLocation(currentThread->space);
 
   machine->Run();
 }
@@ -56,7 +55,6 @@ int do_UserThreadCreate(int f, int arg, int ret_function) {
   
   // put increase counter here for synchonization problem
   currentThread->space->increaseUserThreads();
-  // The thread's id is also its location on the stack
   int location = newThread->SetStackLocation(currentThread->space);
 
   if (location < 0) {
@@ -84,8 +82,8 @@ void do_UserThreadExit() {
     
     DEBUG('l', "Thread \"%s\" uses User Exit\n", currentThread->getName() );
     
-    currentThread->space->decreaseUserThreads();
-    if (currentThread->space->getNumberOfUserThreads() == 0) {
+    int count = currentThread->space->decreaseUserThreads();
+    if (count == 0) {
         currentThread->space->ExitForMain->V();
     }
 

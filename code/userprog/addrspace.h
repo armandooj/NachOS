@@ -51,8 +51,8 @@ class AddrSpace
     // Free the given position
     void FreeStackLocation (int position);
 
-    void increaseUserThreads();
-    void decreaseUserThreads();
+    int increaseUserThreads();
+    int decreaseUserThreads();
     int getNumberOfUserThreads();
     
     Semaphore *ExitForMain;    

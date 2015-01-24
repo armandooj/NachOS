@@ -269,14 +269,15 @@ Stack BitMap Operations
 int AddrSpace::GetAndSetFreeStackLocation () {
     stackBitMapLock->Acquire();
     int location = stackBitMap->Find();
+    DEBUG('a', "Find stack location %d\n", location);
     stackBitMapLock->Release();
-    return location;
+    return location + 1;
 }
 
 void AddrSpace::FreeStackLocation (int location) {    
     stackBitMapLock->Acquire();
     DEBUG('a', "Freeing stack location %d\n", location);
-    stackBitMap->Clear(location);
+    stackBitMap->Clear(location - 1);
     stackBitMapLock->Release();
 }
 
@@ -287,15 +288,18 @@ void AddrSpace::FreeStackLocation (int location) {
 //
 //----------------------------------------------------------------------
 
-void AddrSpace::increaseUserThreads() {
+int AddrSpace::increaseUserThreads() {
     threadsCountLock->Acquire();
-    numberOfUserThreads++;
+    int count = ++numberOfUserThreads;
     threadsCountLock->Release();
+    return count;
 }
-void AddrSpace::decreaseUserThreads() {
+
+int AddrSpace::decreaseUserThreads() {
     threadsCountLock->Acquire();
-    numberOfUserThreads--;
+    int count = --numberOfUserThreads;
     threadsCountLock->Release();
+    return count;
 }
 
 int AddrSpace::getNumberOfUserThreads() {
