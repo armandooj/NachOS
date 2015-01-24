@@ -27,6 +27,7 @@
 #include "userthread.h"
 #include "scheduler.h"
 #include "synch.h"
+#include "userprocess.h"
 
 //----------------------------------------------------------------------
 // UpdatePC : Increments the Program Counter register in order to resume
@@ -150,26 +151,7 @@ ExceptionHandler (ExceptionType which)
            switch (type) {
             case SC_Exit: 
             {
-              currentThread->space->decreaseUserProcesses();
-            
-              DEBUG('t', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
-              DEBUG('t', "Number of UserThread: %d\n", currentThread->space->getNumberOfUserProcesses() );
-              
-              //busy waiting
-              /*
-              while (currentThread->space->getNumberOfUserProcesses() != 0) {
-                currentThread->space->ExitForMain->V();
-                currentThread->Yield();
-              }
-              */
-              
-              while (currentThread->space->getNumberOfUserProcesses() != 0) {
-                currentThread->space->ExitForMain->P();  
-              }
-
-              int value = machine->ReadRegister(4);          
-              DEBUG('a', "Exit program, return value: %d.\n", value);
-              interrupt->Halt();
+              do_UserProcessExit();
               break;
             }
             case SC_Halt: 
@@ -225,8 +207,8 @@ ExceptionHandler (ExceptionType which)
             }
             case SC_UserThreadJoin:
             {
-                int tid = machine->ReadRegister(4);
-                do_UserThreadJoin(tid);
+                int tid = machine->ReadRegister(4);                                                
+                machine->WriteRegister(2, do_UserThreadJoin(tid));
                 break;
             }
             case SC_GetChar:
@@ -268,6 +250,17 @@ ExceptionHandler (ExceptionType which)
             {
                 int val = synchconsole->SynchGetInt();
                 machine->WriteMem(machine->ReadRegister(4), 4, val);
+                break;
+            }
+            case SC_ForkExec:
+            {
+                int s = machine->ReadRegister(4);
+                
+                char str[100] = {};
+                copyStringFromMachine(s, str, 100);
+                // printf("New file name: %s\n", str);
+
+                do_UserProcessCreate(str);
                 break;
             }
             default: {

@@ -1,6 +1,6 @@
 #include "syscall.h"
-#define THIS "aaa"
-#define THAT "bbb"
+#define THIS "xxx"
+#define THAT "yyy"
 
 const int N = 10; // Choose it large enough!
 
