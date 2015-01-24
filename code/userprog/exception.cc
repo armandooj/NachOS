@@ -105,6 +105,57 @@ ExceptionHandler (ExceptionType which)
               break;
             }
 
+            case SC_Create: {
+              int res,rg4 = machine->ReadRegister (4); 
+              char buffer[FileNameMaxLen] = {};
+              copyStringFromMachine(rg4,buffer,FileNameMaxLen);
+              fileSystem->Create(buffer) ? res = 0 : res = -1;
+              machine->WriteRegister (2, res);
+              break;
+            }
+
+            case SC_Open: {
+              int rg4 = machine->ReadRegister (4);
+              char buffer[FileNameMaxLen] = {};
+              copyStringFromMachine(rg4,buffer,FileNameMaxLen);
+              int res = (int)fileSystem->Open(buffer);
+              machine->WriteRegister (2, res);
+              break;
+            }
+
+            case SC_Read: {
+              int rg4 = machine->ReadRegister (4); 
+              int rg5 = machine->ReadRegister (5); 
+              int rg6 = machine->ReadRegister (6); 
+              char *buffer;
+              buffer = &machine->mainMemory[rg4];
+              OpenFile *file = (OpenFile*)rg6;
+              int res = file->Read(buffer,rg5);
+              machine->WriteRegister (2, res);
+              break;
+            }
+
+            case SC_Write: {
+              int rg4 = machine->ReadRegister (4);
+              int rg5 = machine->ReadRegister (5);
+              int rg6 = machine->ReadRegister (6);
+              int res = 0,size,round = 0;
+              OpenFile *file = (OpenFile*)rg6;
+              char buffer[MAX_STRING_SIZE] = {};
+              bool status = false;
+              do {
+               if((size = copyStringFromMachine(rg4+MAX_STRING_SIZE*round,buffer,MAX_STRING_SIZE)) == MAX_STRING_SIZE) {
+                res = res + file->Write(buffer,MAX_STRING_SIZE);
+                round++;
+               }
+               else {
+                status = true;
+                if(size != 0) 
+                 file->Write(buffer,size);
+               }
+              } while(status == false);
+              
+
             case SC_PutChar: {
               int rg4 = machine->ReadRegister (4);
               char ch = (char)rg4;

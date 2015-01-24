@@ -171,6 +171,14 @@ Close:
 	j	$31
 	.end Close
 
+	.globl Remove
+	.ent	Remove
+Remove:
+	addiu $2,$0,SC_Remove
+	syscall
+	j	$31
+	.end Remove
+
 	.globl Fork
 	.ent	Fork
 Fork:

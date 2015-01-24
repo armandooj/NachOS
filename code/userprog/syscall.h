@@ -29,6 +29,7 @@
 #define SC_Close	8
 #define SC_Fork		9
 #define SC_Yield	10
+#define SC_Remove       30
 
 #ifdef CHANGED
 #define SC_PutChar      11
@@ -100,8 +101,8 @@ typedef int OpenFileId;
 #define ConsoleInput	0
 #define ConsoleOutput	1
 
-/* Create a Nachos file, with "name" */
-void Create (char *name);
+/* Create a Nachos file, with "name", return 0 if successful otherwise -1 fail */
+int Create (char *name);
 
 /* Open the Nachos file "name", and return an "OpenFileId" that can 
  * be used to read and write to the file.
@@ -109,7 +110,7 @@ void Create (char *name);
 OpenFileId Open (char *name);
 
 /* Write "size" bytes from "buffer" to the open file. */
-void Write (char *buffer, int size, OpenFileId id);
+int Write (char *buffer, int size, OpenFileId id);
 
 /* Read "size" bytes from the open file into "buffer".  
  * Return the number of bytes actually read -- if the open file isn't
@@ -121,6 +122,9 @@ int Read (char *buffer, int size, OpenFileId id);
 
 /* Close the file, we're done reading and writing to it. */
 void Close (OpenFileId id);
+
+/* Remove a Nachos file, with "name", return 0 if successful otherwise -1 fail */
+int Remove (char *name);
 
 
 

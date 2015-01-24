@@ -59,19 +59,12 @@ FileHeader::Allocate(BitMap *freeMap, int Size)
 
     int index = numSectors / MaxPerSector;
  
-//    if (! (numSectors % MaxPerSector) && numSectors != 0)
- //       index = numSectors / MaxPerSector - 1;
 
     int newindex = (newSectors + numSectors) / MaxPerSector - index;
-  //  if (((newSectors + numSectors) % MaxPerSector) && (newSectors + numSectors > (int)MaxPerSector))
-   //     newindex++;
 
 //NumClear() return available number of sectors in disk
     if ((freeMap->NumClear() < (newindex + newSectors)) || (numBytes + Size > (int)MaxFileSize))
 	return FALSE;		// not enough space
-
-    //if (!(numSectors % MaxPerSector))
-     //   ASSERT (dataSectors[numSectors/MaxPerSector] = freeMap->Find());
 
     if (numSectors == 0)
         ASSERT (dataSectors[0] = freeMap->Find());
@@ -90,7 +83,7 @@ FileHeader::Allocate(BitMap *freeMap, int Size)
                     if (j == 0)
                     {
                           synchDisk->WriteSector(dataSectors[index],(char*)dataset);
-                          if (index < 29)
+                          if (index < (int)(NumDirect - 1))
                           {
                              index++;
                              dataSectors[index] = freeMap->Find();
