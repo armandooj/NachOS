@@ -61,19 +61,6 @@
 enum ThreadStatus
 { JUST_CREATED, RUNNING, READY, BLOCKED };
 
-#ifdef CHANGED
-typedef struct {  
-    int function;
-    int arg;
-    int ret_function;
-    bool isProcess;
-} ThreadParam;
-
-typedef struct {
-    int tid;
-    Semaphore *threadWaiting;
-} JoinWaiting;
-#endif
 
 // external function, dummy routine whose sole job is to call Thread::Print
 extern void ThreadPrint (int arg);
@@ -158,13 +145,8 @@ class Thread
     int SetStackLocation(AddrSpace *thisThreadSpace);
     void FreeStackLocation();
 
-    int GetTid();
-    void SetTid(int id);
-
-    int GetPid();
-    void SetPid(int id);
-
-    void JoinChildren();
+    int GetPID();
+    void SetPID();
     
     Semaphore *joinCondition; // Use this variable to sleep while waiting on Join
 
@@ -174,8 +156,7 @@ class Thread
 
 #ifdef CHANGED
   private:
-    int tid;
-    int pid;
+    int PID;
     int stackLocation;
 #endif
 

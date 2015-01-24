@@ -141,8 +141,7 @@ AddrSpace::AddrSpace (OpenFile *executable)
   stackBitMapLock = new Lock("Stack Lock");
   threadsCountLock = new Lock("Threads Count Lock");
   processesCountLock = new Lock("Processes Count Lock");
-  numberOfUserThreads = 1;    // counting the main thread
-  numberOfUserProcesses = 1;      
+  numberOfUserThreads = 1;    // counting the main thread 
   ExitForMain = new Semaphore("Exit for Main", 1);
 
   //For Join Functionality

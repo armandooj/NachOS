@@ -69,8 +69,7 @@ class AddrSpace
     // address space
 
 #ifdef CHANGED
-    int numberOfUserThreads;  
-    int numberOfUserProcesses;
+    int numberOfUserThreads;
     
     // Available pages
     BitMap *stackBitMap;

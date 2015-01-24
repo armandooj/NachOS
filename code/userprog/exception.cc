@@ -151,18 +151,6 @@ ExceptionHandler (ExceptionType which)
            switch (type) {
             case SC_Exit: 
             {
-              // currentThread->space->decreaseUserThreads();
-            
-              // DEBUG('t', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
-              // DEBUG('t', "Number of UserThread: %d\n", currentThread->space->getNumberOfUserThreads());            
-              
-              // while (currentThread->space->getNumberOfUserThreads() != 0) {
-              //   currentThread->space->ExitForMain->P();  
-              // }
-
-              // int value = machine->ReadRegister(4);          
-              // DEBUG('a', "Exit program, return value: %d.\n", value);
-              // interrupt->Halt();
               do_UserProcessExit();
               break;
             }

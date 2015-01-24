@@ -15,7 +15,7 @@
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
-#include "thread.h"
+#include "userthread.h"
 #include "switch.h"
 #include "synch.h"
 #include "system.h"
@@ -444,26 +444,13 @@ void Thread::FreeStackLocation() {
   space->FreeStackLocation(stackLocation);
 }
 
-int Thread::GetTid() {
-  return tid;
+// Function to get ID
+int Thread::GetPID() {
+  return PID;
 }
 
-void Thread::SetTid(int id) {
-  tid = id;
-}
-
-int Thread::GetPid() {
-  return pid;
-}
-
-void Thread::SetPid(int id) {
-  pid = id;
-}
-
-void Thread::JoinChildren() {
-  if (!space->activeThreads->isEmpty()) {
-    
-  }
+void Thread::SetPID() {
+    PID = machine->GetPIDSeed();
 }
 
 #endif

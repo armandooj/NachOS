@@ -150,10 +150,10 @@ class Machine {
     void DumpState();		// print the user CPU and memory state 
 
 #ifdef CHANGED
-    int IncrementThreads();
-    int DecrementThreads();
     int IncrementProcesses();
     int DecrementProcesses();
+    
+    int GetPIDSeed();
 #endif
 
 
@@ -196,16 +196,19 @@ class Machine {
 
 #ifdef CHANGED
     int numberOfProcesses;
-    int numberOfThreads;
 
     Lock *processCountLock;
-    Lock *threadCountLock;
 #endif
 
   private:
     bool singleStep;		// drop back into the debugger after each
 				// simulated instruction
     int runUntilTime;		// drop back into the debugger when simulated
+
+#ifdef CHANGED     
+    int PIDseed;
+    Lock *PIDseedLock;
+#endif // End CHANGED
 				// time reaches this value
 };
 

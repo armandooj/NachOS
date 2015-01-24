@@ -74,7 +74,9 @@ Machine::Machine(bool debug)
 #ifdef CHANGED
     numberOfProcesses = 1;
     processCountLock = new Lock("Process count lock");
-    threadCountLock = new Lock("Thread count lock");
+    
+    PIDseed = 100;
+    PIDseedLock = new Lock("PID seed lock");
 #endif
 
     singleStep = debug;
@@ -93,7 +95,7 @@ Machine::~Machine()
         delete [] tlb;
 #ifdef CHANGED
     delete processCountLock;
-    delete threadCountLock;
+    delete PIDseedLock;
 #endif
 }
 
@@ -234,25 +236,12 @@ void Machine::WriteRegister(int num, int value)
 Thread and process counters
 */
 
-int Machine::IncrementThreads() {
-    threadCountLock->Acquire();
-    numberOfThreads++;
-    threadCountLock->Release();
-    return numberOfThreads;
-}
-
-int Machine::DecrementThreads() {
-    threadCountLock->Acquire();
-    numberOfThreads--;
-    threadCountLock->Release();
-    return numberOfThreads;
-}
 
 int Machine::IncrementProcesses() {
     processCountLock->Acquire();
     numberOfProcesses++;
     processCountLock->Release();
-    return numberOfThreads;
+    return numberOfProcesses;
 }
 
 int Machine::DecrementProcesses() {
@@ -260,6 +249,15 @@ int Machine::DecrementProcesses() {
     numberOfProcesses--;
     processCountLock->Release();
     return numberOfProcesses;
+}
+
+int Machine::GetPIDSeed() {
+
+    PIDseedLock->Acquire();
+    PIDseed++;
+    PIDseedLock->Release();
+    DEBUG('l', "Seed is: %d\n", PIDseed);
+    return PIDseed;
 }
 
 #endif
