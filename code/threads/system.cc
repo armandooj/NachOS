@@ -31,6 +31,7 @@ SynchDisk *synchDisk;
 Machine *machine;		// user program memory and registers
 #ifdef CHANGED
 SynchConsole *synchconsole;
+FrameProvider *frameProvider;
 #endif
 #endif
 
@@ -164,6 +165,7 @@ Initialize (int argc, char **argv)
 
 #ifdef CHANGED
     synchconsole = new SynchConsole(NULL, NULL);
+    frameProvider = new FrameProvider(NumPhysPages);
 #endif
 
 #ifdef FILESYS
@@ -205,6 +207,7 @@ Cleanup ()
 
 #ifdef CHANGED
     delete synchconsole;
+    delete frameProvider;
 #endif
 
     delete timer;

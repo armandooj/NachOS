@@ -93,23 +93,31 @@ AddrSpace::AddrSpace (OpenFile *executable)
   for (i = 0; i < numPages; i++)
   {
 	  pageTable[i].virtualPage = i;	
-	  pageTable[i].physicalPage = i + 1; // physical page # = virtual page # + 1
+    // physical page # = virtual page # + 1 // machine->frameProvider->GetEmptyFrame();
+#ifdef CHANGED
+    pageTable[i].physicalPage = frameProvider->GetEmptyFrame();
+#else
+    pageTable[i].physicalPage = i;
+#endif
 	  pageTable[i].valid = TRUE;
 	  pageTable[i].use = FALSE;
 	  pageTable[i].dirty = FALSE;
 	  pageTable[i].readOnly = FALSE;	// if the code segment was entirely on 
-  // a separate page, we could set its 
-  // pages to be read-only
+    // a separate page, we could set its 
+    // pages to be read-only
   }
 
   // zero out the entire address space, to zero the unitialized data segment 
   // and the stack segment
-  bzero (machine->mainMemory, size);
+  //bzero (machine->mainMemory, size);
+
 
   // then, copy in the code and data segments into memory
   if (noffH.code.size > 0) {
     DEBUG ('a', "Initializing code segment, at 0x%x, size %d\n", noffH.code.virtualAddr, noffH.code.size);
 #ifdef CHANGED    
+    DEBUG ('l', "Initializing code segment, at 0x%x, size %d\n", noffH.code.virtualAddr, noffH.code.size);
+    DEBUG('l', "CODE\n");
     ReadAtVirtual(executable, noffH.code.virtualAddr, noffH.code.size, noffH.code.inFileAddr, pageTable, numPages);
 #else
     executable->ReadAt (&(machine->mainMemory[noffH.code.virtualAddr]), noffH.code.size, noffH.code.inFileAddr);
@@ -200,6 +208,8 @@ AddrSpace::InitRegisters ()
 void
 AddrSpace::SaveState ()
 {
+    pageTable = machine->pageTable;
+    numPages = machine->pageTableSize;
 }
 
 //----------------------------------------------------------------------
@@ -216,8 +226,6 @@ AddrSpace::RestoreState ()
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
 }
-
-
 
 #ifdef CHANGED
 
@@ -279,7 +287,6 @@ int AddrSpace::getNumberOfUserProcesses() {
     return numberOfUserProcesses;
 }
 
-
 /*
 Virtual Memory
 */
@@ -298,6 +305,18 @@ static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, i
     // Now change the machine to pageTable and proceed to write
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
+    
+    int physicalAddress;
+    machine->Translate(virtualaddr, &physicalAddress, 1, FALSE);    
+    DEBUG('l', "Start address: %d\n", physicalAddress );
+    
+    machine->Translate(virtualaddr + read_bytes, &physicalAddress, 1, FALSE);
+    DEBUG('l', "End address: %d\n", physicalAddress );
+    
+    int PC = machine->ReadRegister(PCReg);
+    machine->Translate(PC , &physicalAddress, 1, FALSE);
+    DEBUG('l', "PC: %d\n", PC);
+    
     for (int i = 0; i < read_bytes; i++) {
         machine->WriteMem(virtualaddr + i, 1, temp_buffer[i]);
     }

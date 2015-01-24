@@ -38,9 +38,10 @@ static void StartUserThread(int data) {
   machine->WriteRegister(RetAddrReg, paramFunction->ret_function);
   machine->WriteRegister(PCReg, paramFunction->function);
   machine->WriteRegister(NextPCReg, paramFunction->function + 4);
-  // Set the stack pointer
-  currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetTid())); 
   
+  //reset stack pointer 
+  currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetTid())); 
+
   machine->Run();
 }
 
@@ -62,12 +63,12 @@ int do_UserThreadCreate(int f, int arg, int ret_function) {
   // The thread's id is also its location on the stack
   newThread->SetTid(currentThread->space);  // wrong if set after fork.
 
-  // TODO Does this help ?
   if (newThread->GetTid() < 0) {
     currentThread->space->decreaseUserProcesses();
     return -1;
   }
-  // Add to active list
+  
+    // Add to active list
   currentThread->space->activeThreads->AppendTraverse(NULL, newThread->GetTid());
   DEBUG('l', "Add new thread: %d\n", newThread->GetTid());
   DEBUG('l', "Thread list: \n");
@@ -154,6 +155,49 @@ int do_UserThreadJoin(int tid) {
         DEBUG('l', "Waking up \n");
     }    
     return 1;   // return after being wake up :D
+}
+
+
+//TODO DELETE DUMMY
+static void StartProcess(int dummy) {
+
+  DEBUG('t', "StartUserThread with Stack Position: %d\n", currentThread->GetTid());
+
+  if (currentThread->GetTid() < 0) {
+    DEBUG('t', "Error, new Thread doesn't have a valid stack space");
+    return;    
+  }
+
+  currentThread->space->InitRegisters();
+  currentThread->space->RestoreState();
+  
+  machine->Run();
+}
+
+
+int do_ProcessCreate(char *filename) {
+
+  OpenFile *executable = fileSystem->Open (filename);
+  AddrSpace *space;
+
+  if (executable == NULL)
+  {
+   printf ("Unable to open file %s\n", filename);
+   return -1;
+  }
+
+  space = new AddrSpace (executable);
+  delete executable;		// close file
+
+  Thread *newThread = new Thread("New Process Thread");
+  newThread->space = space;
+  newThread->setStatus(JUST_CREATED);
+
+  //Do FORK HERE
+  newThread->Fork(StartProcess, 2);
+  //currentThread->Yield();
+    
+  return 0;
 }
 
 #endif

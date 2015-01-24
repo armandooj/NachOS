@@ -27,6 +27,7 @@
 #include "userthread.h"
 #include "scheduler.h"
 #include "synch.h"
+#include "userprocess.h"
 
 //----------------------------------------------------------------------
 // UpdatePC : Increments the Program Counter register in order to resume
@@ -162,6 +163,7 @@ ExceptionHandler (ExceptionType which)
                 currentThread->Yield();
               }
               */
+              DEBUG('l', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
               
               while (currentThread->space->getNumberOfUserProcesses() != 0) {
                 currentThread->space->ExitForMain->P();  
@@ -268,6 +270,22 @@ ExceptionHandler (ExceptionType which)
             {
                 int val = synchconsole->SynchGetInt();
                 machine->WriteMem(machine->ReadRegister(4), 4, val);
+                break;
+            }
+            case SC_ForkExec:
+            {
+                int PC = machine->ReadRegister(PCReg);
+                DEBUG('l', "PC: %d\n", PC);
+            
+                int s = machine->ReadRegister(4);
+                
+                char str[40] = {};
+                copyStringFromMachine(s, str, 100); // Could be here? :D
+                printf("New file name: %s\n", str);
+                
+                //create new process here
+                do_ProcessCreate(str); 
+                printf("Exit Process Create\n");
                 break;
             }
             default: {
