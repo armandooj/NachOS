@@ -98,25 +98,33 @@ Semaphore::V ()
     (void) interrupt->SetLevel (oldLevel);
 }
 
+
+
 // Dummy functions -- so we can compile our later assignments 
 // Note -- without a correct implementation of Condition::Wait(), 
 // the test case in the network assignment won't work!
 Lock::Lock (const char *debugName)
 {
+#ifdef CHANGED
     name = debugName;
     lock = new Semaphore("Lock semaphore", 1);
     
     internalLock = new Semaphore("Internal Lock", 1);
     owner = -1;
+#endif      
 }
 
 Lock::~Lock ()
 {
+#ifdef CHANGED
     delete lock;
+#endif    
 }
+
 void
 Lock::Acquire ()
 {
+#ifdef CHANGED
     lock->P();
     
     internalLock->P();
@@ -127,10 +135,13 @@ Lock::Acquire ()
         lock->V();
             
     internalLock->V();
+#endif
 }
+
 void
 Lock::Release ()
 {
+#ifdef CHANGED
     internalLock->P();
     
     if (currentThread->GetPID() == owner){
@@ -139,25 +150,31 @@ Lock::Release ()
     }
         
     internalLock->V();
+#endif   
 }
 
 Condition::Condition (const char *debugName)
 {
+#ifdef CHANGED
     name = debugName;
     CV_sleep = new Semaphore("Sleeper", 0);
     internalLock = new Semaphore("Internal Lock", 1);
     num_sleepers = 0;
+#endif
 }
 
 Condition::~Condition ()
 {
+#ifdef CHANGED
     delete internalLock;
+#endif    
 }
 
 //reference: https://www.cs.umd.edu/users/hollings/cs412/s96/synch/locks.html
 void
 Condition::Wait (Lock * conditionLock)
 {
+#ifdef CHANGED
     DEBUG('l', "Wait in condition with thread %d\n", currentThread->GetPID() );
     
     internalLock->P();
@@ -169,11 +186,13 @@ Condition::Wait (Lock * conditionLock)
     
     CV_sleep->P(); //sleep
     conditionLock->Acquire();
+#endif    
 }
 
 void
 Condition::Signal (Lock * conditionLock)
 {
+#ifdef CHANGED
     internalLock->P();
     
     if (num_sleepers > 0) {
@@ -182,10 +201,13 @@ Condition::Signal (Lock * conditionLock)
     }
     
     internalLock->V();
+#endif    
 }
+
 void
 Condition::Broadcast (Lock * conditionLock)
 {
+#ifdef CHANGED
     internalLock->P();
     
     while (num_sleepers > 0) {
@@ -194,4 +216,5 @@ Condition::Broadcast (Lock * conditionLock)
     }
     
     internalLock->V();
+#endif    
 }
