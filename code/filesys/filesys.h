@@ -105,6 +105,7 @@ class FileSystem {
 
    #ifdef CHANGED
      bool CreateDirectory(const char *name);
+    char *ExpandFileName(const char* filename); 
      OpenFile *FreeMap();
   #endif
 

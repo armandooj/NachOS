@@ -55,7 +55,14 @@
 #ifdef CHANGED
 #include <string>
 #include <iostream>
+
+#include "system.h"
+#include <libgen.h>
+#include <list>
+#include <string>
 #endif
+
+
 
 #ifndef CHANGED
 
@@ -591,6 +598,65 @@ bool FileSystem::CreateDirectory(const char *name) {
 
 
     return true;
+}
+
+char *FileSystem::ExpandFileName( const char* filename )
+{
+    // Take into account current directory
+    std::string filename_s = filename;
+
+    // If relative path
+    if (filename_s[0] != '/')
+    {
+    //    filename_s = currentThread->GetCurrentDirectory() + filename_s;
+    }
+
+    char *cpy = new char[strlen(filename_s.c_str()) + 1];
+    char *saveptr = cpy;
+
+    strcpy(cpy, filename_s.c_str());
+
+    if(strcmp(filename_s.c_str(), "..") == 0)
+        return cpy;
+
+    char *name = strtok(cpy, "/");
+    std::list<std::string> final;
+
+    while (name != NULL)
+    {
+        if (strcmp(name, "..") == 0 && !final.empty())
+        {
+            final.pop_back();
+        }
+        else if (strcmp(name, ".") != 0 && strcmp(name, "") != 0)
+        {
+            final.push_back(std::string(name));
+        }
+        // else it's . or //, no change
+
+        name = strtok(NULL, "/");
+    }
+
+    // Construct string
+    std::string final_string;
+    std::list<std::string>::iterator it;
+
+    for (it = final.begin(); it != final.end(); it++)
+    {
+        final_string += "/";
+        final_string += *it;
+    }
+
+    delete [] saveptr;
+
+    if (final_string.empty())
+        final_string = "/";
+
+    // Convert to char*
+    char *res = new char[final_string.size() + 1];
+    strcpy(res, final_string.c_str());
+
+    return res;
 }
 
 OpenFile *
