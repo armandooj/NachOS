@@ -33,8 +33,9 @@ static void StartUserThread(int data) {
   machine->WriteRegister(PCReg, threadParam->function);
   machine->WriteRegister(NextPCReg, threadParam->function + 4);
   
-  // set the stack. Internally we make sure it's not 0
-  currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetStackLocation()));
+  // Set the stack. Make sure it's a positive number (at leat 3*PageSize pages) by incrementing 1
+  // The reason to do so is that our bitmap starts from 0
+  currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetStackLocation() + 1));
 
   machine->Run();
 }

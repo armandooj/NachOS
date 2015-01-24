@@ -64,19 +64,19 @@ void do_UserProcessExit() {
     printf("Finish : %s\n", currentThread->getName());
     // currentThread->Finish();
   }
-  
-              // currentThread->space->decreaseUserThreads();
-            
-              // DEBUG('t', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
-              // DEBUG('t', "Number of UserThread: %d\n", currentThread->space->getNumberOfUserThreads());            
-              
-              // while (currentThread->space->getNumberOfUserThreads() != 0) {
-              //   currentThread->space->ExitForMain->P();  
-              // }
 
-              // int value = machine->ReadRegister(4);          
-              // DEBUG('a', "Exit program, return value: %d.\n", value);
-              // interrupt->Halt();
+  // currentThread->space->decreaseUserThreads();
+
+  // DEBUG('t', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
+  // DEBUG('t', "Number of UserThread: %d\n", currentThread->space->getNumberOfUserThreads());            
+  
+  // while (currentThread->space->getNumberOfUserThreads() != 0) {
+  //   currentThread->space->ExitForMain->P();  
+  // }
+
+  // int value = machine->ReadRegister(4);          
+  // DEBUG('a', "Exit program, return value: %d.\n", value);
+  // interrupt->Halt();
 }
 
 #endif
