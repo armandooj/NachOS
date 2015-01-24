@@ -25,6 +25,9 @@
 #include "utility.h"
 #include "translate.h"
 #include "disk.h"
+#ifdef CHANGED
+#include "synch.h"
+#endif
 
 // Definitions related to the size, and format of user memory
 
@@ -146,6 +149,15 @@ class Machine {
     void Debugger();		// invoke the user program debugger
     void DumpState();		// print the user CPU and memory state 
 
+#ifdef CHANGED
+    int IncrementProcesses();
+    int DecrementProcesses();
+    
+    int GetPIDSeed();
+#endif
+
+
+
 
 // Data structures -- all of these are accessible to Nachos kernel code.
 // "public" for convenience.
@@ -182,12 +194,21 @@ class Machine {
     TranslationEntry *pageTable;
     unsigned int pageTableSize;
 
+#ifdef CHANGED
     int numberOfProcesses;
+
+    Lock *processCountLock;
+#endif
 
   private:
     bool singleStep;		// drop back into the debugger after each
 				// simulated instruction
     int runUntilTime;		// drop back into the debugger when simulated
+
+#ifdef CHANGED     
+    int PIDseed;
+    Lock *PIDseedLock;
+#endif // End CHANGED
 				// time reaches this value
 };
 

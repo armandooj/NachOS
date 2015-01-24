@@ -2,9 +2,13 @@
 
 int main() {
 
+  PutString("Hola");
+  PutChar('Y');
   ForkExec("userpages0");
-  // PutChar('b');
+  PutChar('E');
   ForkExec("userpages1"); 
-  // PutChar('c');
+  PutChar('S');
+  PutInt(182);
+  ForkExec("putstring"); 
   return 0;
 }
