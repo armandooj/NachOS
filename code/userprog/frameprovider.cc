@@ -17,7 +17,7 @@ int FrameProvider::GetEmptyFrame() {
   // TODO Random()
   lock->Acquire();
   int frame = framesBitMap->Find();
-  // bzero(&(machine->mainMemory[frame * PageSize]), PageSize);
+  bzero(&(machine->mainMemory[frame * PageSize]), PageSize);
   lock->Release();
   return frame;
 }
