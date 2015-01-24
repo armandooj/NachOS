@@ -20,15 +20,8 @@ Initialises backups of registers of a new copy of the MIPS interpreter in the sa
 */
 static void StartUserThread(int data) {
 
-  DEBUG('t', "StartUserThread with Stack Position: %d\n", currentThread->GetTid());
-
-  if (currentThread->GetTid() < 0) {
-    DEBUG('t', "Error, new Thread doesn't have a valid stack space");
-    return;    
-  }
-
   currentThread->space->InitRegisters();
-  currentThread->space->RestoreState(); // TODO: Check if this need to reverse
+  currentThread->space->RestoreState();
 
   // Retrieve the function and arg
   ThreadParam *threadParam = (ThreadParam *) data;
@@ -40,8 +33,9 @@ static void StartUserThread(int data) {
   machine->WriteRegister(PCReg, threadParam->function);
   machine->WriteRegister(NextPCReg, threadParam->function + 4);
   
-  //reset stack pointer 
-  currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetTid()));
+  // Set the stack. Make sure it's a positive number (at leat 3*PageSize pages) by incrementing 1
+  // The reason to do so is that our bitmap starts from 0
+  currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetStackLocation() + 1));
 
   machine->Run();
 }
@@ -58,26 +52,27 @@ int do_UserThreadCreate(int f, int arg, int ret_function) {
 
   Thread *newThread = new Thread("New User Thread");
   
+  newThread->SetPID();   //set ID
+  
   // put increase counter here for synchonization problem
-  currentThread->space->increaseUserThreads();    // PROBLEM??? 
+  currentThread->space->increaseUserThreads();
+  int location = newThread->SetStackLocation(currentThread->space);
 
-  // The thread's id is also its location on the stack
-  newThread->SetTid(currentThread->space);  // wrong if set after fork.
-
-  if (newThread->GetTid() < 0) {
+  if (location < 0) {
+    // Thread limit reached!
     currentThread->space->decreaseUserThreads();
     return -1;
   }
   
   // Add to active list
-  currentThread->space->activeThreads->AppendTraverse(NULL, newThread->GetTid());
-  DEBUG('l', "Add new thread: %d\n", newThread->GetTid());
+  currentThread->space->activeThreads->AppendTraverse(NULL, newThread->GetPID());
+  DEBUG('l', "Add new thread: %d\n", newThread->GetPID());
   DEBUG('l', "Thread list: \n");
   currentThread->space->activeThreads->PrintContent();                          
 
   newThread->Fork(StartUserThread, (int) threadParam);
   
-  return newThread->GetTid();
+  return newThread->GetPID();
 }
 
 void do_UserThreadExit() {
@@ -88,34 +83,74 @@ void do_UserThreadExit() {
     
     DEBUG('l', "Thread \"%s\" uses User Exit\n", currentThread->getName() );
     
-    currentThread->space->decreaseUserThreads();
-    if (currentThread->space->getNumberOfUserThreads() == 0) {
+    int count = currentThread->space->decreaseUserThreads();
+    if (count == 0) {
         currentThread->space->ExitForMain->V();
     }
 
     // Also frees the corresponding stack location
-    currentThread->FreeTid();
+    currentThread->FreeStackLocation();
     
     // Remove from active list
-    currentThread->space->activeThreads->RemoveTraverse(currentThread->GetTid());
+    currentThread->space->activeThreads->RemoveTraverse(currentThread->GetPID());
     
-    // debugging -- delete later
-    DEBUG('l', "Delete thread: %d\n", currentThread->GetTid());
+    // TODO debugging -- delete later
+    DEBUG('l', "Delete thread: %d\n", currentThread->GetPID());
     DEBUG('l', "Thread list: \n");
     currentThread->space->activeThreads->PrintContent();
     
     // check queue of active lock to see if anyone needs waking up
-    void* thing = currentThread->space->activeLocks->RemoveTraverse(currentThread->GetTid());    
+    void* thing = currentThread->space->activeLocks->RemoveTraverse(currentThread->GetPID());    
     if (thing != NULL ) {
         // waking up the receipient
         ((JoinWaiting *) thing)->threadWaiting->V();
         
-        DEBUG('l', "Delete from waiting thread: %d\n", currentThread->GetTid());
+        DEBUG('l', "Delete from waiting thread: %d\n", currentThread->GetPID());
         DEBUG('l', "Waiting thread list: \n");
         currentThread->space->activeLocks->PrintContent();
     }
         
     currentThread->Finish();
+}
+
+// return -1 if error, 0 if not running, 1 if success
+int do_UserThreadJoin(int PID) {
+    
+    DEBUG('l', "Begin join, thread %d waiting for %d\n", currentThread->GetPID(), PID);
+    
+    //Sanity check
+    if (PID == currentThread->GetPID())
+        return -1;
+    
+    // check if the thread is in the active thread,
+    if (!currentThread->space->activeThreads->seek(PID))
+        return 0;
+    
+    //build the structure to prepare to sleep, just the semaphore
+    //first, send it to the queue 
+    JoinWaiting* waitingCondition = new JoinWaiting();
+    waitingCondition->PID = currentThread->GetPID();
+    waitingCondition->threadWaiting = currentThread->joinCondition;
+    
+    // add to the queue
+    currentThread->space->activeLocks->AppendTraverse((void*) waitingCondition, PID);
+
+    DEBUG('l', "Insert to waiting thread: %d\n", currentThread->GetPID());
+    DEBUG('l', "Waiting thread list: \n");
+    currentThread->space->activeLocks->PrintContent();
+    
+    // the synchonization part
+    if (!currentThread->space->activeThreads->seek(PID)) {
+        //take off the queue and returning
+        currentThread->space->activeLocks->RemoveTraverse(PID);
+        return 0;
+    } else {
+        // go to sleep
+        DEBUG('l', "Going to sleep: \n");
+        currentThread->joinCondition->P();
+        DEBUG('l', "Waking up \n");
+    }    
+    return 1;   // return after being wake up :D
 }
 
 #endif

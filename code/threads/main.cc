@@ -52,9 +52,6 @@
 
 #include "utility.h"
 #include "system.h"
-#ifdef CHANGED
-#include "userprocess.h"
-#endif
 
 // External functions used by this file
 

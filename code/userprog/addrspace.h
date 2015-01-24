@@ -45,27 +45,21 @@ class AddrSpace
     // Returns how many threads the system can handle
     int GetMaxNumThreads ();
 
-    // Get's and sets the first stack's free position
+#ifdef CHANGED
+        // Get's and sets the first stack's free position
     int GetAndSetFreeStackLocation ();
     // Free the given position
     void FreeStackLocation (int position);
 
-#ifdef CHANGED    
-    void increaseUserThreads();
-    void decreaseUserThreads();
+    int increaseUserThreads();
+    int decreaseUserThreads();
     int getNumberOfUserThreads();
-
-    void increaseUserProcesses();
-    void decreaseUserProcesses();
-    int getNumberOfUserProcesses();
     
     Semaphore *ExitForMain;    
     
     // Variable for Join functionality
     ListForJoin *activeThreads;
     ListForJoin *activeLocks;
-
-    int pid;
 
 #endif   // END CHANGED
   private:
@@ -75,8 +69,7 @@ class AddrSpace
     // address space
 
 #ifdef CHANGED
-    int numberOfUserThreads;  
-    int numberOfUserProcesses;
+    int numberOfUserThreads;
     
     // Available pages
     BitMap *stackBitMap;

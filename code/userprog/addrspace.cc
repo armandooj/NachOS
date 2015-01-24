@@ -141,8 +141,7 @@ AddrSpace::AddrSpace (OpenFile *executable)
   stackBitMapLock = new Lock("Stack Lock");
   threadsCountLock = new Lock("Threads Count Lock");
   processesCountLock = new Lock("Processes Count Lock");
-  numberOfUserThreads = 1;    // counting the main thread
-  numberOfUserProcesses = 1;      
+  numberOfUserThreads = 1;    // counting the main thread 
   ExitForMain = new Semaphore("Exit for Main", 1);
 
   //For Join Functionality
@@ -270,6 +269,7 @@ Stack BitMap Operations
 int AddrSpace::GetAndSetFreeStackLocation () {
     stackBitMapLock->Acquire();
     int location = stackBitMap->Find();
+    DEBUG('a', "Find stack location %d\n", location);
     stackBitMapLock->Release();
     return location;
 }
@@ -288,36 +288,23 @@ void AddrSpace::FreeStackLocation (int location) {
 //
 //----------------------------------------------------------------------
 
-void AddrSpace::increaseUserThreads() {
+int AddrSpace::increaseUserThreads() {
     threadsCountLock->Acquire();
-    numberOfUserThreads++;
+    int count = ++numberOfUserThreads;
     threadsCountLock->Release();
+    return count;
 }
-void AddrSpace::decreaseUserThreads() {
+
+int AddrSpace::decreaseUserThreads() {
     threadsCountLock->Acquire();
-    numberOfUserThreads--;
+    int count = --numberOfUserThreads;
     threadsCountLock->Release();
+    return count;
 }
 
 int AddrSpace::getNumberOfUserThreads() {
     return numberOfUserThreads;
 }
-
-void AddrSpace::increaseUserProcesses() {
-    processesCountLock->Acquire();
-    numberOfUserProcesses++;
-    processesCountLock->Release();
-}
-void AddrSpace::decreaseUserProcesses() {
-    processesCountLock->Acquire();
-    numberOfUserProcesses--;
-    processesCountLock->Release();
-}
-
-int AddrSpace::getNumberOfUserProcesses() {
-    return numberOfUserProcesses;
-}
-
 
 /*
 Virtual Memory
