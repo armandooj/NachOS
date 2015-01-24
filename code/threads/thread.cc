@@ -15,7 +15,9 @@
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
+#ifdef CHANGED
 #include "userthread.h"
+#endif
 #include "switch.h"
 #include "synch.h"
 #include "system.h"
