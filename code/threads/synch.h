@@ -87,6 +87,9 @@ class Lock
   private:
     const char *name;		// for debugging
     Semaphore *lock;
+    
+    int owner; // ID of the owner of this lock
+    Semaphore *internalLock; 
 };
 
 // The following class defines a "condition variable".  A condition
@@ -143,5 +146,8 @@ class Condition
   private:
     const char *name;
     // plus some other stuff you'll need to define
+    Semaphore *internalLock;
+    Semaphore *CV_sleep; // queue of sleeping thread on this condition
+    int num_sleepers;
 };
 #endif // SYNCH_H
