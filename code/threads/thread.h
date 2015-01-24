@@ -164,7 +164,6 @@ class Thread
     int GetPid();
     void SetPid(int id);
 
-    int Join(int tidToWait);
     void JoinChildren();
     
     Semaphore *joinCondition; // Use this variable to sleep while waiting on Join

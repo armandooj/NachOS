@@ -121,4 +121,44 @@ void do_UserThreadExit() {
     currentThread->Finish();
 }
 
+// return -1 if error, 0 if not running, 1 if success
+int do_UserThreadJoin(int tid) {
+    
+    DEBUG('l', "Begin join, thread %d waiting for %d\n", currentThread->GetTid(), tid);
+    
+    //Sanity check
+    if (tid == currentThread->GetTid())
+        return -1;
+    
+    // check if the thread is in the active thread,
+    if (!currentThread->space->activeThreads->seek(tid))
+        return 0;
+    
+    //build the structure to prepare to sleep, just the semaphore
+    //first, send it to the queue 
+    JoinWaiting* waitingCondition = new JoinWaiting();
+    waitingCondition->tid = currentThread->GetTid();
+    waitingCondition->threadWaiting = currentThread->joinCondition;
+    
+    // add to the queue
+    currentThread->space->activeLocks->AppendTraverse((void*) waitingCondition, tid);
+
+    DEBUG('l', "Insert to waiting thread: %d\n", currentThread->GetTid());
+    DEBUG('l', "Waiting thread list: \n");
+    currentThread->space->activeLocks->PrintContent();
+    
+    // the synchonization part
+    if (!currentThread->space->activeThreads->seek(tid)) {
+        //take off the queue and returning
+        currentThread->space->activeLocks->RemoveTraverse(tid);
+        return 0;
+    } else {
+        // go to sleep
+        DEBUG('l', "Going to sleep: \n");
+        currentThread->joinCondition->P();
+        DEBUG('l', "Waking up \n");
+    }    
+    return 1;   // return after being wake up :D
+}
+
 #endif

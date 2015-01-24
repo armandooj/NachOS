@@ -219,9 +219,8 @@ ExceptionHandler (ExceptionType which)
             }
             case SC_UserThreadJoin:
             {
-                // do_UserThreadJoin(tid);
-                int tid = machine->ReadRegister(4);                
-                machine->WriteRegister(2, currentThread->Join(tid));
+                int tid = machine->ReadRegister(4);                                                
+                machine->WriteRegister(2, do_UserThreadJoin(tid));
                 break;
             }
             case SC_GetChar:
