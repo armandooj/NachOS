@@ -255,7 +255,7 @@ int Machine::GetPIDSeed() {
     PIDseedLock->Acquire();
     PIDseed++;
     PIDseedLock->Release();
-    DEBUG('l', "Seed is: %d\n", PIDseed);
+    // DEBUG('l', "Seed is: %d\n", PIDseed);
     return PIDseed;
 }
 

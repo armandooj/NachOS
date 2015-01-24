@@ -7,8 +7,6 @@
 // TODO DELETE DUMMY
 static void StartProcess(int dummy) {
 
-  printf("StartProcess\n");
-
   DEBUG('t', "StartUserThread with id: %d\n", currentThread->GetPID());
 
   currentThread->space->InitRegisters();
@@ -34,6 +32,8 @@ int do_UserProcessCreate(char *filename) {
   newThread->space = space;
   newThread->SetPID();  // Set new ID
 
+  machine->IncrementProcesses();
+
   // We'll use it to let Fork know it's a thread, and consecuently not setting the address space again
   ThreadParam *threadParam = new ThreadParam();
   threadParam->isProcess = true;  
@@ -55,28 +55,15 @@ void do_UserProcessExit() {
                     machine->numberOfProcesses);
 
   while (currentThread->space->getNumberOfUserThreads() != 0) {
-    currentThread->space->ExitForMain->P();  
+    currentThread->space->ExitForMain->P();
   }
 
   if (machine->numberOfProcesses == 0) {
     interrupt->Halt();
   } else {
-    printf("Finish : %s\n", currentThread->getName());
-    // currentThread->Finish();
+    currentThread->Finish();
   }
-
-  // currentThread->space->decreaseUserThreads();
-
-  // DEBUG('t', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
-  // DEBUG('t', "Number of UserThread: %d\n", currentThread->space->getNumberOfUserThreads());            
   
-  // while (currentThread->space->getNumberOfUserThreads() != 0) {
-  //   currentThread->space->ExitForMain->P();  
-  // }
-
-  // int value = machine->ReadRegister(4);          
-  // DEBUG('a', "Exit program, return value: %d.\n", value);
-  // interrupt->Halt();
 }
 
 #endif
