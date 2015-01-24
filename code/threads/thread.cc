@@ -444,6 +444,10 @@ void Thread::FreeStackLocation() {
   space->FreeStackLocation(stackLocation);
 }
 
+int Thread::GetStackLocation() {
+  return stackLocation;
+}
+
 // Function to get ID
 int Thread::GetPID() {
   return PID;

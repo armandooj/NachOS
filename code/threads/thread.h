@@ -144,6 +144,7 @@ class Thread
     // Stack operations (used also for the ID)        
     int SetStackLocation(AddrSpace *thisThreadSpace);
     void FreeStackLocation();
+    int GetStackLocation();
 
     int GetPID();
     void SetPID();

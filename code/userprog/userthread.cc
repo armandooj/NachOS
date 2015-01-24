@@ -34,8 +34,8 @@ static void StartUserThread(int data) {
   machine->WriteRegister(NextPCReg, threadParam->function + 4);
   
   //reset stack pointer 
-  //currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetTid()));
-  currentThread->SetStackLocation(currentThread->space);
+  currentThread->space->MultiThreadSetStackPointer((3 * PageSize) * (currentThread->GetStackLocation()));
+  //currentThread->SetStackLocation(currentThread->space);
 
   machine->Run();
 }
