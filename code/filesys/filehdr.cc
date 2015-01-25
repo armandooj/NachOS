@@ -54,32 +54,43 @@ FileHeader::Allocate(BitMap *freeMap, int Size)
 { 
     if (Size == 0) return TRUE;
     int i, j, k;
+
 //calculate required number of sectors
     int newSectors = divRoundUp(Size, SectorSize);
 
+//calculate number of allocated indexs
     int index = numSectors / MaxPerSector;
  
-
+//calculate number of needed indexs
     int newindex = (newSectors + numSectors) / MaxPerSector - index;
 
 //NumClear() return available number of sectors in disk
     if ((freeMap->NumClear() < (newindex + newSectors)) || (numBytes + Size > (int)MaxFileSize))
 	return FALSE;		// not enough space
 
+//allocate the initial first sector when file is newly created
     if (numSectors == 0)
         ASSERT (dataSectors[0] = freeMap->Find());
     
+//create a buffer space to store sector# info
     int *dataset = new int[MaxPerSector];
+
+//read the current index# info into buffer
     synchDisk->ReadSector(dataSectors[index],(char*)dataset);
 
+//k is the number of byte;j is the number of numSectors;i is the number of needed sectors
     for (k = 0,i = 0,j = numSectors % MaxPerSector;i < newSectors;i++)
     {
         while (k < Size)
         {
-              if (!(numBytes % SectorSize))
+              if (!(numBytes % SectorSize)) //if number of byte does reach one sector size,we need to jump into next sector
               {
+
+                   //allocate new sector space
                     dataset[j] = freeMap->Find();
                     j = (j + 1) % MaxPerSector;
+
+                   //if number of numSectors reach one index size,we need to jump into next index
                     if (j == 0)
                     {
                           synchDisk->WriteSector(dataSectors[index],(char*)dataset);
@@ -90,12 +101,16 @@ FileHeader::Allocate(BitMap *freeMap, int Size)
                           }
                     }
               }
+
+              //the number of k reach one sector size,we jump out to increment i
               if ((k > 0) && (!(k % SectorSize)))
               {
                     numBytes++;
                     k++;
                     break;
               }
+   
+              //else we keep increasing byte by byte
               numBytes++;
               k++;
         }
