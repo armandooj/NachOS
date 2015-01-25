@@ -74,8 +74,12 @@ class FileSystem {
 					// the disk, so initialize the directory
     					// and the bitmap of free blocks.
 
+#ifdef CHANGED
     bool Create(const char *name);  	
 					// Create a file (UNIX creat)
+#else
+    bool Create(const char *name, int intialize);
+#endif
 
     OpenFile* Open(const char *name); 	// Open a file (UNIX open)
 
@@ -85,17 +89,8 @@ class FileSystem {
 
     void Print();			// List all the files and their contents
 
-    OpenFile *FreeMap();
 #ifdef CHANGED
-    char *Pwd();                       // Show current dir path
-
-    bool MkDir(const char *name);
-
-    bool RmDir(const char *name);
-
-    bool ChDir(const char *name);
-
-    void ListDir();
+    OpenFile *FreeMap();
 #endif
 
   private:
@@ -103,9 +98,6 @@ class FileSystem {
 					// represented as a file
    OpenFile* directoryFile;		// "Root" directory -- list of 
 					// file names, represented as a file
-#ifdef CHANGED
-   char *currentDir;                    //store current dir path
-#endif
 };
 
 #endif // FILESYS

@@ -185,9 +185,14 @@ FileSystem::FileSystem(bool format)
 //	"initialSize" -- size of file to be created
 //----------------------------------------------------------------------
 
+#ifdef CHANGED
 //modified version to make the size of newly created file to be zero but increment dynamicallly
 bool
 FileSystem::Create(const char *name)
+#else
+bool
+FileSystem::Create(const char *name, int initialSize)
+#endif
 {
     Directory *directory;
     BitMap *freeMap;
@@ -225,7 +230,11 @@ FileSystem::Create(const char *name)
             success = FALSE;	// no space in directory
 	else {
     	    hdr = new FileHeader;
+#ifdef CHANGED
 	    if (!hdr->Allocate(freeMap, 0)) //zero space when initialized
+#else
+            if (!hdr->Allocate(freeMap, initialSize))
+#endif
             	success = FALSE;	// no space on disk for data
 	    else {	
 	    	success = TRUE;
@@ -310,7 +319,11 @@ FileSystem::Remove(const char *name)
     freeMap->FetchFrom(freeMapFile);
 
 //deallocate all space for the file
+#ifdef CHANGED
     fileHdr->Deallocate(freeMap,0);  		// remove data blocks
+#else
+    fileHdr->Deallocate(freeMap);
+#endif
 
 //deallocate for the file header itself
     freeMap->Clear(sector);			// remove header block
@@ -383,8 +396,10 @@ FileSystem::Print()
     delete directory;
 } 
 
+#ifdef CHANGED
 OpenFile *
 FileSystem::FreeMap()
 {
     return freeMapFile;
 }
+#endif

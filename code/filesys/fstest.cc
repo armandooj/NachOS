@@ -21,7 +21,7 @@
 #include "disk.h"
 #include "stats.h"
 
-#define TransferSize 	100 	//make it small, just to be difficult
+#define TransferSize 	10 	//make it small, just to be difficult
 
 //----------------------------------------------------------------------
 // Copy
@@ -31,6 +31,7 @@
 void
 Copy(const char *from, const char *to)
 {
+#ifdef CHANGED
     FILE *fp;
     OpenFile* openFile;
     int totalread = 0,fileLength,amountRead;
@@ -74,6 +75,44 @@ Copy(const char *from, const char *to)
 // Close the UNIX and the Nachos files
     delete openFile;
     fclose(fp);
+#else
+     FILE *fp;
+    OpenFile* openFile;
+    int amountRead, fileLength;
+    char *buffer;
+
+// Open UNIX file
+    if ((fp = fopen(from, "r")) == NULL) {
+        printf("Copy: couldn't open input file %s\n", from);
+        return;
+    }
+
+// Figure out length of UNIX file
+    fseek(fp, 0, 2);
+    fileLength = ftell(fp);
+    fseek(fp, 0, 0);
+
+// Create a Nachos file of the same length
+    DEBUG('f', "Copying file %s, size %d, to file %s\n", from, fileLength, to);
+    if (!fileSystem->Create(to, fileLength)) {   // Create Nachos file
+        printf("Copy: couldn't create output file %s\n", to);
+        fclose(fp);
+        return;
+    }
+
+    openFile = fileSystem->Open(to);
+    ASSERT(openFile != NULL);
+
+// Copy the data in TransferSize chunks
+    buffer = new char[TransferSize];
+    while ((amountRead = fread(buffer, sizeof(char), TransferSize, fp)) > 0)
+        openFile->Write(buffer, amountRead);
+    delete [] buffer;
+
+// Close the UNIX and the Nachos files
+    delete openFile;
+    fclose(fp);
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -128,7 +167,11 @@ FileWrite()
 
     printf("Sequential write of %d byte file, in %zd byte chunks\n", 
 	FileSize, ContentSize);
+#ifdef CHANGED
     if (!fileSystem->Create(FileName)) {
+#else
+    if (!fileSystem->Create(FileName,0)) {
+#endif
       printf("Perf test: can't create %s\n", FileName);
       return;
     }
@@ -190,6 +233,7 @@ PerformanceTest()
     stats->Print();
 }
 
+#ifdef CHANGED
 void nachcopy(const char *file1, const char *file2)
 {
     OpenFile *fopen1 = NULL;
@@ -221,3 +265,4 @@ void nachcopy(const char *file1, const char *file2)
 
     return;
 }
+#endif

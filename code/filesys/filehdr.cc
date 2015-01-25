@@ -27,6 +27,8 @@
 #include "system.h"
 #include "filehdr.h"
 
+#ifdef CHANGED
+
 FileHeader::FileHeader()
 {
      numBytes = 0;
@@ -36,6 +38,7 @@ FileHeader::FileHeader()
 FileHeader::~FileHeader()
 {
 }
+#endif
 //----------------------------------------------------------------------
 // FileHeader::Allocate
 // 	Initialize a fresh file header for a newly created file.
@@ -52,6 +55,7 @@ FileHeader::~FileHeader()
 bool
 FileHeader::Allocate(BitMap *freeMap, int Size)
 { 
+#ifdef CHANGED
     if (Size == 0) return TRUE;
     int i, j, k;
 
@@ -117,6 +121,15 @@ FileHeader::Allocate(BitMap *freeMap, int Size)
     }
     synchDisk->WriteSector(dataSectors[index],(char*)dataset);
     numSectors = j + index * MaxPerSector;
+#else
+    numBytes = Size;
+    numSectors  = divRoundUp(Size, SectorSize);
+    if (freeMap->NumClear() < numSectors)
+        return FALSE;           // not enough space
+
+    for (int i = 0; i < numSectors; i++)
+        dataSectors[i] = freeMap->Find();
+#endif
     return TRUE;
 }
 
@@ -128,6 +141,7 @@ FileHeader::Allocate(BitMap *freeMap, int Size)
 //      "reservebytes" start from 1 byte if we want to reserve a certain number of bytes
 //----------------------------------------------------------------------
 
+#ifdef CHANGED
 void 
 FileHeader::Deallocate(BitMap *freeMap, int reservebytes)
 {
@@ -161,6 +175,16 @@ FileHeader::Deallocate(BitMap *freeMap, int reservebytes)
     }
     numSectors = freesector;
     numBytes = reservebytes;
+#else
+void
+FileHeader::Deallocate(BitMap *freeMap)
+{
+
+    for (int i = 0; i < numSectors; i++) {
+        ASSERT(freeMap->Test((int) dataSectors[i]));  // ought to be marked!
+        freeMap->Clear((int) dataSectors[i]);
+    }
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -202,6 +226,7 @@ FileHeader::WriteBack(int sector)
 int
 FileHeader::ByteToSector(int offset)
 {
+#ifdef CHANGED
     if(offset > FileLength())
         return -1;
     int sectors,indexs;
@@ -215,6 +240,9 @@ FileHeader::ByteToSector(int offset)
 
 //return sector# where offset byte data block settled in
     return(dataset[sectors%MaxPerSector]);
+#else
+    return(dataSectors[offset / SectorSize]);
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -237,6 +265,7 @@ FileHeader::FileLength()
 void
 FileHeader::Print()
 {
+#ifdef CHANGED
     int i, j, k, t, index = 0;
     char *data = new char[SectorSize];
     int *dataset = new int[MaxPerSector];
@@ -273,4 +302,24 @@ FileHeader::Print()
     } 
     delete [] data;
     delete [] dataset;
+#else
+     int i, j, k;
+    char *data = new char[SectorSize];
+
+    printf("FileHeader contents.  File size: %d.  File blocks:\n", numBytes);
+    for (i = 0; i < numSectors; i++)
+        printf("%d ", dataSectors[i]);
+    printf("\nFile contents:\n");
+    for (i = k = 0; i < numSectors; i++) {
+        synchDisk->ReadSector(dataSectors[i], data);
+        for (j = 0; (j < SectorSize) && (k < numBytes); j++, k++) {
+            if ('\040' <= data[j] && data[j] <= '\176')   // isprint(data[j])
+                printf("%c", data[j]);
+            else
+                printf("\\%x", (unsigned char)data[j]);
+        }
+        printf("\n");
+    }
+    delete [] data;
+#endif
 }

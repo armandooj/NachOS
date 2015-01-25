@@ -32,7 +32,9 @@ OpenFile::OpenFile(int sector)
     hdr = new FileHeader;
     hdr->FetchFrom(sector);
     seekPosition = 0;
+#ifdef CHANGED
     Sector = sector;
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -85,6 +87,7 @@ OpenFile::Write(const char *into, int numBytes)
 {
    int result = WriteAt(into, numBytes, seekPosition);
    seekPosition += result;
+#ifdef CHANGED
    if (seekPosition < hdr->FileLength()) 
    {
         int left;
@@ -99,6 +102,7 @@ OpenFile::Write(const char *into, int numBytes)
              delete empty;
         }
    }
+#endif
    return result;
 }
 
@@ -172,6 +176,7 @@ OpenFile::WriteAt(const char *from, int numBytes, int position)
     bool firstAligned, lastAligned;
     char *buf;
 
+#ifdef CHANGED
     if ((numBytes <= 0) || (position > fileLength))
 	return 0;				// check request
     if ((position + numBytes) > fileLength)
@@ -185,6 +190,12 @@ OpenFile::WriteAt(const char *from, int numBytes, int position)
         freemap->WriteBack(fileSystem->FreeMap());
         delete freemap;
     }   
+#else
+    if ((numBytes <= 0) || (position >= fileLength))
+        return 0;                               // check request
+    if ((position + numBytes) > fileLength)
+        numBytes = fileLength - position;
+#endif
     DEBUG('f', "Writing %d bytes at %d, from file of length %d.\n", 	
 			numBytes, position, fileLength);
 

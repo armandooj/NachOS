@@ -105,6 +105,7 @@ ExceptionHandler (ExceptionType which)
               break;
             }
 
+/*
             case SC_Create: {
               int res,rg4 = machine->ReadRegister (4); 
               char buffer[FileNameMaxLen] = {};
@@ -154,7 +155,7 @@ ExceptionHandler (ExceptionType which)
                  file->Write(buffer,size);
                }
               } while(status == false);
-              
+  */            
 
             case SC_PutChar: {
               int rg4 = machine->ReadRegister (4);

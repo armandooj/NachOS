@@ -60,7 +60,9 @@ extern void Print (char *file), PerformanceTest (void);
 extern void StartProcess (char *file), ConsoleTest (char *in, char *out);
 extern void SynchConsoleTest (char *in, char *out);
 extern void MailTest (int networkID);
+#ifdef CHANGED
 extern void nachcopy (const char* from, const char* to);
+#endif
 
 //----------------------------------------------------------------------
 // main
@@ -137,36 +139,45 @@ main (int argc, char **argv)
 		ASSERT (argc > 2);
 		Copy (*(argv + 1), *(argv + 2));
 		argCount = 3;
+          interrupt->Halt ();
 	    }
+#ifdef CHANGED
           else if(!strcmp (*argv, "-ncp"))
             {
                 ASSERT (argc > 2);
                 nachcopy (*(argv + 1), *(argv + 2));
                 argCount = 3;
+          interrupt->Halt ();
             }
+#endif
 	  else if (!strcmp (*argv, "-p"))
 	    {			// print a Nachos file
 		ASSERT (argc > 1);
 		Print (*(argv + 1));
 		argCount = 2;
+          interrupt->Halt ();
 	    }
 	  else if (!strcmp (*argv, "-r"))
 	    {			// remove Nachos file
 		ASSERT (argc > 1);
 		fileSystem->Remove (*(argv + 1));
 		argCount = 2;
+          interrupt->Halt ();
 	    }
 	  else if (!strcmp (*argv, "-l"))
 	    {			// list Nachos directory
 		fileSystem->List ();
+          interrupt->Halt ();
 	    }
 	  else if (!strcmp (*argv, "-D"))
 	    {			// print entire filesystem
 		fileSystem->Print ();
+          interrupt->Halt ();
 	    }
 	  else if (!strcmp (*argv, "-t"))
 	    {			// performance test
 		PerformanceTest ();
+          interrupt->Halt ();
 	    }
 /*
           else if (!strcmp (*argv, "-create"))
