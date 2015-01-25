@@ -15,8 +15,16 @@
 
 #include "copyright.h"
 #include "filesys.h"
+#include "bitmap.h"
 
-#define UserStackSize		1024	// increase this as necessary!
+#ifdef CHANGED
+#include "synch.h"
+#include "list.h"
+#endif
+
+#define UserStackSize		2048	// increase this as necessary!
+
+class Semaphore;    //forward declaration
 
 class AddrSpace
 {
@@ -31,15 +39,46 @@ class AddrSpace
 
     void SaveState ();		// Save/restore address space-specific
     void RestoreState ();	// info on a context switch 
-#ifdef CHANGED
-    void SetStackPointer (int offset);
-#endif
+    
+    void MultiThreadSetStackPointer(unsigned int newPositionOffset);
 
+    // Returns how many threads the system can handle
+    int GetMaxNumThreads ();
+
+#ifdef CHANGED
+        // Get's and sets the first stack's free position
+    int GetAndSetFreeStackLocation ();
+    // Free the given position
+    void FreeStackLocation (int position);
+
+    int increaseUserThreads();
+    int decreaseUserThreads();
+    int getNumberOfUserThreads();
+    
+    Semaphore *ExitForMain;    
+    
+    // Variable for Join functionality
+    ListForJoin *activeThreads;
+    ListForJoin *activeLocks;
+
+#endif   // END CHANGED
   private:
-      TranslationEntry * pageTable;	// Assume linear page table translation
+    TranslationEntry * pageTable;	// Assume linear page table translation
     // for now!
     unsigned int numPages;	// Number of pages in the virtual 
     // address space
+
+#ifdef CHANGED
+    int numberOfUserThreads;
+    
+    // Available pages
+    BitMap *stackBitMap;
+    Lock *stackBitMapLock;
+    Lock *threadsCountLock;
+    Lock *processesCountLock;
+
+#endif   // END CHANGED
+
 };
 
 #endif // ADDRSPACE_H

@@ -15,7 +15,9 @@
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
-#include "thread.h"
+#ifdef CHANGED
+#include "userthread.h"
+#endif
 #include "switch.h"
 #include "synch.h"
 #include "system.h"
@@ -45,7 +47,12 @@ Thread::Thread (const char *threadName)
     // user threads.
     for (int r=NumGPRegs; r<NumTotalRegs; r++)
       userRegisters[r] = 0;
-#endif
+      
+#ifdef CHANGED
+    joinCondition = new Semaphore("Sleep For Join", 0);
+#endif  // End CHANGED
+#endif //End USER_PROGRAM
+
 }
 
 //----------------------------------------------------------------------
@@ -65,8 +72,13 @@ Thread::~Thread ()
     DEBUG ('t', "Deleting thread \"%s\"\n", name);
 
     ASSERT (this != currentThread);
-    if (stack != NULL)
-	DeallocBoundedArray ((char *) stack, StackSize * sizeof (int));
+    if (stack != NULL) 
+      DeallocBoundedArray ((char *) stack, StackSize * sizeof (int));
+
+#ifdef CHANGED	
+    //deallocate semaphore
+    delete joinCondition;
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -98,14 +110,22 @@ Thread::Fork (VoidFunctionPtr func, int arg)
     StackAllocate (func, arg);
 
 #ifdef USER_PROGRAM
+#ifdef CHANGED
 
-    // LB: The addrspace should be tramsitted here, instead of later in
-    // StartProcess, so that the pageTable can be restored at
-    // launching time. This is crucial if the thread is launched with
-    // an already running program, as in the "fork" Unix system call. 
-    
-    // LB: Observe that currentThread->space may be NULL at that time.
+    ThreadParam *threadParam = (ThreadParam *) arg;
+    if (!threadParam->isProcess) {
+      // LB: The addrspace should be tramsitted here, instead of later in
+      // StartProcess, so that the pageTable can be restored at
+      // launching time. This is crucial if the thread is launched with
+      // an already running program, as in the "fork" Unix system call. 
+      
+      // LB: Observe that currentThread->space may be NULL at that time.
+      this->space = currentThread->space;
+    }
+
+#else
     this->space = currentThread->space;
+#endif
 
 #endif // USER_PROGRAM
 
@@ -114,6 +134,7 @@ Thread::Fork (VoidFunctionPtr func, int arg)
     // are disabled!
     (void) interrupt->SetLevel (oldLevel);
 }
+
 
 //----------------------------------------------------------------------
 // Thread::CheckOverflow
@@ -204,11 +225,10 @@ Thread::Yield ()
     DEBUG ('t', "Yielding thread \"%s\"\n", getName ());
 
     nextThread = scheduler->FindNextToRun ();
-    if (nextThread != NULL)
-      {
-	  scheduler->ReadyToRun (this);
-	  scheduler->Run (nextThread);
-      }
+    if (nextThread != NULL) {
+      scheduler->ReadyToRun (this);
+      scheduler->Run (nextThread);
+    }
     (void) interrupt->SetLevel (oldLevel);
 }
 
@@ -242,8 +262,9 @@ Thread::Sleep ()
     DEBUG ('t', "Sleeping thread \"%s\"\n", getName ());
 
     status = BLOCKED;
+    
     while ((nextThread = scheduler->FindNextToRun ()) == NULL)
-	interrupt->Idle ();	// no one to run, wait for an interrupt
+      interrupt->Idle ();	// no one to run, wait for an interrupt
 
     scheduler->Run (nextThread);	// returns when we've been signalled
 }
@@ -405,9 +426,38 @@ Thread::SaveUserState ()
 void
 Thread::RestoreUserState ()
 {
-    for (int i = 0; i < NumTotalRegs; i++)
-	machine->WriteRegister (i, userRegisters[i]);
+  for (int i = 0; i < NumTotalRegs; i++)
+    machine->WriteRegister (i, userRegisters[i]);
 }
 #endif
 
+
+#ifdef CHANGED
+
+// Stack BitMap
+
+int Thread::SetStackLocation(AddrSpace *thisThreadSpace) {
+  // WARNING: We need to set it's address space first so that we can access the stack!
+  stackLocation = thisThreadSpace->GetAndSetFreeStackLocation();
+  return stackLocation;
+}
+
+void Thread::FreeStackLocation() {
+  space->FreeStackLocation(stackLocation);
+}
+
+int Thread::GetStackLocation() {
+  return stackLocation;
+}
+
+// Function to get ID
+int Thread::GetPID() {
+  return PID;
+}
+
+void Thread::SetPID() {
+    PID = machine->GetPIDSeed();
+}
+
+#endif
 

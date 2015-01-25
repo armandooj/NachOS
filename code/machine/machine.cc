@@ -71,6 +71,14 @@ Machine::Machine(bool debug)
     pageTable = NULL;
 #endif
 
+#ifdef CHANGED
+    numberOfProcesses = 1;
+    processCountLock = new Lock("Process count lock");
+    
+    PIDseed = 100;
+    PIDseedLock = new Lock("PID seed lock");
+#endif
+
     singleStep = debug;
     CheckEndian();
 }
@@ -85,6 +93,10 @@ Machine::~Machine()
     delete [] mainMemory;
     if (tlb != NULL)
         delete [] tlb;
+#ifdef CHANGED
+    delete processCountLock;
+    delete PIDseedLock;
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -206,15 +218,46 @@ Machine::DumpState()
 //----------------------------------------------------------------------
 
 int Machine::ReadRegister(int num)
-    {
+{
 	ASSERT((num >= 0) && (num < NumTotalRegs));
 	return registers[num];
-    }
+}
 
 void Machine::WriteRegister(int num, int value)
-    {
+{
 	ASSERT((num >= 0) && (num < NumTotalRegs));
 	// DEBUG('m', "WriteRegister %d, value %d\n", num, value);
 	registers[num] = value;
-    }
+}
+
+
+#ifdef CHANGED
+/*
+Thread and process counters
+*/
+
+
+int Machine::IncrementProcesses() {
+    processCountLock->Acquire();
+    numberOfProcesses++;
+    processCountLock->Release();
+    return numberOfProcesses;
+}
+
+int Machine::DecrementProcesses() {
+    processCountLock->Acquire();
+    numberOfProcesses--;
+    processCountLock->Release();
+    return numberOfProcesses;
+}
+
+int Machine::GetPIDSeed() {
+    PIDseedLock->Acquire();
+    PIDseed++;
+    PIDseedLock->Release();
+    // DEBUG('l', "Seed is: %d\n", PIDseed);
+    return PIDseed;
+}
+
+#endif
 

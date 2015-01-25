@@ -26,6 +26,9 @@
 #include "syscall.h"
 #ifdef CHANGED
 #include "userthread.h"
+#include "userprocess.h"
+#include "synch.h"
+#include "scheduler.h"
 #endif
 
 //----------------------------------------------------------------------
@@ -43,7 +46,42 @@ UpdatePC ()
     machine->WriteRegister (NextPCReg, pc);
 }
 
-
+#ifdef CHANGED
+int copyStringFromMachine(int from, char *to, unsigned size) {
+ int count = 0, i = 0, startfrom = from, buffer;
+ unsigned int totalbyte = 0;
+ bool status = false;
+ if(from % 4) 
+  startfrom = from - (from % 4);
+ do {
+  machine->ReadMem(startfrom+4*count,4,&buffer);
+  unsigned char* point = (unsigned char*) &buffer;
+  for(i=0;i<4;i++) { 
+   if(startfrom + i < from && count == 0) continue;
+   if(*(point+i) == '\0') {
+     status = true;
+     break;
+   }
+   if(totalbyte > size) {
+     status = true;
+     break;
+   }
+   else {
+     to[totalbyte] = *(point+i);
+     totalbyte++;
+   }
+  }
+  count++;
+ } while(status == false);
+ if(totalbyte == size) {
+  to[size-1] = '\0';
+  totalbyte--;
+ }
+ else
+  to[totalbyte] = '\0';
+ return totalbyte;
+}
+#endif
 //----------------------------------------------------------------------
 // ExceptionHandler
 //      Entry point into the Nachos kernel.  Called when a user program
@@ -218,11 +256,37 @@ ExceptionHandler (ExceptionType which)
             }
 
             case SC_UserThreadCreate: {
-              DEBUG('a', "UserThreadCreate, initiated by user program.\n");
-              int rg4 = machine->ReadRegister (4);
-              int rg5 = machine->ReadRegister (5);
-              do_UserThreadCreate(rg4, rg5);
+              int f = machine->ReadRegister(4);
+              int arg = machine->ReadRegister(5);
+              int return_function = machine->ReadRegister(6);
+              int thread_id = do_UserThreadCreate(f, arg, return_function);
+              machine->WriteRegister(2, thread_id);
               break;
+            }
+
+            case SC_UserThreadExit:
+            {
+                do_UserThreadExit();
+                break;
+            }
+
+            case SC_UserThreadJoin:
+            {
+                int tid = machine->ReadRegister(4);
+                machine->WriteRegister(2, do_UserThreadJoin(tid));
+                break;
+            }
+
+            case SC_ForkExec:
+            {
+                int s = machine->ReadRegister(4);
+
+                char str[100] = {};
+                copyStringFromMachine(s, str, 100);
+                // printf("New file name: %s\n", str);
+
+                do_UserProcessCreate(str);
+                break;
             }
 
             default: {
@@ -237,40 +301,3 @@ ExceptionHandler (ExceptionType which)
      UpdatePC ();
 #endif
 }
-
-#ifdef CHANGED
-int copyStringFromMachine(int from, char *to, unsigned size) {
- int count = 0, i = 0, startfrom = from, buffer;
- unsigned int totalbyte = 0;
- bool status = false;
- if(from % 4) 
-  startfrom = from - (from % 4);
- do {
-  machine->ReadMem(startfrom+4*count,4,&buffer);
-  unsigned char* point = (unsigned char*) &buffer;
-  for(i=0;i<4;i++) { 
-   if(startfrom + i < from && count == 0) continue;
-   if(*(point+i) == '\0') {
-     status = true;
-     break;
-   }
-   if(totalbyte > size) {
-     status = true;
-     break;
-   }
-   else {
-     to[totalbyte] = *(point+i);
-     totalbyte++;
-   }
-  }
-  count++;
- } while(status == false);
- if(totalbyte == size) {
-  to[size-1] = '\0';
-  totalbyte--;
- }
- else
-  to[totalbyte] = '\0';
- return totalbyte;
-}
-#endif

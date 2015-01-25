@@ -102,9 +102,35 @@ GetInt:
 	.ent	UserThreadCreate
 UserThreadCreate:
 	addiu $2,$0,SC_UserThreadCreate
+        addiu $6,$0,UserThreadExit // Pass as a parameter the return function
 	syscall
 	j	$31
 	.end UserThreadCreate
+
+.globl UserThreadExit
+        .ent   UserThreadExit
+UserThreadExit:
+        addiu $2,$0, SC_UserThreadExit
+        syscall
+        j       $31
+        .end UserThreadExit
+
+    .globl UserThreadJoin
+        .ent   UserThreadJoin
+UserThreadJoin:
+    addiu $2,$0, SC_UserThreadJoin
+        syscall
+        j       $31
+        .end UserThreadJoin
+
+.globl ForkExec
+      .ent      ForkExec
+ForkExec:
+       addiu $2,$0,SC_ForkExec
+       syscall
+       j        $31
+       .end ForkExec
+
 #endif
 
 	.globl Exit

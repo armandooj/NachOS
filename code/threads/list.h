@@ -32,6 +32,7 @@ class ListElement
     ListElement *next;		// next element on list, 
     // NULL if this is the last
     long long key;			// priority, for a sorted list
+                            // For the ListForJoin list, this is the key of each item.
     void *item;			// pointer to item on the list
 };
 
@@ -60,9 +61,23 @@ class List
     void SortedInsert (void *item, long long sortKey);	// Put item into list
     void *SortedRemove (long long *keyPtr);	// Remove first item from list
 
-  private:
-      ListElement * first;	// Head of the list, NULL if list is empty
+  protected:
+    ListElement * first;	// Head of the list, NULL if list is empty
     ListElement *last;		// Last element of list
 };
+
+#ifdef CHANGED
+class ListForJoin:List 
+{
+    public:
+        // Routine to traverse and get items. For get, use the sortedInsert
+        void AppendTraverse(void*item, int key);
+        void *RemoveTraverse(int key);  
+        void PrintContent();
+        bool seek(int key);
+        bool isEmpty();
+    private:
+};
+#endif
 
 #endif // LIST_H

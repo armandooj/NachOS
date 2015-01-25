@@ -43,6 +43,7 @@
 #ifdef USER_PROGRAM
 #include "machine.h"
 #include "addrspace.h"
+#include "synch.h"
 #endif
 
 // CPU register state to be saved on context switch.  
@@ -59,6 +60,7 @@
 // Thread state
 enum ThreadStatus
 { JUST_CREATED, RUNNING, READY, BLOCKED };
+
 
 // external function, dummy routine whose sole job is to call Thread::Print
 extern void ThreadPrint (int arg);
@@ -83,8 +85,8 @@ class Thread
     int machineState[MachineStateSize];	// all registers except for stackTop
 
   public:
-      Thread (const char *debugName);	// initialize a Thread 
-     ~Thread ();		// deallocate a Thread
+    Thread (const char *debugName);	// initialize a Thread 
+    ~Thread ();		// deallocate a Thread
     // NOTE -- thread being deleted
     // must not be running when delete 
     // is called
@@ -92,6 +94,7 @@ class Thread
     // basic thread operations
 
     void Fork (VoidFunctionPtr func, int arg);	// Make thread run (*func)(arg)
+
     void Yield ();		// Relinquish the CPU if any 
     // other thread is runnable
     void Sleep ();		// Put the thread to sleep and 
@@ -102,15 +105,15 @@ class Thread
     // overflowed its stack
     void setStatus (ThreadStatus st)
     {
-	status = st;
+	   status = st;
     }
     const char *getName ()
     {
-	return (name);
+	   return (name);
     }
     void Print ()
     {
-	printf ("%s, ", name);
+	   printf ("%s, ", name);
     }
 
   private:
@@ -137,7 +140,27 @@ class Thread
     void SaveUserState ();	// save user-level register state
     void RestoreUserState ();	// restore user-level register state
 
+#ifdef CHANGED
+    // Stack operations (used also for the ID)        
+    int SetStackLocation(AddrSpace *thisThreadSpace);
+    void FreeStackLocation();
+    int GetStackLocation();
+
+    int GetPID();
+    void SetPID();
+    
+    Semaphore *joinCondition; // Use this variable to sleep while waiting on Join
+
+#endif
+
     AddrSpace *space;		// User code this thread is running.
+
+#ifdef CHANGED
+  private:
+    int PID;
+    int stackLocation;
+#endif
+
 #endif
 };
 
