@@ -59,6 +59,7 @@
 #include <fstream>
 #include <iostream>
 #include <unistd.h>
+#include <string>
 #endif
 
 
@@ -73,6 +74,7 @@ extern void MailTest (int networkID);
 #ifdef CHANGED
 #ifdef FILESYS
 extern void Test_FileSystem();
+extern void Test_FileSystem2();
 #endif
 #endif
 
@@ -184,11 +186,27 @@ main (int argc, char **argv)
             argCount = 2;
             interrupt->Halt ();
         }
+            else if (!strcmp (*argv, "-cd"))
+        {			// create Nachos directory
+            fileSystem->Directory_path(*(argv + 1));
+            argCount = 2;
+            interrupt->Halt ();
+        }
         else if (!strcmp(*argv, "-ftest")) {
 			Test_FileSystem();
 			argCount =2;
 			interrupt->Halt ();
 		}
+		else if (!strcmp (*argv, "-test"))
+	    {
+	    	Test_FileSystem2();
+			argCount =2;
+			interrupt->Halt ();
+
+	   
+		interrupt->Halt ();
+		}
+	    
         #endif
 
 	  else if (!strcmp (*argv, "-D"))
@@ -200,7 +218,7 @@ main (int argc, char **argv)
 		PerformanceTest ();
 		interrupt->Halt ();
 	    }
-
+	  
 #endif // FILESYS
 #ifdef NETWORK
 	  if (!strcmp (*argv, "-o"))

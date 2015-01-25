@@ -150,6 +150,24 @@ void Test_FileSystem() {
     fileSystem->Directory_path("../");
 }
 
+void Test_FileSystem2() {
+    
+    Copy("../filesys/test/medium", "Medium1");
+    fileSystem->CreateDirectory("Pdir");
+    fileSystem->Directory_path("Pdir/");
+
+   fileSystem->CreateDirectory("Pdir2");
+    fileSystem->Directory_path("Pdir2/");
+     Copy("../filesys/test/medium", "Test2");
+
+    fileSystem->Directory_path("..");
+
+fileSystem->Directory_path("..");
+fileSystem->ChangeDirectory("/Pdir/Pdir2");
+    fileSystem->List ();
+}
+
+
 #endif
 
 #endif  //CHANGED
