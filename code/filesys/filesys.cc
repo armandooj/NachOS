@@ -628,8 +628,28 @@ void FileSystem::ChangeDirectory    ( const char* filename )
 
     // Construct string
   
+}
 
-    
+bool FileSystem:: DeleteDirectory (char *name)
+{
+
+	Directory *directory;
+    //BitMap *freeMap;
+    //FileHeader *hdr;
+    //int sector;
+    bool success;
+    success= TRUE;
+
+    directory = new Directory(NumDirEntries);
+    directory->FetchFrom(directoryFile);
+
+    if (directory->IsEmpty() == false)
+      printf("Can't delete as it is a non empty directory /n")	;
+  else  
+    printf("Empty Directory \n");
+
+return success;
+
 
 }
 

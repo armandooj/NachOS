@@ -210,3 +210,21 @@ Directory::Print()
     printf("\n");
     delete hdr;
 }
+
+
+
+
+bool
+Directory::IsEmpty()
+{
+    bool test = true;
+    for (int i = 2; i < tableSize; i++)
+    if (table[i].inUse)
+    {
+        
+        test =false ;
+        break;
+
+    }
+    return test;
+}

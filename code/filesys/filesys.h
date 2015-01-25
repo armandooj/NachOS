@@ -107,6 +107,7 @@ class FileSystem {
      bool CreateDirectory(const char *name);
      void   ChangeDirectory(const  char* filename); 
      OpenFile *FreeMap();
+     bool DeleteDirectory (char *name);
   #endif
 
   private:

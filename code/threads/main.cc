@@ -206,6 +206,17 @@ main (int argc, char **argv)
 	   
 		interrupt->Halt ();
 		}
+
+		else if (!strcmp (*argv, "-remove"))
+	    {
+	    	bool test = fileSystem->DeleteDirectory(*(argv + 1));
+			if(test)
+				printf ( "  \n ");
+			else
+			printf ( "  \n "); 
+	   
+		interrupt->Halt ();
+		}
 	    
         #endif
 
