@@ -291,7 +291,7 @@ PostOffice::Send(PacketHeader pktHdr, MailHeader mailHdr, const char* data)
 }
 
 //----------------------------------------------------------------------
-// PostOffice::Send
+// PostOffice::Receive
 // 	Retrieve a message from a specific box if one is available, 
 //	otherwise wait for a message to arrive in the box.
 //

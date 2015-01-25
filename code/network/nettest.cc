@@ -22,6 +22,16 @@
 #include "network.h"
 #include "post.h"
 #include "interrupt.h"
+#include <string.h>
+
+void showExample(int farAddr);
+void send10Messages(int farAddr);
+
+void
+MailTest(int farAddr)
+{
+    send10Messages(farAddr);
+}
 
 // Test out message delivery, by doing the following:
 //	1. send a message to the machine with ID "farAddr", at mail box #0
@@ -30,9 +40,7 @@
 //	4. wait for an acknowledgement from the other machine to our 
 //	    original message
 
-void
-MailTest(int farAddr)
-{
+void showExample(int farAddr) {
     PacketHeader outPktHdr, inPktHdr;
     MailHeader outMailHdr, inMailHdr;
     const char *data = "Hello there!";
@@ -69,4 +77,48 @@ MailTest(int farAddr)
 
     // Then we're done!
     interrupt->Halt();
+}
+
+void send10Messages(int farAddr){
+
+    PacketHeader outPktHdr, inPktHdr;
+    MailHeader outMailHdr, inMailHdr;
+    char data [30];
+    char ack [30];
+    char buffer[MaxMailSize];
+
+    for (int i = 0; i < 10; i++) {
+    
+        // construct packet, mail header for original message
+        // To: destination machine, mailbox 0
+        // From: our machine, reply to: mailbox 1
+        sprintf(data, "Message %d", i);
+        outPktHdr.to = farAddr;		
+        outMailHdr.to = 0;
+        outMailHdr.from = 1;
+        outMailHdr.length = strlen(data) + 1;
+
+        // Send the first message
+        postOffice->Send(outPktHdr, outMailHdr, data); 
+
+        // Wait for the first message from the other machine
+        postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+        printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+        fflush(stdout);
+
+        // Send acknowledgement to the other machine (using "reply to" mailbox
+        // in the message that just arrived
+        sprintf(ack, "Got Message %d", i);
+        outPktHdr.to = inPktHdr.from;
+        outMailHdr.to = inMailHdr.from;
+        outMailHdr.length = strlen(ack) + 1;
+        postOffice->Send(outPktHdr, outMailHdr, ack); 
+
+        // Wait for the ack from the other machine to the first message we sent.
+        postOffice->Receive(1, &inPktHdr, &inMailHdr, buffer);
+        printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+        fflush(stdout);
+    }
+    // Then we're done!
+    interrupt->Halt();  
 }
