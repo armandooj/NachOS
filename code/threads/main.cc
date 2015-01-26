@@ -73,8 +73,9 @@ extern void MailTest (int networkID);
 
 #ifdef CHANGED
 #ifdef FILESYS
-extern void Test_FileSystem();
+extern void 	Test_FileSystem();
 extern void Test_FileSystem2();
+extern void Test_FileSystem3();
 #endif
 #endif
 
@@ -207,17 +208,17 @@ main (int argc, char **argv)
 	   
 		interrupt->Halt ();
 		}
-
-		else if (!strcmp (*argv, "-remove"))
+		else if (!strcmp (*argv, "-fremove"))
 	    {
-	    	bool test = fileSystem->DeleteDirectory(*(argv + 1));
-			if(test)
-				printf ( "  \n ");
-			else
-			printf ( "  \n "); 
+	    	Test_FileSystem3();
+			argCount =2;
+			interrupt->Halt ();
+
 	   
 		interrupt->Halt ();
 		}
+
+		
 	    
         #endif
 

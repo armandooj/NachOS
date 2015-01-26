@@ -109,7 +109,7 @@ class FileSystem {
      bool CreateDirectory(const char *name);
      void   ChangeDirectory(const  char* filename); 
      OpenFile *FreeMap();
-     bool DeleteDirectory (char *name);
+     void DeleteDirectory (const char *name);
      Directory *GetDirectoryByName(const char* dirname, int *store_sector);
   #endif
 

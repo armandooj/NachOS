@@ -166,6 +166,14 @@ fileSystem->Directory_path("..");
 fileSystem->ChangeDirectory("/Pdir/Pdir2");
     fileSystem->List ();
 }
+void Test_FileSystem3() {
+
+Copy("../filesys/test/medium", "Medium1");
+    fileSystem->CreateDirectory("Pdir");
+    fileSystem->List ();
+   fileSystem->DeleteDirectory("Pdir");
+    fileSystem->List ();
+}
 
 
 #endif

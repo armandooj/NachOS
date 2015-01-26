@@ -630,30 +630,70 @@ void FileSystem::ChangeDirectory    ( const char* filename )
   
 }
  // Function to delete a directory
-bool FileSystem:: DeleteDirectory (char *name)
+void FileSystem:: DeleteDirectory (const char *name)
 {
 
 	Directory *directory;
     //BitMap *freeMap;
     //FileHeader *hdr;
     //int sector;
-    bool success;
-    success= TRUE;
+   // bool success;
+    //success= TRUE;
 
-    Directory_path((std::string(name) + "/").c_str());
-    directory = new Directory(NumDirEntries);
+   
+        directory = new Directory(NumDirEntries);
     directory->FetchFrom(directoryFile);
+     Directory_path((std::string(name) + "/").c_str());
 
     if (directory->IsEmpty() == false)
-      printf("Can't delete as it is a non empty directory /n")	;
-  else  
-    printf("Empty Directory \n");
+    {
+        Directory_path("../");
+     //   printf("Folder exist found \n");
+      //  success = FALSE;
+        //return success;
+         BitMap *freeMap;
+    FileHeader *fileHdr;
+    int sector;
+            sector = directory->Find(name);
+    if (sector == -1) {
+       delete directory;
+       printf("Error in deleting as it can't be found \n");
+           }
+    fileHdr = new FileHeader;
+    fileHdr->FetchFrom(sector);
 
-return success;
+    freeMap = new BitMap(NumSectors);
+    freeMap->FetchFrom(freeMapFile);
+
+    fileHdr->Deallocate(freeMap);       // remove data blocks
+    freeMap->Clear(sector);         // remove header block
+    directory->Remove(name);
+
+    freeMap->WriteBack(freeMapFile);        // flush to disk
+    directory->WriteBack(directoryFile);        // flush to disk
+    delete fileHdr;
+    delete directory;
+    delete freeMap;
+    
+    }
+    else 
+        printf("Can't delete as directory is not empty \n");
+
+// /return success;
+
+
+
+
+
+
+
+
+
+
 
 
 }
- // Get the current directory 
+ // Get the current directory
 Directory *FileSystem::GetDirectoryByName(const char* dirname, int *store_sector)
 {
     Directory *current = new Directory(NumDirEntries);

@@ -97,6 +97,7 @@ Directory::FindIndex(const char *name)
     for (int i = 0; i < tableSize; i++)
         if (table[i].inUse && !strncmp(table[i].name, name, FileNameMaxLen))
 	    return i;
+
     return -1;		// name not in directory
 }
 
@@ -169,14 +170,14 @@ Directory::Remove(const char *name)
 // Directory::List
 // 	List all the file names in the directory. 
 //----------------------------------------------------------------------
-
+ 
 void
 Directory::List()
 {
    for (int i = 0; i < tableSize; i++)
 	if (table[i].inUse)
-#ifndef CHANGED
-	    printf("%s\n", table[i].name);
+     #ifndef CHANGED
+        printf(" ");
 #else
         {
             FileHeader *fileheader = new FileHeader;
