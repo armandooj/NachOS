@@ -59,6 +59,7 @@ extern void ThreadTest (void), Copy (const char *unixFile, const char *nachosFil
 extern void Print (char *file), PerformanceTest (void);
 extern void StartProcess (char *file), ConsoleTest (char *in, char *out);
 extern void SynchConsoleTest (char *in, char *out);
+extern void TestConsumerProducer ();
 extern void MailTest (int networkID);
 
 //----------------------------------------------------------------------
@@ -128,6 +129,12 @@ main (int argc, char **argv)
           argCount = 3;
         }
         interrupt->Halt ();
+      }
+      // Consumer-producer
+      else if (!strcmp (*argv, "-co")) 
+      {
+        TestConsumerProducer();
+        interrupt->Halt();
       }
 #endif
 #endif // USER_PROGRAM

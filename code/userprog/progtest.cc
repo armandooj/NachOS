@@ -15,6 +15,10 @@
 #include "addrspace.h"
 #include "synch.h"
 
+#ifdef CHANGED
+#include "consumerproducer.h"
+#endif
+
 //----------------------------------------------------------------------
 // StartProcess
 //      Run a user program.  Open the executable, load it into
@@ -118,6 +122,13 @@ StartProcess (char *filename)
     
     fprintf(stderr, "Solaris: EOF detected in SynchConsole!\n");
   }
+
+  void
+  TestConsumerProducer () 
+  {
+    ConsumerProducer *consumerProducer = new ConsumerProducer();
+    consumerProducer->start();
+  }
+
+
 #endif
-
-
