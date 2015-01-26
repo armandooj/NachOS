@@ -24,15 +24,6 @@
 #include "interrupt.h"
 #include <string.h>
 
-void showExample(int farAddr);
-void send10Messages(int farAddr);
-
-void
-MailTest(int farAddr)
-{
-    send10Messages(farAddr);
-}
-
 // Test out message delivery, by doing the following:
 //	1. send a message to the machine with ID "farAddr", at mail box #0
 //	2. wait for the other machine's message to arrive (in our mailbox #0)
@@ -121,4 +112,51 @@ void send10Messages(int farAddr){
     }
     // Then we're done!
     interrupt->Halt();  
+}
+
+void ring3Machines(int farAddr) {
+    PacketHeader outPktHdr, inPktHdr;
+    MailHeader outMailHdr, inMailHdr;
+    char data [40];
+    char buffer[MaxMailSize];
+
+    //Making test message
+    if (farAddr == 1) {
+        sprintf(data, "Message from machine 0");
+    }
+    
+    if (farAddr == 1) {
+        outPktHdr.to = farAddr;
+        outMailHdr.to = 0;
+        outMailHdr.from = 1;
+        outMailHdr.length = strlen(data) + 1;
+
+        // Send the first message
+        postOffice->Send(outPktHdr, outMailHdr, data); 
+    }
+    
+    // Wait for the first message from the other machine
+    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+    printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+    fflush(stdout);
+    
+    if (farAddr != 1) {
+    
+        strcpy(data, buffer);
+        outPktHdr.to = farAddr;
+        outMailHdr.to = 0;
+        outMailHdr.from = 1;
+        outMailHdr.length = strlen(data) + 1;
+
+        // Send the first message
+        postOffice->Send(outPktHdr, outMailHdr, data); 
+    }
+    // Then we're done!
+    interrupt->Halt();
+}
+
+void
+MailTest(int farAddr)
+{
+    ring3Machines(farAddr);
 }
