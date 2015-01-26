@@ -37,9 +37,11 @@
 
 #include "copyright.h"
 #include "openfile.h"
+#include "directory.h"
 
 #include "filehdr.h"
 #include <string>
+
 
 #define FreeMapSector     0
 #define DirectorySector   1
@@ -108,6 +110,7 @@ class FileSystem {
      void   ChangeDirectory(const  char* filename); 
      OpenFile *FreeMap();
      bool DeleteDirectory (char *name);
+     Directory *GetDirectoryByName(const char* dirname, int *store_sector);
   #endif
 
   private:

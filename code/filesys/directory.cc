@@ -24,6 +24,10 @@
 #include "utility.h"
 #include "filehdr.h"
 #include "directory.h"
+#include "filesys.h"
+#include <libgen.h>
+#include <string>
+
 
 //----------------------------------------------------------------------
 // Directory::Directory
@@ -212,7 +216,7 @@ Directory::Print()
 }
 
 
-
+// Determine if the current folder is empty or not 
 
 bool
 Directory::IsEmpty()
@@ -227,4 +231,20 @@ Directory::IsEmpty()
 
     }
     return test;
+}
+
+//----------------------------------------------------------------------
+// Directory::ReadAtSector
+// Open a directory at sector
+//----------------------------------------------------------------------
+Directory* Directory::ReadAtSector(int sector)
+{
+    // Try to open directory
+    Directory *sub = new Directory(10);
+    OpenFile *curDir = new OpenFile(sector);
+
+    sub->FetchFrom(curDir);
+
+    delete curDir;
+    return sub;
 }

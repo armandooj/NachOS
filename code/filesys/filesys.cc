@@ -629,7 +629,7 @@ void FileSystem::ChangeDirectory    ( const char* filename )
     // Construct string
   
 }
-
+ // Function to delete a directory
 bool FileSystem:: DeleteDirectory (char *name)
 {
 
@@ -640,6 +640,7 @@ bool FileSystem:: DeleteDirectory (char *name)
     bool success;
     success= TRUE;
 
+    Directory_path((std::string(name) + "/").c_str());
     directory = new Directory(NumDirEntries);
     directory->FetchFrom(directoryFile);
 
@@ -652,6 +653,60 @@ return success;
 
 
 }
+ // Get the current directory 
+Directory *FileSystem::GetDirectoryByName(const char* dirname, int *store_sector)
+{
+    Directory *current = new Directory(NumDirEntries);
+    int sector = 0;
+    char *cpy = new char[strlen(dirname) + 1];
+    strcpy(cpy, dirname);
+
+    char *name = strtok(cpy, "/");
+
+    // Init first directory
+    current->FetchFrom(directoryFile);
+
+    // If root, just return current
+    if (strcmp(cpy, "/") == 0 || strcmp(cpy, ".") == 0)
+    {
+        if (store_sector != NULL)
+            *store_sector = DirectorySector;
+        delete [] cpy;
+        return current;
+    }
+
+    // Search following inside current directory
+    sector = current->Find(name);
+    while(sector >= 0)
+    {
+        name = strtok(NULL, "/");
+
+        if (name == NULL)
+        {
+            if (store_sector != NULL)
+                *store_sector = sector;
+
+            delete current;
+
+            current = Directory::ReadAtSector(sector);
+            delete [] cpy;
+            return current;
+        }
+
+        delete current;
+        current = Directory::ReadAtSector(sector);
+        sector = current->Find(name);
+    }
+
+    if (store_sector != NULL)
+        *store_sector = -1;
+    delete [] cpy;
+    delete current;
+
+    return NULL;
+
+}
+
 
 OpenFile *
 FileSystem::FreeMap()

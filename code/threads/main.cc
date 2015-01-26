@@ -189,6 +189,7 @@ main (int argc, char **argv)
             else if (!strcmp (*argv, "-cd"))
         {			// create Nachos directory
             fileSystem->Directory_path(*(argv + 1));
+            fileSystem->List ();
             argCount = 2;
             interrupt->Halt ();
         }
