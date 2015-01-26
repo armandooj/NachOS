@@ -20,6 +20,7 @@
 #ifdef CHANGED
 #include "synch.h"
 #include "list.h"
+#define MAX_FILES 5
 #endif
 
 #define UserStackSize		2048	// increase this as necessary!
@@ -60,6 +61,11 @@ class AddrSpace
     //Variable for Join functionality
     ListForJoin *activeThreads;
     ListForJoin *activeLocks;
+
+    int PushTable(OpenFile *file);
+    int PullTable(int num);
+    int SearchTable(OpenFile *file);
+    OpenFile *FetchTable(int num);
 #endif   // END CHANGED
   private:
     TranslationEntry * pageTable;	// Assume linear page table translation
@@ -74,6 +80,10 @@ class AddrSpace
     BitMap *stackBitMap;
     Lock *stackBitMapLock;
     Lock *processCountLock;
+
+OpenFile *table[MAX_FILES];
+    int tablecount;
+    Lock *openLock;
 
 #endif   // END CHANGED
 

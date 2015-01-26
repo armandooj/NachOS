@@ -19,6 +19,7 @@
 #ifdef CHANGED
 #define MAX_STRING_SIZE 256
 #define MAX_INT_SIZE 9 // lenght(2^32)
+#define MAX_OPENFILES 10
 #endif
 
 // Initialization and cleanup routines
@@ -57,6 +58,25 @@ extern SynchDisk *synchDisk;
 #ifdef NETWORK
 #include "post.h"
 extern PostOffice *postOffice;
+#endif
+
+#ifdef CHANGED
+#include "openfile.h"
+class OpenTable {
+  public:
+    OpenTable();
+    ~OpenTable();
+    int PushOpenFile(OpenFile *file);
+    int PullOpenFile(int num);
+    OpenFile *GetOpenFile(int num);
+    int GetOpenNum(OpenFile *file);
+  private:
+    int Count;
+    OpenFile *table[MAX_OPENFILES];
+    int tablecount[MAX_OPENFILES];
+    Lock *binaryLock;
+};
+extern OpenTable *opentable;
 #endif
 
 #endif // SYSTEM_H

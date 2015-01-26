@@ -71,6 +71,11 @@ AddrSpace::AddrSpace (OpenFile *executable)
   NoffHeader noffH;
   unsigned int i, size;
 
+#ifdef CHANGED
+   for (int x = 0;x < MAX_FILES;x++)
+         table[x] = 0;
+    tablecount = 0;
+#endif
   executable->ReadAt ((char *) &noffH, sizeof (noffH), 0);
   if ((noffH.noffMagic != NOFFMAGIC) && (WordToHost (noffH.noffMagic) == NOFFMAGIC))
     SwapHeader (&noffH);
@@ -131,6 +136,7 @@ AddrSpace::AddrSpace (OpenFile *executable)
   processCountLock = new Lock("Process Count Lock");
   numberOfUserProcesses = 1;    // counting the main process      
   ExitForMain = new Semaphore("Exit for Main", 1);
+  openLock = new Lock("lock for openfile table");
 
   //For Join Functionality
   activeThreads = new ListForJoin();
@@ -153,6 +159,7 @@ AddrSpace::~AddrSpace ()
   delete stackBitMap;
   delete stackBitMapLock;
   delete processCountLock;
+  delete openLock;
 #endif
   // End of modification
 }
@@ -279,6 +286,57 @@ int AddrSpace::getNumberOfUserProcesses() {
     return numberOfUserProcesses;
 }
 
+int AddrSpace::PushTable(OpenFile *file) {
+    int res = -1;
+    openLock->Acquire();
+    for (int i = 0;i < MAX_FILES;i++)
+         if (table[i] == 0)
+         {
+             tablecount++;
+             table[i] = file;
+             res = i;
+             break;
+         }
+    openLock->Release();
+    return res;
+}
+
+int AddrSpace::PullTable(int num) {
+    int res = -1;
+    OpenFile *temp = NULL;
+    openLock->Acquire();
+    if (num < tablecount && num >= 0 && table[num] != 0)
+    {
+         temp = table[num];
+         delete temp;
+         table[num] = 0;
+         tablecount--;
+         res = 0;
+    }
+    openLock->Release();
+    return res;
+}
+
+int AddrSpace::SearchTable(OpenFile *file) {
+    int res = -1,i;
+    openLock->Acquire();
+    for(i=0;i<MAX_FILES;i++)
+        if (table[i] == file)
+        {
+            res = i;
+            break;
+        }
+    openLock->Release();
+    return res;
+}
+
+OpenFile* AddrSpace::FetchTable(int num) {
+    OpenFile *temp = NULL;
+    openLock->Acquire();
+    temp = table[num];
+    openLock->Release();
+    return temp;
+}
 
 /*
 Virtual Memory

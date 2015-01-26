@@ -27,6 +27,8 @@
 #include "userthread.h"
 #include "scheduler.h"
 #include "synch.h"
+#include "directory.h"
+#include "filesys.h"
 
 //----------------------------------------------------------------------
 // UpdatePC : Increments the Program Counter register in order to resume
@@ -177,6 +179,86 @@ ExceptionHandler (ExceptionType which)
                DEBUG('a', "Shutdown, initiated by user program.\n");
                interrupt->Halt();
                break;
+            }
+            case SC_Create: {
+              int res,rg4 = machine->ReadRegister (4);
+              char buffer[FileNameMaxLen] = {};
+              copyStringFromMachine(rg4,buffer,FileNameMaxLen);
+              fileSystem->Create(buffer) ? res = 0 : res = -1;
+              machine->WriteRegister (2, res);
+              break;
+            }
+
+            case SC_Open: {
+              OpenFile *temp = NULL;
+              int res, rg4 = machine->ReadRegister (4);
+              char buffer[FileNameMaxLen] = {};
+              copyStringFromMachine(rg4,buffer,FileNameMaxLen);
+              if ((temp = fileSystem->Open(buffer)) == NULL)
+                   res = -1;
+              else
+              {
+                   if (currentThread->space->PushTable(temp) == -1) res = -1;
+                   else res = opentable->PushOpenFile(temp); //used to push a new openfile object into a global array
+//;-1 fail/0 success
+              }
+              machine->WriteRegister (2, res);
+              break;
+            }
+
+            case SC_Close: {
+              int res = 0,rg4 = machine->ReadRegister (4);
+              OpenFile *file = NULL;
+              if ((file = opentable->GetOpenFile(rg4)) == NULL)
+                   res = -1;
+              else
+                   if (currentThread->space->PullTable(currentThread->space->SearchTable(file)) == -1)
+                       res = -1;
+                   if (opentable->PullOpenFile(rg4) == -1)
+                       res = -1;
+              machine->WriteRegister (2, res);
+              break;
+            }
+
+            case SC_Read: {
+              int rg4 = machine->ReadRegister (4);
+              int rg5 = machine->ReadRegister (5);
+              int rg6 = machine->ReadRegister (6);
+              char *buffer;
+              buffer = &machine->mainMemory[rg4];
+              OpenFile *file = opentable->GetOpenFile(rg6);
+              int res = currentThread->space->FetchTable(currentThread->space->SearchTable(file))->Read(buffer,rg5);
+              machine->WriteRegister (2, res);
+              break;
+            }
+
+            case SC_Write: {
+              int rg4 = machine->ReadRegister (4);
+              int rg5 = machine->ReadRegister (5);
+              int rg6 = machine->ReadRegister (6);
+              int size = 0,round = 0;
+              OpenFile *file = opentable->GetOpenFile(rg6);
+              char buffer[MAX_STRING_SIZE] = {};
+              bool status = false;
+              do {
+               if(rg5 >= MAX_STRING_SIZE)
+                  if((size = copyStringFromMachine(rg4+MAX_STRING_SIZE*round,buffer,rg5)) == MAX_STRING_SIZE) {
+                      currentThread->space->FetchTable(currentThread->space->SearchTable(file))->Write(buffer,MAX_STRING_SIZE);
+                      rg5 = rg5 - MAX_STRING_SIZE;
+                      round++;
+                  }
+                  else {
+                      status = true;
+                      if(size != 0)
+                         currentThread->space->FetchTable(currentThread->space->SearchTable(file))->Write(buffer,rg5);
+                  }
+               else {
+                  status = true;
+                  copyStringFromMachine(rg4+MAX_STRING_SIZE*round,buffer,rg5);
+                  currentThread->space->FetchTable(currentThread->space->SearchTable(file))->Write(buffer,rg5);
+               }
+              } while(status == false);
+              break;
             }
             case SC_PutChar: 
             {  
