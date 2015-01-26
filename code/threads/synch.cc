@@ -98,7 +98,7 @@ Semaphore::V ()
     (void) interrupt->SetLevel (oldLevel);
 }
 
-// Dummy functions -- so we can compile our later assignments 
+#ifdef CHANGED
 // Note -- without a correct implementation of Condition::Wait(), 
 // the test case in the network assignment won't work!
 Lock::Lock (const char *debugName)
@@ -114,6 +114,7 @@ Lock::~Lock ()
 {
     delete lock;
 }
+
 void
 Lock::Acquire ()
 {
@@ -128,6 +129,7 @@ Lock::Acquire ()
             
     internalLock->V();
 }
+
 void
 Lock::Release ()
 {
@@ -183,6 +185,7 @@ Condition::Signal (Lock * conditionLock)
     
     internalLock->V();
 }
+
 void
 Condition::Broadcast (Lock * conditionLock)
 {
@@ -195,3 +198,25 @@ Condition::Broadcast (Lock * conditionLock)
     
     internalLock->V();
 }
+
+#else // Just leave the methods empty
+
+Lock::Lock (const char *debugName) {}
+
+Lock::~Lock () {}
+
+void Lock::Acquire () {}
+
+void Lock::Release () {}
+
+Condition::Condition (const char *debugName) {}
+
+Condition::~Condition () {}
+
+void Condition::Wait (Lock * conditionLock) {}
+
+void Condition::Signal (Lock * conditionLock) {}
+
+void Condition::Broadcast (Lock * conditionLock) {}
+
+#endif
