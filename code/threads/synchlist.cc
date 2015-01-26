@@ -96,3 +96,7 @@ SynchList::Mapcar (VoidFunctionPtr func)
     list->Mapcar (func);
     lock->Release ();
 }
+
+bool SynchList::isEmpty() {
+    return list->IsEmpty();
+}

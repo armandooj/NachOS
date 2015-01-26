@@ -18,6 +18,7 @@
 
 #include "copyright.h"
 #include "post.h"
+#include "timer.h"
 
 #include <strings.h> /* for bzero */
 
@@ -106,6 +107,12 @@ MailBox::Put(PacketHeader pktHdr, MailHeader mailHdr, char *data)
 					// any waiters
 }
 
+void TimerHandler(int arg) {
+    int gotMessage = * (int*) arg;
+    printf("%d", gotMessage);
+    return;
+}
+
 //----------------------------------------------------------------------
 // MailBox::Get
 // 	Get a message from a mailbox, parsing it into the packet header,
@@ -122,9 +129,9 @@ void
 MailBox::Get(PacketHeader *pktHdr, MailHeader *mailHdr, char *data) 
 { 
     DEBUG('n', "Waiting for mail in mailbox\n");
+    
     Mail *mail = (Mail *) messages->Remove();	// remove message from list;
-						// will wait if list is empty
-
+						    // will wait if list is empty
     *pktHdr = mail->pktHdr;
     *mailHdr = mail->mailHdr;
     if (DebugIsEnabled('n')) {
@@ -343,4 +350,17 @@ PostOffice::PacketSent()
 { 
     messageSent->V();
 }
+
+#ifdef CHANGED
+
+void 
+ReliableProtocol::Receive(PacketHeader pktHdr, MailHeader mailHdr, const char *data){
+    //Timer timer = new Timer();
+}
+
+void TimeOutHandler() {
+    
+}
+    
+#endif
 

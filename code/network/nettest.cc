@@ -49,10 +49,14 @@ void showExample(int farAddr) {
     // Send the first message
     postOffice->Send(outPktHdr, outMailHdr, data); 
 
+    printf("Begin get mail\n");
+
     // Wait for the first message from the other machine
     postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
     printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
     fflush(stdout);
+
+    printf("Done get mail\n");
 
     // Send acknowledgement to the other machine (using "reply to" mailbox
     // in the message that just arrived
@@ -65,6 +69,8 @@ void showExample(int farAddr) {
     postOffice->Receive(1, &inPktHdr, &inMailHdr, buffer);
     printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
     fflush(stdout);
+
+    printf("Finish here\n");
 
     // Then we're done!
     interrupt->Halt();
@@ -123,7 +129,7 @@ void ring3Machines(int farAddr) {
     //Making test message
     if (farAddr == 1) {
         sprintf(data, "Message from machine 0");
-    }
+    } 
     
     if (farAddr == 1) {
         outPktHdr.to = farAddr;
@@ -141,7 +147,6 @@ void ring3Machines(int farAddr) {
     fflush(stdout);
     
     if (farAddr != 1) {
-    
         strcpy(data, buffer);
         outPktHdr.to = farAddr;
         outMailHdr.to = 0;
@@ -158,5 +163,5 @@ void ring3Machines(int farAddr) {
 void
 MailTest(int farAddr)
 {
-    ring3Machines(farAddr);
+    showExample(farAddr);
 }

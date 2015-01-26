@@ -129,7 +129,7 @@ class PostOffice {
 				// off of network (i.e., time to call 
 				// PostalDelivery)
 
-  private:
+  protected:
     Network *network;		// Physical network connection
     NetworkAddress netAddr;	// Network address of this machine
     MailBox *boxes;		// Table of mail boxes to hold incoming mail
@@ -138,5 +138,15 @@ class PostOffice {
     Semaphore *messageSent;	// V'ed when next message can be sent to network
     Lock *sendLock;		// Only one outgoing message at a time
 };
+
+#ifdef CHANGED
+class ReliableProtocol:PostOffice {
+    public:
+                
+        void Receive(PacketHeader pktHdr, MailHeader mailHdr, const char *data);
+    private:
+};
+#endif //End CHANGED
+
 
 #endif
