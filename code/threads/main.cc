@@ -76,6 +76,7 @@ extern void MailTest (int networkID);
 extern void 	Test_FileSystem();
 extern void Test_FileSystem2();
 extern void Test_FileSystem3();
+extern void nachcopy (const char* from, const char* to);
 #endif
 #endif
 
@@ -161,6 +162,7 @@ main (int argc, char **argv)
 		argCount = 3;
 		interrupt->Halt ();
 	    }
+        
 	  else if (!strcmp (*argv, "-p"))
 	    {			// print a Nachos file
 		ASSERT (argc > 1);
@@ -186,6 +188,13 @@ main (int argc, char **argv)
             fileSystem->CreateDirectory(*(argv + 1));
             argCount = 2;
             interrupt->Halt ();
+        }
+        else if(!strcmp (*argv, "-ncp"))
+        {
+        ASSERT (argc > 2);
+        nachcopy (*(argv + 1), *(argv + 2));
+        argCount = 3;
+        interrupt->Halt ();
         }
             else if (!strcmp (*argv, "-cd"))
         {			// create Nachos directory

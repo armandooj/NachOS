@@ -200,3 +200,36 @@ PerformanceTest()
     stats->Print();
 }
 
+#ifdef CHANGED
+void nachcopy(const char *file1, const char *file2)
+{
+    OpenFile *fopen1 = NULL;
+    if((fopen1 = fileSystem->Open(file1)) == NULL) {
+     printf("fail to open file1 %s !\n",file1);
+     return;
+    }
+
+    int amountRead;
+    char *buffer = new char[TransferSize];
+    fopen1->Seek(0);
+
+    OpenFile *fopen2 = NULL;
+    if((fopen2 = fileSystem->Open(file2)) == NULL) {
+     printf("creating a new file %s\n",file2);
+     ASSERT(fileSystem->Create(file2));
+    }
+    if((fopen2 = fileSystem->Open(file2)) == NULL) {
+     printf("fail to open file2 %s !\n",file2);
+     return;
+    }
+    fopen2->Seek(0);
+    char *buffer2 = new char[TransferSize];
+    while((amountRead = fopen1->Read(buffer, TransferSize)) > 0)
+     fopen2->Write(buffer, amountRead);
+    printf("finish copy");
+    printf("\n------------------------\n");
+    delete [] buffer2;
+
+    return;
+}
+#endif

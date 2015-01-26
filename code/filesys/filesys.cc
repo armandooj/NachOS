@@ -342,8 +342,12 @@ FileSystem::Remove(const char *name)
 
     freeMap = new BitMap(NumSectors);
     freeMap->FetchFrom(freeMapFile);
+#ifdef CHANGED
+    fileHdr->Deallocate(freeMap,0);  		// remove data blocks
+    #else
+    fileHdr->Deallocate(freeMap);
+    #endif
 
-    fileHdr->Deallocate(freeMap);  		// remove data blocks
     freeMap->Clear(sector);			// remove header block
     directory->Remove(name);
 
@@ -665,7 +669,12 @@ void FileSystem:: DeleteDirectory (const char *name)
     freeMap = new BitMap(NumSectors);
     freeMap->FetchFrom(freeMapFile);
 
-    fileHdr->Deallocate(freeMap);       // remove data blocks
+    #ifdef CHANGED
+    fileHdr->Deallocate(freeMap,0);         // remove data blocks
+    #else
+    fileHdr->Deallocate(freeMap);
+    #endif
+    
     freeMap->Clear(sector);         // remove header block
     directory->Remove(name);
 
