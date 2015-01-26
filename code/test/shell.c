@@ -2,36 +2,41 @@
 
 int
 main ()
-{
-    SpaceId newProc;
-    OpenFileId input = ConsoleInput;
-    OpenFileId output = ConsoleOutput;
-    char prompt[2], buffer[60];
-    int i;
+{  
+  SpaceId newProc;
+  //OpenFileId input = ConsoleInput;
+  //OpenFileId output = ConsoleOutput;
+  char prompt[2], buffer[60];
+  int i = 0 ;
 
-    prompt[0] = '-';
-    prompt[1] = '-';
+  prompt[0] = '>';
+  prompt[1] = ' ';
 
-    while (1)
-      {
-	  Write (prompt, 2, output);
+  while (1)
+  {
+    PutChar(prompt[0]);
+    PutChar(prompt[1]);
 
-	  i = 0;
+    i = 0;
 
-	  do
-	    {
+    do 
+    {
+      buffer[i] = GetChar();
+    }
+    while (buffer[i++] != '\n');
 
-		Read (&buffer[i], 1, input);
+    buffer[--i] = '\0';
 
-	    }
-	  while (buffer[i++] != '\n');
+    if (i > 0)
+    {
+      // newProc = Exec (buffer);
+      // Join (newProc);
+      // PutString(buffer);
+      // PutChar('\n');
+      newProc = ForkExec(buffer);
 
-	  buffer[--i] = '\0';
-
-	  if (i > 0)
-	    {
-		newProc = Exec (buffer);
-		Join (newProc);
-	    }
-      }
+    }
+    break;
+  }
+  return 0;
 }
