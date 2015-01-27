@@ -150,6 +150,7 @@ MailBox::Get(PacketHeader *pktHdr, MailHeader *mailHdr, char *data)
 	   PrintHeader(*pktHdr, *mailHdr);
     }
 
+// TODO move this from here, maybe to Receive?
 #ifdef CHANGED
 
     // Check if it's a confirmation of a message that we sent before
@@ -212,6 +213,7 @@ PostOffice::PostOffice(NetworkAddress addr, double reliability, int nBoxes)
     // First, initialize the synchronization with the interrupt handlers
     messageAvailable = new Semaphore("message available", 0);
     messageSent = new Semaphore("message sent", 0);
+    messageConfirmed = new Semaphore("message confirmed", 0);
     sendLock = new Lock("message send lock");
 
     // Second, initialize the mailboxes
@@ -253,6 +255,7 @@ PostOffice::~PostOffice()
     delete [] boxes;
     delete messageAvailable;
     delete messageSent;
+    delete messageConfirmed;
     delete sendLock;
 }
 
@@ -344,9 +347,9 @@ void TimeOutHandler(int arg) {
     // Look for the Mail in the list
     // if it's there it failed, try again N times.
     if (!office->sentMessages->isEmpty()) {
+        printf("Trying again!...\n");
         Mail *mail = (Mail *) office->sentMessages->GetFirst();
         office->ReliableSend(mail->pktHdr, mail->mailHdr, mail->data);
-        printf("Trying again!...\n");
     } else {
         printf("Nothing failed.\n");
     }
@@ -368,7 +371,6 @@ void TimeOutHandler2(int arg) {
     office->chooseSleepOrSend();
 }
 
-
 // TODO Send a package, even in unreliable condition
 //
 //  This will sleep a package 
@@ -380,32 +382,76 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
         PrintHeader(pktHdr, mailHdr);
     }
 
-    // Now, backup the Message so that we can confirm it's reception later
-    Mail *mail = new Mail(pktHdr, mailHdr, NULL);
-    strncpy(mail->data, (char *) data, MaxMailSize);
+    printf("-> %d %d\n", strlen(data), MaxMailSize);
+    
+    if (strlen(data) > MaxMailSize) {
+        // Too big, break it into smaller pieces
+        int pieces = divRoundUp(strlen(data), MaxMailSize);
+        
+        int i;
+        for (i = 0; i < pieces; i++) {
+            printf("Sending chunk %d\n", i);
+            // Take a Chunk of the data
+            char chunk[MaxMailSize];
+            memcpy(chunk, &data[i * MaxMailSize], MaxMailSize);
+            chunk[MaxMailSize - 1] = '\0';
 
-    // Only add it once
-    Mail *sentMail = FindMail(mail);
-    if (sentMail == NULL) {
-        // Add it to the list
-        mail->attempts = 1;
-        sentMessages->Append(mail);
-        printf("Backing up the Mail\n");
-    } else {
-        // otherwise increment the attempts count or mark it as an error
-        if (sentMail->attempts < MAXREEMISSIONS) {
-            sentMail->attempts++;
-            printf("Incrementing the mail's attempts count -> %d\n", sentMail->attempts);
-        } else {
-            printf(" - Network Error -\n");
-            ASSERT(false);
+            // Update the size
+            mailHdr.length = MaxMailSize; // +1?
+
+            // Make a mail with it
+            Mail *mail = new Mail(pktHdr, mailHdr, NULL);
+            strncpy(mail->data, (char *) chunk, MaxMailSize);
+            mail->remainingParts = pieces;
+            mail->attempts = 1;
+
+            printf("data %s\n", mail->data);
+            
+            // It cannot be on the sentMessages list before this. Add it
+            sentMessages->Append(mail);
+         
+            // Wait for confirmation
+            Send(pktHdr, mailHdr, data);
+
+            // Trigger an interrupt
+            // interrupt->Schedule(TimeOutHandler, (int) this, TEMPO, NetworkSendInt);
+
+            // Now wait for confirmation before sending the next one!
+            // messageConfirmed->P();     // This blocks the receive!, TODO DEBUG
+
+
+            printf("GET THE HELL OUT OF HERE\n");
+            //return;
         }
+
+    } else {
+        // Now, backup the Message so that we can confirm it's reception later
+        Mail *mail = new Mail(pktHdr, mailHdr, NULL);
+        strncpy(mail->data, (char *) data, MaxMailSize);
+
+        // Only add it once
+        Mail *sentMail = FindMail(mail);
+        if (sentMail == NULL) {
+            // Add it to the list
+            mail->attempts = 1;
+            sentMessages->Append(mail);
+            printf("Backing up the Mail\n");
+        } else {
+            // otherwise increment the attempts count or mark it as an error
+            if (sentMail->attempts < MAXREEMISSIONS) {
+                sentMail->attempts++;
+                printf("Incrementing the mail's attempts count -> %d\n", sentMail->attempts);
+            } else {
+                printf(" - Network Error -\n");
+                ASSERT(false);
+            }
+        }
+
+        Send(pktHdr, mailHdr, data);
+
+        // Trigger an interrupt
+        interrupt->Schedule(TimeOutHandler, (int) this, TEMPO, NetworkSendInt);
     }
-
-    Send(pktHdr, mailHdr, data);
-
-    // Trigger an interrupt
-    interrupt->Schedule(TimeOutHandler, (int) this, TEMPO, NetworkSendInt);
 }
 
 
@@ -476,6 +522,7 @@ PostOffice::Receive(int box, PacketHeader *pktHdr,
     ASSERT((box >= 0) && (box < numBoxes));
 
     boxes[box].Get(pktHdr, mailHdr, data);
+
     ASSERT(mailHdr->length <= MaxMailSize);
 }
 
@@ -508,18 +555,10 @@ PostOffice::PacketSent()
     messageSent->V();
 }
 
-/*
-#ifdef CHANGED
-
-void 
-ReliablePostOffice::Receive(PacketHeader pktHdr, MailHeader mailHdr, const char *data){
-    //Timer timer = new Timer();
+// Confirmation after a part of a message is sent
+void
+PostOffice::PacketConfirmed()
+{
+    messageConfirmed->V();
 }
-
-void TimeOutHandler() {
-    
-}
-    
-#endif
-*/
 

@@ -76,6 +76,7 @@ class Mail {
      MailHeader mailHdr;	// Header appended by PostOffice
      char data[MaxMailSize];	// Payload -- message data
      int attempts;
+     int remainingParts;
 };
 
 // The following class defines a single mailbox, or temporary storage
@@ -145,6 +146,9 @@ class PostOffice {
     void PacketSent();		// Interrupt handler, called when outgoing 
 				// packet has been put on network; next 
 				// packet can now be sent
+
+    void PacketConfirmed();
+
     void IncomingPacket();	// Interrupt handler, called when incoming
    				// packet has arrived and can be pulled
 				// off of network (i.e., time to call 
@@ -159,11 +163,12 @@ class PostOffice {
     int numBoxes;		// Number of mail boxes
     Semaphore *messageAvailable;// V'ed when message has arrived from network
     Semaphore *messageSent;	// V'ed when next message can be sent to network
+    Semaphore *messageConfirmed; // V'ed when a part of a message is confirmed
     Lock *sendLock;		// Only one outgoing message at a time
 
 #ifdef CHANGED
   public:
-    SynchList *sentMessages; // A list of messages that need to be confirme
+    SynchList *sentMessages; // A list of messages that need to be confirmed
     
     Mail *sendingMail;
     int numberOfTries;
