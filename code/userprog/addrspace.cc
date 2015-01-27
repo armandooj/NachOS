@@ -173,7 +173,7 @@ AddrSpace::~AddrSpace ()
 #ifdef CHANGED  
   delete stackBitMap;
   delete stackBitMapLock;
-  delete processCountLock;
+  delete processesCountLock;
   delete openLock;
   delete threadsCountLock;
 

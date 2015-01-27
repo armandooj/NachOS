@@ -83,10 +83,11 @@ class AddrSpace
     Lock *threadsCountLock;
     Lock *processesCountLock;
 
+/* OpenFileProcess is a openfile table on the process level, each threads inside the same process will add new openfile objects into this level table */
     typedef struct {
-      OpenFile *file;
-      int fd;
-      bool vacant;
+      OpenFile *file; //openfile object
+      int fd; //real file descriptor used to make a connection between openfile table on kernel level
+      bool vacant; //determine whether the cell is empty
     } OpenFileProcess;
 
     OpenFileProcess table[MAX_FILES];

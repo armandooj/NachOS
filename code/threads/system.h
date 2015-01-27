@@ -67,16 +67,17 @@ extern PostOffice *postOffice;
 
 //this class is used to store the filedescriptor value for all opened files
 typedef struct {
-  int fd;
-  int count;
+  int fd; //real file descriptor return from linux syscall
+  int count; //increase when multiple threads/processes accessing the same file
 } tableentry;
 
+/* OpenTable is a new class used to store the openfiles table throughout the nachos system */
 class OpenTable {
   public:
     OpenTable();
     ~OpenTable();
-    int PushOpenFile(int file);
-    int PullOpenFile(int num);
+    int PushOpenFile(int file); //push new file object into openfiles table
+    int PullOpenFile(int num);  //remove closed file object from openfiles table
     int GetOpenNum(int file);
     int GetOpenFile(int num);
   private:

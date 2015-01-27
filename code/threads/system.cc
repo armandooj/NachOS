@@ -248,7 +248,7 @@ OpenTable::PushOpenFile (int fd)
     binaryLock->Acquire();
     if ((res = GetOpenNum(fd)) == -1)
         for (i=0;i<MAX_OPENFILES;i++)
-            if (table[i].count == 0 || table[i].fd == 0)
+            if (table[i].count == 0)
             {
                 table[i].count++;
                 res = i;

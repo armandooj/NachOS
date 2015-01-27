@@ -176,16 +176,11 @@ ExceptionHandler (ExceptionType which)
             case SC_Open: {
               DEBUG('a', "Open, initiated by user program.\n");
               OpenFile *temp = NULL;
-              int res, rg4 = machine->ReadRegister (4);
+              int res = -1, rg4 = machine->ReadRegister (4);
               char buffer[FileNameMaxLen] = {};
               copyStringFromMachine(rg4,buffer,FileNameMaxLen);
-              if ((temp = fileSystem->Open(buffer)) == NULL)
-                   res = -1;
-              else
-              {
-                   if (opentable->PushOpenFile(temp->filedescriptor()) == -1) res = -1;
-                   if ((res = currentThread->space->PushTable(temp)) == -1) res = -1;
-              }
+              if ((temp = fileSystem->Open(buffer)) != NULL && opentable->PushOpenFile(temp->filedescriptor()) != -1)
+                   res = currentThread->space->PushTable(temp);
               machine->WriteRegister (2, res);
               break;
             }
@@ -197,9 +192,8 @@ ExceptionHandler (ExceptionType which)
               if ((temp = currentThread->space->OpenSearch(rg4)) != NULL && rg4 >= 0 && rg4 < MAX_FILES)
               {
                    int fd = currentThread->space->SearchTable(temp);
-                   if (opentable->PullOpenFile(fd) != -1)
-                       if (currentThread->space->PullTable(rg4) != -1)
-                           res = 0;
+                   if (opentable->PullOpenFile(fd) != -1 && currentThread->space->PullTable(rg4) != -1)
+                       res = 0;
               }
               machine->WriteRegister (2, res);
               break;
