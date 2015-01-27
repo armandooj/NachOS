@@ -33,6 +33,7 @@
 //    -l lists the contents of the Nachos directory
 //    -D prints the contents of the entire file system 
 //    -t tests the performance of the Nachos file system
+//    -md Creates a new Directory 
 //
 //  NETWORK
 //    -n sets the network reliability
@@ -49,10 +50,18 @@
 #define MAIN
 #include "copyright.h"
 #undef MAIN
-
 #include "utility.h"
 #include "system.h"
-//#include "userprocess.h"
+#include "../filesys/filesys.h"
+
+#ifdef CHANGED
+#include <dirent.h>
+#include <fstream>
+#include <iostream>
+#include <unistd.h>
+#include <string>
+#endif
+
 
 // External functions used by this file
 
@@ -61,6 +70,15 @@ extern void Print (char *file), PerformanceTest (void);
 extern void StartProcess (char *file), ConsoleTest (char *in, char *out);
 extern void SynchConsoleTest (char *in, char *out);
 extern void MailTest (int networkID);
+
+#ifdef CHANGED
+#ifdef FILESYS
+extern void 	Test_FileSystem();
+extern void Test_FileSystem2();
+extern void Test_FileSystem3();
+extern void nachcopy (const char* from, const char* to);
+#endif
+#endif
 
 //----------------------------------------------------------------------
 // main
@@ -83,18 +101,21 @@ main (int argc, char **argv)
     // for a particular command
 
     DEBUG ('t', "Entering main");
+      DEBUG('t', 	"Hello test luna \n");
+
     (void) Initialize (argc, argv);
 
 #ifdef THREADS
     ThreadTest ();
 #endif
-
+     
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount)
     {
       argCount = 1;
       if (!strcmp (*argv, "-z"))	// print copyright
         printf ("%s", copyright);
 #ifdef USER_PROGRAM
+
       if (!strcmp (*argv, "-x"))
 	    {			// run a user program
         ASSERT (argc > 1);
@@ -114,7 +135,7 @@ main (int argc, char **argv)
 		    interrupt->Halt ();	// once we start the console, then 
   		  // Nachos will loop forever waiting 
   		  // for console input
-      }
+        }
 
 #ifdef CHANGED
       // Synch console
@@ -134,38 +155,95 @@ main (int argc, char **argv)
 #endif // USER_PROGRAM
 
 #ifdef FILESYS
-if (!strcmp (*argv, "-cp"))
+
+        if (!strcmp (*argv, "-cp"))
 	    {			// copy from UNIX to Nachos
-        ASSERT (argc > 2);
-        Copy (*(argv + 1), *(argv + 2));
-        argCount = 3;
-      }
-      else if (!strcmp (*argv, "-p"))
-	    {			
-        // print a Nachos file
-        ASSERT (argc > 1);
-        Print (*(argv + 1));
-        argCount = 2;
-      }
-      else if (!strcmp (*argv, "-r"))
-	    {			
-        // remove Nachos file
-        ASSERT (argc > 1);
-        fileSystem->Remove (*(argv + 1));
-        argCount = 2;
-      }
-      else if (!strcmp (*argv, "-l"))
+		ASSERT (argc > 2);
+		Copy (*(argv + 1), *(argv + 2));
+		argCount = 3;
+		interrupt->Halt ();
+	    }
+        
+	  else if (!strcmp (*argv, "-p"))
+	    {			// print a Nachos file
+		ASSERT (argc > 1);
+		Print (*(argv + 1));
+		argCount = 2;
+	    }
+	  else if (!strcmp (*argv, "-r"))
+	    {			// remove Nachos file
+		ASSERT (argc > 1);
+		fileSystem->Remove (*(argv + 1));
+		argCount = 2;
+	    }
+	  else if (!strcmp (*argv, "-l"))
 	    {			// list Nachos directory
-        fileSystem->List ();
-      }
-      else if (!strcmp (*argv, "-D"))
+		fileSystem->List ();
+		interrupt->Halt ();
+	    }
+		
+		#ifdef CHANGED
+
+	    else if (!strcmp (*argv, "-md"))
+        {			// create Nachos directory
+            fileSystem->CreateDirectory(*(argv + 1));
+            argCount = 2;
+            interrupt->Halt ();
+        }
+        else if(!strcmp (*argv, "-ncp"))
+        {
+        ASSERT (argc > 2);
+        nachcopy (*(argv + 1), *(argv + 2));
+        argCount = 3;
+        interrupt->Halt ();
+        }
+            else if (!strcmp (*argv, "-cd"))
+        {			// create Nachos directory
+            //fileSystem->Directory_path();
+            fileSystem->Directory_path((std::string(*(argv + 1)) + "/").c_str());
+            fileSystem->List ();
+            argCount = 2;
+            interrupt->Halt ();
+        }
+        else if (!strcmp(*argv, "-ftest")) {
+			Test_FileSystem();
+			argCount =2;
+			interrupt->Halt ();
+		}
+		else if (!strcmp (*argv, "-test"))
+	    {
+	    	Test_FileSystem2();
+			argCount =2;
+			interrupt->Halt ();
+
+	   
+		interrupt->Halt ();
+		}
+		else if (!strcmp (*argv, "-fremove"))
+	    {
+	    	Test_FileSystem3();
+			argCount =2;
+			interrupt->Halt ();
+
+	   
+		interrupt->Halt ();
+		}
+
+		
+	    
+        #endif
+
+	  else if (!strcmp (*argv, "-D"))
 	    {			// print entire filesystem
         fileSystem->Print ();
       }
       else if (!strcmp (*argv, "-t"))
 	    {			// performance test
-        PerformanceTest ();
-      }
+
+		PerformanceTest ();
+		interrupt->Halt ();
+	    }
+	  
 #endif // FILESYS
 #ifdef NETWORK
       if (!strcmp (*argv, "-o"))

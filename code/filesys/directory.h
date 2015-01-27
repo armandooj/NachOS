@@ -70,6 +70,8 @@ class Directory {
     void Print();			// Verbose print of the contents
 					//  of the directory -- all the file
 					//  names and their contents.
+    bool IsEmpty() ;  // Determine if a directory is empty or not
+     static Directory* ReadAtSector(int sector); // read a directory available in sector
 
   private:
     int tableSize;			// Number of directory entries

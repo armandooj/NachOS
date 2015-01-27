@@ -24,6 +24,10 @@
 #include "utility.h"
 #include "filehdr.h"
 #include "directory.h"
+#include "filesys.h"
+#include <libgen.h>
+#include <string>
+
 
 //----------------------------------------------------------------------
 // Directory::Directory
@@ -93,6 +97,7 @@ Directory::FindIndex(const char *name)
     for (int i = 0; i < tableSize; i++)
         if (table[i].inUse && !strncmp(table[i].name, name, FileNameMaxLen))
 	    return i;
+
     return -1;		// name not in directory
 }
 
@@ -165,13 +170,23 @@ Directory::Remove(const char *name)
 // Directory::List
 // 	List all the file names in the directory. 
 //----------------------------------------------------------------------
-
+ 
 void
 Directory::List()
 {
    for (int i = 0; i < tableSize; i++)
 	if (table[i].inUse)
-	    printf("%s\n", table[i].name);
+     #ifndef CHANGED
+        printf(" ");
+#else
+        {
+            FileHeader *fileheader = new FileHeader;
+            fileheader->FetchFrom(table[i].sector);
+            printf("Name: %s Size: %dbytes\n", table[i].name,fileheader->FileLength());
+            //printf("%s\n", table[i].name);
+            delete fileheader;
+        }
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -188,10 +203,49 @@ Directory::Print()
     printf("Directory contents:\n");
     for (int i = 0; i < tableSize; i++)
 	if (table[i].inUse) {
+#ifndef CHANGED
 	    printf("Name: %s, Sector: %d\n", table[i].name, table[i].sector);
 	    hdr->FetchFrom(table[i].sector);
+#else
+            hdr->FetchFrom(table[i].sector);
+            printf("Name: %s, Sector: %d, Size: %d\n", table[i].name, table[i].sector,hdr->FileLength());
+#endif
 	    hdr->Print();
 	}
     printf("\n");
     delete hdr;
+}
+
+
+// Determine if the current folder is empty or not 
+
+bool
+Directory::IsEmpty()
+{
+    bool test = true;
+    for (int i = 2; i < tableSize; i++)
+    if (table[i].inUse)
+    {
+        
+        test =false ;
+        break;
+
+    }
+    return test;
+}
+
+//----------------------------------------------------------------------
+// Directory::ReadAtSector
+// Open a directory at sector
+//----------------------------------------------------------------------
+Directory* Directory::ReadAtSector(int sector)
+{
+    // Try to open directory
+    Directory *sub = new Directory(10);
+    OpenFile *curDir = new OpenFile(sector);
+
+    sub->FetchFrom(curDir);
+
+    delete curDir;
+    return sub;
 }

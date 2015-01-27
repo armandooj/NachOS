@@ -50,13 +50,29 @@
 #include "directory.h"
 #include "filehdr.h"
 #include "filesys.h"
+#include "openfile.h"
+
+#ifdef CHANGED
+#include <string>
+#include <iostream>
+
+#include "system.h"
+#include <libgen.h>
+#include <list>
+#include <string>
+#endif
+
+
+
+#ifndef CHANGED
+
 
 // Sectors containing the file headers for the bitmap of free sectors,
 // and the directory of files.  These file headers are placed in well-known 
 // sectors, so that they can be located on boot-up.
 #define FreeMapSector 		0
 #define DirectorySector 	1
-
+#endif
 // Initial file sizes for the bitmap and directory; until the file system
 // supports extensible files, the directory size sets the maximum number 
 // of files that can be loaded onto the disk.
@@ -105,7 +121,10 @@ FileSystem::FileSystem(bool format)
     // on it!).
 
         DEBUG('f', "Writing headers back to disk.\n");
-	mapHdr->WriteBack(FreeMapSector);    
+	mapHdr->WriteBack(FreeMapSector);   
+    #ifdef CHANGED
+        dirHdr->Type_Set(FileHeader::DIRECTORY);         //type = DIRECTORY ;
+    #endif 
 	dirHdr->WriteBack(DirectorySector);
 
     // OK to open the bitmap and directory files now
@@ -124,6 +143,45 @@ FileSystem::FileSystem(bool format)
         DEBUG('f', "Writing bitmap and directory back to disk.\n");
 	freeMap->WriteBack(freeMapFile);	 // flush changes to disk
 	directory->WriteBack(directoryFile);
+
+#ifdef CHANGED
+        // Create a symbolic link to the current folder
+    Create(".", FileHeader::DOTLINK);
+    Create("..", FileHeader::DOTLINK);
+    directory->FetchFrom(directoryFile);
+
+    
+    /*---------------------------------------------*/
+    int dirSector = directory->Find(".");
+
+    FileHeader* dirfileheader = new FileHeader;
+
+    dirfileheader->FetchFrom(dirSector);   //Read the contents of the dirsector from disk
+
+    dirfileheader->LinkSector_Set(DirectorySector);  //return dataSectors[0];
+
+    dirfileheader->WriteBack(dirSector);    // Write modifications to the dirSector back to disk
+
+    delete dirfileheader;
+    /*---------------------------------------------*/
+
+
+    /*---------------------------------------------*/
+    int pSector = directory->Find("..");
+
+    FileHeader* pfileheader = new FileHeader;
+
+    pfileheader->FetchFrom(pSector);             //Read the contents of the psector from disk
+
+    pfileheader->LinkSector_Set(DirectorySector);   //dataSectors[0] = sectorParent;
+
+    pfileheader->WriteBack(pSector);            // Write modifications to the pSector back to disk
+
+    delete pfileheader;
+    /*---------------------------------------------*/
+
+
+#endif
 
 	if (DebugIsEnabled('f')) {
 	    freeMap->Print();
@@ -171,16 +229,18 @@ FileSystem::FileSystem(bool format)
 //	"initialSize" -- size of file to be created
 //----------------------------------------------------------------------
 
+#ifndef CHANGED
 bool
-FileSystem::Create(const char *name, int initialSize)
-{
+FileSystem::Create(const char *name, int initialSize) {
+#else
+bool FileSystem::Create(const char *name, FileHeader::FileType type) {
+#endif
+
     Directory *directory;
     BitMap *freeMap;
     FileHeader *hdr;
     int sector;
     bool success;
-
-    DEBUG('f', "Creating file %s, size %d\n", name, initialSize);
 
     directory = new Directory(NumDirEntries);
     directory->FetchFrom(directoryFile);
@@ -197,11 +257,19 @@ FileSystem::Create(const char *name, int initialSize)
             success = FALSE;	// no space in directory
 	else {
     	    hdr = new FileHeader;
+#ifndef CHANGED
 	    if (!hdr->Allocate(freeMap, initialSize))
+#else
+            if (!hdr->Allocate(freeMap, 0))
+#endif
             	success = FALSE;	// no space on disk for data
 	    else {	
 	    	success = TRUE;
 		// everthing worked, flush all changes back to disk
+        #ifdef CHANGED
+                hdr->Type_Set(type);   //type = type;
+        #endif
+
     	    	hdr->WriteBack(sector); 		
     	    	directory->WriteBack(directoryFile);
     	    	freeMap->WriteBack(freeMapFile);
@@ -274,8 +342,12 @@ FileSystem::Remove(const char *name)
 
     freeMap = new BitMap(NumSectors);
     freeMap->FetchFrom(freeMapFile);
+#ifdef CHANGED
+    fileHdr->Deallocate(freeMap,0);  		// remove data blocks
+    #else
+    fileHdr->Deallocate(freeMap);
+    #endif
 
-    fileHdr->Deallocate(freeMap);  		// remove data blocks
     freeMap->Clear(sector);			// remove header block
     directory->Remove(name);
 
@@ -339,3 +411,291 @@ FileSystem::Print()
     delete freeMap;
     delete directory;
 } 
+
+
+#ifdef CHANGED
+
+
+/*The following function sets the path of the current folder  */
+bool FileSystem::Directory_path(const char* name) {
+    char* slash = NULL;
+    char* dir = (char*) name;
+
+    OpenFile* fp = directoryFile;
+
+    if (name[0] == '/') {
+        directoryFile = new OpenFile(DirectorySector);  // Opend the file from the sector no. 1 which  is a directory sector.
+        dir++;              //and hence we increase the total directories
+    }
+
+/*strchr()-- returns a pointer to the first occurrence of character in the C string str.
+More info. is available here: http://www.cplusplus.com/reference/cstring/strchr/
+
+char * strncpy ( char * destination, const char * source, size_t num ); 
+Copies the first num characters of source to destination. 
+
+*/ 
+   while ((slash = strchr(dir, '/')) != NULL) 
+    {
+        char dirName[FileNameMaxLen + 1];       //FileNameMaxLen =9, which is defined in directory.cc
+        int n = slash - dir;
+        strncpy(dirName, dir, n);
+        dirName[n] = '\0';
+        
+
+        if (strcmp(dirName, "..") == 0) 
+        {
+            Directory* d = new Directory(NumDirEntries);
+            d->FetchFrom(directoryFile);// Read the contents from directoryFile
+            int pSector = d->Find("..");  //Find for ".." and returns its sector  no.
+            delete d;
+
+            FileHeader* dirfileheader = new FileHeader;
+            dirfileheader->FetchFrom(pSector);      // read the contents from psector
+            int parentSector = dirfileheader->LinkSector_Get(); //return dataSectors[0];
+            delete dirfileheader;
+
+            if (directoryFile != fp) {                //  if not available then we are deleting directoryfile.
+                delete directoryFile;
+            }
+            directoryFile = new OpenFile(parentSector);
+        } 
+        else 
+        {
+            Directory *d = new Directory(NumDirEntries);
+            d->FetchFrom(directoryFile);            // read the contents from directoryfile
+            int sector = d->Find(dirName);          // Look for the sector of file 'dirname'
+            delete d;
+
+            if (sector == -1) {
+                if (directoryFile != fp) {
+                    delete directoryFile;
+                }
+                directoryFile = fp;
+                return false;
+            }
+
+            FileHeader* fileheader = new FileHeader();
+            fileheader->FetchFrom(sector);
+            FileHeader::FileType type = fileheader->Type_Get(); // return type;
+            delete fileheader;
+            if (type == FileHeader::DIRECTORY) {
+                OpenFile* fp2 = directoryFile;
+                directoryFile = Open(dirName);
+                if (fp2 != fp) {
+                    delete fp2;
+                }
+                if (directoryFile == NULL) {
+                    if (directoryFile != fp) {
+                        delete directoryFile;
+                    }
+                    directoryFile = fp;
+                    return false;
+                }
+            } 
+            else 
+            {
+                if (directoryFile != fp) {
+                    delete directoryFile;
+                }
+                directoryFile = fp;
+                return false;
+            }
+        }
+        dir = slash + 1;
+    }
+
+    if (directoryFile != fp) {
+        delete fp;
+    }
+    return true;
+}
+
+
+bool FileSystem::CreateDirectory(const char *name) {
+
+    // Create the new folder and writes a data structure to Directory
+    Directory *directory;
+
+    Create(name, FileHeader::DIRECTORY);
+
+    directory = new Directory(NumDirEntries);
+
+    OpenFile* newDirectory = Open(name);  //Open 'name' file for reading and writing.  
+
+    directory->WriteBack(newDirectory);    // Write modifications to the newDirectory back to disk
+
+    delete directory;
+
+
+    // Get the sector number of the header of the new folder
+    directory = new Directory(NumDirEntries);
+
+    directory->FetchFrom(directoryFile);   //Read the contents of the root directoryFile from disk
+
+    int newDirectorySector = directory->Find(name);  // Look up file name in directory, and return the disk sector number where the file's
+    
+
+    // Get the sector number of the header of the current folder
+    FileHeader* fileheader = new FileHeader;
+
+    int sector = directory->Find(".");   // gets the sector number of "."
+
+    fileheader->FetchFrom(sector);     //Read the contents of the sector from disk
+
+    int sectorParent = fileheader->LinkSector_Get();  // return dataSectors[0];
+    
+    delete directory;
+
+    delete fileheader;
+
+
+    // Proceed into the new folder to create "." and ".."
+    Directory_path((std::string(name) + "/").c_str());
+
+
+    //Create the  directory and parent header
+    Create(".", FileHeader::DOTLINK);    // Create a "." directory
+
+    Create("..", FileHeader::DOTLINK);   // Create a ".." directory
+
+    
+    // Get the file sector numbers. "." and ".."
+    directory = new Directory(NumDirEntries);
+
+    directory->FetchFrom(directoryFile);   //Read the contents of the directoryFile from disk
+
+    
+    /*Connection b/w  "." and the current folder*/
+    int dirSector = directory->Find(".");
+
+    FileHeader* dirfileheader = new FileHeader;
+
+    dirfileheader->FetchFrom(dirSector);   //Read the contents of the dirsector from disk
+
+    dirfileheader->LinkSector_Set(newDirectorySector);  //return dataSectors[0];
+
+    dirfileheader->WriteBack(dirSector);    // Write modifications to the dirSector back to disk
+
+    delete dirfileheader;
+    /*---------------------------------------------*/
+
+
+    /*Connection b/w  ".." and the parent folder*/
+    int pSector = directory->Find("..");
+
+    FileHeader* pfileheader = new FileHeader;
+
+    pfileheader->FetchFrom(pSector);             //Read the contents of the psector from disk
+
+    pfileheader->LinkSector_Set(sectorParent);   //dataSectors[0] = sectorParent;
+
+    pfileheader->WriteBack(pSector);            // Write modifications to the pSector back to disk
+
+    delete pfileheader;
+    /*---------------------------------------------*/
+
+
+    delete directory;
+
+    Directory_path("../");
+
+    return true;
+}
+
+void FileSystem::ChangeDirectory    ( const char* filename )
+{
+         // Take into account current directory
+    std::string filename_s = filename;
+
+    
+
+    char *cpy = new char[strlen(filename_s.c_str()) + 1];
+    //Directory *dir = new Directory(NumDirEntries);
+    //dir->FetchFrom(directoryFile); //directoryFile has the current directory.
+   // char *saveptr = cpy;
+
+    strcpy(cpy, filename_s.c_str());
+
+
+    char *name = strtok(cpy, "/");
+    std::list<std::string> final;
+
+    bool test =true;
+    if(test == FALSE)
+        printf("asd");
+   
+    while (name != NULL)
+    {
+         test = Directory_path(name);
+
+
+
+
+        name = strtok(NULL, "/");
+    }
+}
+
+ // Function to delete a directory
+void FileSystem:: DeleteDirectory (const char *name)
+{
+
+	Directory *directory;
+    //BitMap *freeMap;
+    //FileHeader *hdr;
+    //int sector;
+   // bool success;
+    //success= TRUE;
+
+   
+        directory = new Directory(NumDirEntries);
+    directory->FetchFrom(directoryFile);
+     Directory_path((std::string(name) + "/").c_str());
+
+    if (directory->IsEmpty() == false)
+    {
+        Directory_path("../");
+     //   printf("Folder exist found \n");
+      //  success = FALSE;
+        //return success;
+         BitMap *freeMap;
+    FileHeader *fileHdr;
+    int sector;
+            sector = directory->Find(name);
+    if (sector == -1) {
+       delete directory;
+       printf("Error in deleting as it can't be found \n");
+           }
+    fileHdr = new FileHeader;
+    fileHdr->FetchFrom(sector);
+
+    freeMap = new BitMap(NumSectors);
+    freeMap->FetchFrom(freeMapFile);
+
+    #ifdef CHANGED
+    fileHdr->Deallocate(freeMap,0);         // remove data blocks
+    #else
+    fileHdr->Deallocate(freeMap);
+    #endif
+    
+    freeMap->Clear(sector);         // remove header block
+    directory->Remove(name);
+
+    freeMap->WriteBack(freeMapFile);        // flush to disk
+    directory->WriteBack(directoryFile);        // flush to disk
+    delete fileHdr;
+    delete directory;
+    delete freeMap;
+    
+    }
+    else 
+        printf("Can't delete as directory is not empty \n");
+}
+
+OpenFile *
+FileSystem::FreeMap()
+{
+    return freeMapFile;
+}
+
+#endif
