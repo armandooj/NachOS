@@ -223,28 +223,29 @@ ExceptionHandler (ExceptionType which)
               int rg4 = machine->ReadRegister (4);
               int rg5 = machine->ReadRegister (5);
               int rg6 = machine->ReadRegister (6);
-              int size = 0,round = 0;
+              int res = 0,size = 0,round = 0;
               OpenFile *file = currentThread->space->OpenSearch(rg6);
               char buffer[MAX_STRING_SIZE] = {};
               bool status = false;
               do {
                if(rg5 >= MAX_STRING_SIZE)
                   if((size = copyStringFromMachine(rg4+MAX_STRING_SIZE*round,buffer,rg5)) == MAX_STRING_SIZE) {
-                      file->Write(buffer,MAX_STRING_SIZE);
+                      res = res + file->Write(buffer,MAX_STRING_SIZE);
                       rg5 = rg5 - MAX_STRING_SIZE;
                       round++;
                   }
                   else {
                       status = true;
                       if(size != 0)
-                         file->Write(buffer,rg5);
+                         res = res + file->Write(buffer,rg5);
                   }
                else {
                   status = true;
                   copyStringFromMachine(rg4+MAX_STRING_SIZE*round,buffer,rg5);
-                  file->Write(buffer,rg5);
+                  res = res + file->Write(buffer,rg5);
                }
               } while(status == false);
+              machine->WriteRegister (2, res);
               break;
             }
 
