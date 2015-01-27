@@ -35,7 +35,6 @@ void showExample(int farAddr) {
     PacketHeader outPktHdr, inPktHdr;
     MailHeader outMailHdr, inMailHdr;
     const char *data = "Hello there!";
-    const char *ack = "Got it!";
     char buffer[MaxMailSize];
 
     // construct packet, mail header for original message
@@ -47,9 +46,7 @@ void showExample(int farAddr) {
     outMailHdr.length = strlen(data) + 1;
 
     // Send the first message
-    postOffice->ReliableSend(outPktHdr, outMailHdr, data); 
-
-    printf("Begin get mail\n");
+    postOffice->doReliableSend2(outPktHdr, outMailHdr, data); 
 
     // Wait for the first message from the other machine
     postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);  // Stuck here
@@ -57,8 +54,7 @@ void showExample(int farAddr) {
     printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
     fflush(stdout);
 
-    printf("Done get mail\n");
-
+    /*
     // Send acknowledgement to the other machine (using "reply to" mailbox
     // in the message that just arrived
     outPktHdr.to = inPktHdr.from;
@@ -71,6 +67,7 @@ void showExample(int farAddr) {
     printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
     fflush(stdout);
 
+    */
     printf("Finish here\n");
 
     // Then we're done!

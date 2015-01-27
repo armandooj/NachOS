@@ -53,6 +53,9 @@ class MailHeader {
 
 #define MaxMailSize 	(MaxPacketSize - sizeof(MailHeader))
 
+#define TEMP0   5000    // The time a send wait for a response, if not then 
+                        // resend a new package
+#define MAXREEMISSIONS  3 // The number of resend a send will do.                        
 
 // The following class defines the format of an incoming/outgoing 
 // "Mail" message.  The message format is layered: 
@@ -90,6 +93,8 @@ class MailBox {
     
     SynchList *postOfficeMessages; // It needs to access all the messages
 
+    bool isEmpty(); // check if the box has any message
+
   private:
     SynchList *messages;	// A mailbox is just a list of arrived messages
 };
@@ -118,6 +123,9 @@ class PostOffice {
 
 #ifdef CHANGED
     void ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char *data);
+    
+    //testing
+    void doReliableSend2(PacketHeader pktHdr, MailHeader mailHdr, const char* data);
 #endif
     
     void Receive(int box, PacketHeader *pktHdr, 
@@ -136,6 +144,8 @@ class PostOffice {
 				// off of network (i.e., time to call 
 				// PostalDelivery)
 
+    void chooseSleepOrSend();
+
   protected:
     Network *network;		// Physical network connection
     NetworkAddress netAddr;	// Network address of this machine
@@ -146,6 +156,9 @@ class PostOffice {
     Lock *sendLock;		// Only one outgoing message at a time
 #ifdef CHANGED
     SynchList *sentMessages; // A list of messages that need to be confirme
+    
+    Mail *sendingMail;
+    int numberOfTries;
 #endif
 };
 
