@@ -28,6 +28,9 @@
 #ifndef POST_H
 #define POST_H
 
+#define MAXREEMISSIONS 3
+#define TEMPO 50000000
+
 #include "network.h"
 #include "synchlist.h"
 #include "thread.h"
@@ -69,6 +72,7 @@ class Mail {
      PacketHeader pktHdr;	// Header appended by Network
      MailHeader mailHdr;	// Header appended by PostOffice
      char data[MaxMailSize];	// Payload -- message data
+     int attempts;
 };
 
 // The following class defines a single mailbox, or temporary storage
@@ -118,6 +122,7 @@ class PostOffice {
 
 #ifdef CHANGED
     void ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char *data);
+    Mail *FindMail(Mail *mail);
 #endif
     
     void Receive(int box, PacketHeader *pktHdr, 
@@ -144,7 +149,9 @@ class PostOffice {
     Semaphore *messageAvailable;// V'ed when message has arrived from network
     Semaphore *messageSent;	// V'ed when next message can be sent to network
     Lock *sendLock;		// Only one outgoing message at a time
+
 #ifdef CHANGED
+  public:
     SynchList *sentMessages; // A list of messages that need to be confirme
 #endif
 };

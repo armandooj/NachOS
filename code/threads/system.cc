@@ -19,6 +19,8 @@ Statistics *stats;		// performance metrics
 Timer *timer;			// the hardware timer device,
 					// for invoking context switches
 
+bool randomYield;
+
 #ifdef FILESYS_NEEDED
 FileSystem *fileSystem;
 #endif
@@ -64,8 +66,11 @@ extern void Cleanup ();
 static void
 TimerInterruptHandler (int dummy)
 {
-    if (interrupt->getStatus () != IdleMode)
-	interrupt->YieldOnReturn ();
+    if (randomYield)
+        if (interrupt->getStatus () != IdleMode)
+	       interrupt->YieldOnReturn ();
+
+    // printf("%lld\n", stats->totalTicks);
 }
 
 //----------------------------------------------------------------------
@@ -83,7 +88,7 @@ Initialize (int argc, char **argv)
 {
     int argCount;
     const char *debugArgs = "";
-    bool randomYield = FALSE;
+    randomYield = FALSE;
 
 #ifdef USER_PROGRAM
     bool debugUserProg = FALSE;	// single step user program
@@ -145,7 +150,7 @@ Initialize (int argc, char **argv)
     stats = new Statistics ();	// collect statistics
     interrupt = new Interrupt;	// start up interrupt handling
     scheduler = new Scheduler ();	// initialize the ready queue
-    if (randomYield)		// start the timer (if needed)
+    // if (randomYield)		// start the timer (if needed)
 	timer = new Timer (TimerInterruptHandler, 0, randomYield);
 
     threadToBeDestroyed = NULL;

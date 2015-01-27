@@ -333,53 +333,63 @@ PostOffice::Send(PacketHeader pktHdr, MailHeader mailHdr, const char* data)
 
 
 void TimeOutHandler(int arg) {
+    PostOffice *office = (PostOffice *) arg;
     // Look for the Mail in the list
     // if it's there it failed, try again N times.
-    printf("Hola.\n");
+    if (!office->sentMessages->isEmpty()) {
+        Mail *mail = (Mail *) office->sentMessages->GetFirst();
+        office->ReliableSend(mail->pktHdr, mail->mailHdr, mail->data);
+        printf("Trying again!...\n");
+    } else {
+        printf("Nothing failed.\n");
+    }
+}
+
+Mail *
+PostOffice::FindMail(Mail *mail) {
+    if (!sentMessages->isEmpty()) {
+        // find the email
+        return (Mail *) sentMessages->GetFirst();
+    }
+
+    return NULL;
 }
 
 // TODO Write something useful here
 void
 PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* data)
 {
-    char* buffer = new char[MaxPacketSize]; // space to hold concatenated
-                        // mailHdr + data
-
     if (DebugIsEnabled('n')) {
         printf("Post reliable send: ");
         PrintHeader(pktHdr, mailHdr);
     }
-    ASSERT(mailHdr.length <= MaxMailSize);
-    ASSERT(0 <= mailHdr.to && mailHdr.to < numBoxes);
-    
-    // fill in pktHdr, for the Network layer
-    pktHdr.from = netAddr;
-    pktHdr.length = mailHdr.length + sizeof(MailHeader);
-
-    // concatenate MailHeader and data
-    bcopy(&mailHdr, buffer, sizeof(MailHeader));
-    bcopy(data, buffer + sizeof(MailHeader), mailHdr.length);
 
     // Now, backup the Message so that we can confirm it's reception later
     Mail *mail = new Mail(pktHdr, mailHdr, NULL);
     strncpy(mail->data, (char *) data, MaxMailSize);
 
-    // Add it to the list
-    // TODO check it's not there already
-    sentMessages->Append(mail);
+    // Only add it once
+    Mail *sentMail = FindMail(mail);
+    if (sentMail == NULL) {
+        // Add it to the list
+        mail->attempts = 1;
+        sentMessages->Append(mail);
+        printf("Backing up the Mail\n");
+    } else {
+        // otherwise increment the attempts count or mark it as an error
+        if (sentMail->attempts < MAXREEMISSIONS) {
+            sentMail->attempts++;
+            printf("Incrementing the mail's attempts count -> %d\n", sentMail->attempts);
+        } else {
+            printf(" - Network Error -\n");
+            ASSERT(false);
+        }
+    }
 
-    sendLock->Acquire();        // only one message can be sent
-                    // to the network at any one time
-    network->Send(pktHdr, buffer);
-    messageSent->P();           // wait for interrupt to tell us
-                    // ok to send the next message
-    sendLock->Release();
+    Send(pktHdr, mailHdr, data);
 
     // Trigger an interrupt
-    interrupt->Schedule(TimeOutHandler, (int) this, 1000000, NetworkSendInt);
-
-    delete [] buffer;           // we've sent the message, so
-                    // we can delete our buffer
+    interrupt->Schedule(TimeOutHandler, (int) this, TEMPO, NetworkSendInt);
 }
 
 #endif
