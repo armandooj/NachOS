@@ -72,6 +72,13 @@ MailBox::~MailBox()
     delete messages; 
 }
 
+//IsEmpty...
+
+bool 
+MailBox::isEmpty() {
+    return messages->isEmpty();
+}
+
 //----------------------------------------------------------------------
 // PrintHeader
 // 	Print the message header -- the destination machine ID and mailbox
@@ -249,6 +256,7 @@ PostOffice::~PostOffice()
     delete sendLock;
 }
 
+
 //----------------------------------------------------------------------
 // PostOffice::PostalDelivery
 // 	Wait for incoming messages, and put them in the right mailbox.
@@ -331,7 +339,6 @@ PostOffice::Send(PacketHeader pktHdr, MailHeader mailHdr, const char* data)
 
 #ifdef CHANGED
 
-
 void TimeOutHandler(int arg) {
     PostOffice *office = (PostOffice *) arg;
     // Look for the Mail in the list
@@ -355,7 +362,16 @@ PostOffice::FindMail(Mail *mail) {
     return NULL;
 }
 
-// TODO Write something useful here
+void TimeOutHandler2(int arg) {
+    PostOffice *office = (PostOffice *) arg;
+    printf("Hola.\n");
+    office->chooseSleepOrSend();
+}
+
+
+// TODO Send a package, even in unreliable condition
+//
+//  This will sleep a package 
 void
 PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* data)
 {
@@ -390,6 +406,50 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
 
     // Trigger an interrupt
     interrupt->Schedule(TimeOutHandler, (int) this, TEMPO, NetworkSendInt);
+}
+
+
+void 
+PostOffice::chooseSleepOrSend() {
+    
+    if (numberOfTries >= 5) {
+        printf("Network error\n");
+        ASSERT(false);
+    }
+    
+    //Check if there is message, then check email
+    if (boxes[1].isEmpty() && numberOfTries < 5) {
+        numberOfTries ++;
+        Send(sendingMail->pktHdr, sendingMail->mailHdr, sendingMail->data);
+        interrupt->Schedule(TimeOutHandler2, (int) this, 5000000, NetworkSendInt);
+    }
+    else if ( !boxes[1].isEmpty() ){
+        //else read mail
+        PacketHeader inPktHdr;
+        MailHeader inMailHdr;
+        char buffer[MaxMailSize];
+    
+        postOffice->Receive(1, &inPktHdr, &inMailHdr, buffer);
+        printf("Got \"%s\" from %d, box %d\n", buffer, inPktHdr.from, inMailHdr.from);
+        fflush(stdout);
+        
+        return;
+    }
+    
+    //TODO printout error, "error in transit here "
+}
+
+//Protocol is box 0 to send and, 1 to receive ackknowledgement 
+void
+PostOffice::doReliableSend2(PacketHeader pktHdr, MailHeader mailHdr, const char* data) {
+    
+    numberOfTries = 0;
+    
+    // Construct the mail 
+    sendingMail = new Mail(pktHdr, mailHdr, NULL);
+    strncpy(sendingMail->data, (char *) data, MaxMailSize);
+    
+    chooseSleepOrSend();    
 }
 
 #endif

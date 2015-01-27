@@ -49,22 +49,18 @@ void showExample(int farAddr) {
     // Send the first message
     postOffice->ReliableSend(outPktHdr, outMailHdr, data); 
 
-    printf("Begin get mail\n");
-
     // Wait for the first message from the other machine
     postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);  // Stuck here
 
     printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
     fflush(stdout);
 
-    printf("Done get mail\n");
-
     // Send acknowledgement to the other machine (using "reply to" mailbox
     // in the message that just arrived
     outPktHdr.to = inPktHdr.from;
     outMailHdr.to = inMailHdr.from;
     outMailHdr.length = strlen(ack) + 1;
-    //postOffice->Send(outPktHdr, outMailHdr, ack); 
+    postOffice->Send(outPktHdr, outMailHdr, ack); 
 
     // Wait for the ack from the other machine to the first message we sent.
     postOffice->Receive(1, &inPktHdr, &inMailHdr, buffer);
