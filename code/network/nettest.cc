@@ -47,12 +47,13 @@ void showExample(int farAddr) {
     outMailHdr.length = strlen(data) + 1;
 
     // Send the first message
-    postOffice->Send(outPktHdr, outMailHdr, data); 
+    postOffice->ReliableSend(outPktHdr, outMailHdr, data); 
 
     printf("Begin get mail\n");
 
     // Wait for the first message from the other machine
-    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);  // Stuck here
+
     printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
     fflush(stdout);
 

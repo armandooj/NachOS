@@ -19,6 +19,9 @@
 #include "copyright.h"
 #include "post.h"
 #include "timer.h"
+#ifdef CHANGED
+#include "system.h"
+#endif
 
 #include <strings.h> /* for bzero */
 
@@ -38,7 +41,8 @@ Mail::Mail(PacketHeader pktH, MailHeader mailH, char *msgData)
 
     pktHdr = pktH;
     mailHdr = mailH;
-    bcopy(msgData, data, mailHdr.length);
+    if (msgData != NULL)
+        bcopy(msgData, data, mailHdr.length);
 }
 
 //----------------------------------------------------------------------
@@ -135,9 +139,25 @@ MailBox::Get(PacketHeader *pktHdr, MailHeader *mailHdr, char *data)
     *pktHdr = mail->pktHdr;
     *mailHdr = mail->mailHdr;
     if (DebugIsEnabled('n')) {
-	printf("Got mail from mailbox: ");
-	PrintHeader(*pktHdr, *mailHdr);
+	   printf("Got mail from mailbox: ");
+	   PrintHeader(*pktHdr, *mailHdr);
     }
+
+#ifdef CHANGED
+
+    // Check if it's a confirmation of a message that we sent before
+    Mail *sentMessage = (Mail *) postOfficeMessages->GetFirst();
+    // TODO we should check through all the list
+    if (sentMessage != NULL) {
+        if (sentMessage->mailHdr.from == mail->mailHdr.to) {
+            DEBUG('n', "Mail confirmed. Deleting it from the list\n");
+            // Do this properly
+            postOfficeMessages->Remove();
+        }
+    }
+
+#endif
+
     bcopy(mail->data, data, mail->mailHdr.length);
 					// copy the message data into
 					// the caller's buffer
@@ -182,23 +202,35 @@ static void WriteDone(int arg)
 
 PostOffice::PostOffice(NetworkAddress addr, double reliability, int nBoxes)
 {
-// First, initialize the synchronization with the interrupt handlers
+    // First, initialize the synchronization with the interrupt handlers
     messageAvailable = new Semaphore("message available", 0);
     messageSent = new Semaphore("message sent", 0);
     sendLock = new Lock("message send lock");
 
-// Second, initialize the mailboxes
+    // Second, initialize the mailboxes
     netAddr = addr; 
     numBoxes = nBoxes;
     boxes = new MailBox[nBoxes];
 
-// Third, initialize the network; tell it which interrupt handlers to call
+    // Third, initialize the network; tell it which interrupt handlers to call
     network = new Network(addr, reliability, ReadAvail, WriteDone, (int) this);
 
 
-// Finally, create a thread whose sole job is to wait for incoming messages,
-//   and put them in the right mailbox. 
+    // Finally, create a thread whose sole job is to wait for incoming messages,
+    // and put them in the right mailbox. 
     Thread *t = new Thread("postal worker");
+
+#ifdef CHANGED
+
+    sentMessages = new SynchList();
+
+    // And add to them a global reference to the list of messages
+    // I'm not sure this is the best way to do it but for now it'll do the job
+    for (int i = 0; i < nBoxes; ++i){
+        boxes[i].postOfficeMessages = sentMessages;
+    }
+
+#endif
 
     t->Fork(PostalHelper, (int) this);
 }
@@ -239,15 +271,15 @@ PostOffice::PostalDelivery()
 
         mailHdr = *(MailHeader *)buffer;
         if (DebugIsEnabled('n')) {
-	    printf("Putting mail into mailbox: ");
-	    PrintHeader(pktHdr, mailHdr);
+	       printf("Putting mail into mailbox: ");
+	       PrintHeader(pktHdr, mailHdr);
         }
 
-	// check that arriving message is legal!
-	ASSERT(0 <= mailHdr.to && mailHdr.to < numBoxes);
-	ASSERT(mailHdr.length <= MaxMailSize);
+        // check that arriving message is legal!
+        ASSERT(0 <= mailHdr.to && mailHdr.to < numBoxes);
+        ASSERT(mailHdr.length <= MaxMailSize);
 
-	// put into mailbox
+        // put into mailbox
         boxes[mailHdr.to].Put(pktHdr, mailHdr, buffer + sizeof(MailHeader));
     }
 }
@@ -272,8 +304,8 @@ PostOffice::Send(PacketHeader pktHdr, MailHeader mailHdr, const char* data)
 						// mailHdr + data
 
     if (DebugIsEnabled('n')) {
-	printf("Post send: ");
-	PrintHeader(pktHdr, mailHdr);
+	   printf("Post send: ");
+	   PrintHeader(pktHdr, mailHdr);
     }
     ASSERT(mailHdr.length <= MaxMailSize);
     ASSERT(0 <= mailHdr.to && mailHdr.to < numBoxes);
@@ -296,6 +328,61 @@ PostOffice::Send(PacketHeader pktHdr, MailHeader mailHdr, const char* data)
     delete [] buffer;			// we've sent the message, so
 					// we can delete our buffer
 }
+
+#ifdef CHANGED
+
+
+void TimeOutHandler(int arg) {
+    // Look for the Mail in the list
+    // if it's there it failed, try again N times.
+    printf("Hola.\n");
+}
+
+// TODO Write something useful here
+void
+PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* data)
+{
+    char* buffer = new char[MaxPacketSize]; // space to hold concatenated
+                        // mailHdr + data
+
+    if (DebugIsEnabled('n')) {
+        printf("Post reliable send: ");
+        PrintHeader(pktHdr, mailHdr);
+    }
+    ASSERT(mailHdr.length <= MaxMailSize);
+    ASSERT(0 <= mailHdr.to && mailHdr.to < numBoxes);
+    
+    // fill in pktHdr, for the Network layer
+    pktHdr.from = netAddr;
+    pktHdr.length = mailHdr.length + sizeof(MailHeader);
+
+    // concatenate MailHeader and data
+    bcopy(&mailHdr, buffer, sizeof(MailHeader));
+    bcopy(data, buffer + sizeof(MailHeader), mailHdr.length);
+
+    // Now, backup the Message so that we can confirm it's reception later
+    Mail *mail = new Mail(pktHdr, mailHdr, NULL);
+    strncpy(mail->data, (char *) data, MaxMailSize);
+
+    // Add it to the list
+    // TODO check it's not there already
+    sentMessages->Append(mail);
+
+    sendLock->Acquire();        // only one message can be sent
+                    // to the network at any one time
+    network->Send(pktHdr, buffer);
+    messageSent->P();           // wait for interrupt to tell us
+                    // ok to send the next message
+    sendLock->Release();
+
+    // Trigger an interrupt
+    interrupt->Schedule(TimeOutHandler, (int) this, 1000000, NetworkSendInt);
+
+    delete [] buffer;           // we've sent the message, so
+                    // we can delete our buffer
+}
+
+#endif
 
 //----------------------------------------------------------------------
 // PostOffice::Receive
@@ -351,10 +438,11 @@ PostOffice::PacketSent()
     messageSent->V();
 }
 
+/*
 #ifdef CHANGED
 
 void 
-ReliableProtocol::Receive(PacketHeader pktHdr, MailHeader mailHdr, const char *data){
+ReliablePostOffice::Receive(PacketHeader pktHdr, MailHeader mailHdr, const char *data){
     //Timer timer = new Timer();
 }
 
@@ -363,4 +451,5 @@ void TimeOutHandler() {
 }
     
 #endif
+*/
 

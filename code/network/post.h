@@ -87,6 +87,9 @@ class MailBox {
    				// Atomically get a message out of the 
 				// mailbox (and wait if there is no message 
 				// to get!)
+    
+    SynchList *postOfficeMessages; // It needs to access all the messages
+
   private:
     SynchList *messages;	// A mailbox is just a list of arrived messages
 };
@@ -112,6 +115,10 @@ class PostOffice {
     				// Send a message to a mailbox on a remote 
 				// machine.  The fromBox in the MailHeader is 
 				// the return box for ack's.
+
+#ifdef CHANGED
+    void ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char *data);
+#endif
     
     void Receive(int box, PacketHeader *pktHdr, 
 		MailHeader *mailHdr, char *data);
@@ -137,16 +144,20 @@ class PostOffice {
     Semaphore *messageAvailable;// V'ed when message has arrived from network
     Semaphore *messageSent;	// V'ed when next message can be sent to network
     Lock *sendLock;		// Only one outgoing message at a time
+#ifdef CHANGED
+    SynchList *sentMessages; // A list of messages that need to be confirme
+#endif
 };
 
+/*
 #ifdef CHANGED
-class ReliableProtocol:PostOffice {
+class ReliablePostOffice:PostOffice {
     public:
                 
         void Receive(PacketHeader pktHdr, MailHeader mailHdr, const char *data);
     private:
 };
 #endif //End CHANGED
-
+*/
 
 #endif
