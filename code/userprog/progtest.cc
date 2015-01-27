@@ -142,12 +142,15 @@ void Test_FileSystem() {
     Copy("../filesys/test/small", "Small1");
     fileSystem->CreateDirectory("Cdir");
           fileSystem->List ();
-    fileSystem->Directory_path("Cdir/");
+  
+    fileSystem->Directory_path("../");
 
-    Copy("../filesys/test/big", "Big1");
+  //  fileSystem->Directory_path("Cdir/");
+
+   // Copy("../filesys/test/big", "Big1");
           
-    fileSystem->Directory_path("../");
-    fileSystem->Directory_path("../");
+   // fileSystem->Directory_path("../");
+    
 }
 
 void Test_FileSystem2() {

@@ -198,7 +198,8 @@ main (int argc, char **argv)
         }
             else if (!strcmp (*argv, "-cd"))
         {			// create Nachos directory
-            fileSystem->Directory_path(*(argv + 1));
+            //fileSystem->Directory_path();
+            fileSystem->Directory_path((std::string(*(argv + 1)) + "/").c_str());
             fileSystem->List ();
             argCount = 2;
             interrupt->Halt ();

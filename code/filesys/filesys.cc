@@ -612,6 +612,8 @@ void FileSystem::ChangeDirectory    ( const char* filename )
     
 
     char *cpy = new char[strlen(filename_s.c_str()) + 1];
+    //Directory *dir = new Directory(NumDirEntries);
+    //dir->FetchFrom(directoryFile); //directoryFile has the current directory.
    // char *saveptr = cpy;
 
     strcpy(cpy, filename_s.c_str());
@@ -627,6 +629,10 @@ void FileSystem::ChangeDirectory    ( const char* filename )
     while (name != NULL)
     {
          test = Directory_path(name);
+
+
+
+
         name = strtok(NULL, "/");
     }
 
@@ -687,20 +693,6 @@ void FileSystem:: DeleteDirectory (const char *name)
     }
     else 
         printf("Can't delete as directory is not empty \n");
-
-// /return success;
-
-
-
-
-
-
-
-
-
-
-
-
 }
  // Get the current directory
 Directory *FileSystem::GetDirectoryByName(const char* dirname, int *store_sector)
