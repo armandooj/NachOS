@@ -603,7 +603,7 @@ bool FileSystem::CreateDirectory(const char *name) {
 
     return true;
 }
-
+// To change a directory using path name
 void FileSystem::ChangeDirectory    ( const char* filename )
 {
          // Take into account current directory
@@ -689,17 +689,6 @@ void FileSystem:: DeleteDirectory (const char *name)
         printf("Can't delete as directory is not empty \n");
 
 // /return success;
-
-
-
-
-
-
-
-
-
-
-
 
 }
  // Get the current directory
