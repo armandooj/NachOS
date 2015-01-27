@@ -600,7 +600,6 @@ bool FileSystem::CreateDirectory(const char *name) {
 
     Directory_path("../");
 
-
     return true;
 }
 
@@ -612,6 +611,8 @@ void FileSystem::ChangeDirectory    ( const char* filename )
     
 
     char *cpy = new char[strlen(filename_s.c_str()) + 1];
+    //Directory *dir = new Directory(NumDirEntries);
+    //dir->FetchFrom(directoryFile); //directoryFile has the current directory.
    // char *saveptr = cpy;
 
     strcpy(cpy, filename_s.c_str());
@@ -627,12 +628,14 @@ void FileSystem::ChangeDirectory    ( const char* filename )
     while (name != NULL)
     {
          test = Directory_path(name);
+
+
+
+
         name = strtok(NULL, "/");
     }
-
-    // Construct string
-  
 }
+
  // Function to delete a directory
 void FileSystem:: DeleteDirectory (const char *name)
 {
@@ -687,75 +690,7 @@ void FileSystem:: DeleteDirectory (const char *name)
     }
     else 
         printf("Can't delete as directory is not empty \n");
-
-// /return success;
-
-
-
-
-
-
-
-
-
-
-
-
 }
- // Get the current directory
-Directory *FileSystem::GetDirectoryByName(const char* dirname, int *store_sector)
-{
-    Directory *current = new Directory(NumDirEntries);
-    int sector = 0;
-    char *cpy = new char[strlen(dirname) + 1];
-    strcpy(cpy, dirname);
-
-    char *name = strtok(cpy, "/");
-
-    // Init first directory
-    current->FetchFrom(directoryFile);
-
-    // If root, just return current
-    if (strcmp(cpy, "/") == 0 || strcmp(cpy, ".") == 0)
-    {
-        if (store_sector != NULL)
-            *store_sector = DirectorySector;
-        delete [] cpy;
-        return current;
-    }
-
-    // Search following inside current directory
-    sector = current->Find(name);
-    while(sector >= 0)
-    {
-        name = strtok(NULL, "/");
-
-        if (name == NULL)
-        {
-            if (store_sector != NULL)
-                *store_sector = sector;
-
-            delete current;
-
-            current = Directory::ReadAtSector(sector);
-            delete [] cpy;
-            return current;
-        }
-
-        delete current;
-        current = Directory::ReadAtSector(sector);
-        sector = current->Find(name);
-    }
-
-    if (store_sector != NULL)
-        *store_sector = -1;
-    delete [] cpy;
-    delete current;
-
-    return NULL;
-
-}
-
 
 OpenFile *
 FileSystem::FreeMap()

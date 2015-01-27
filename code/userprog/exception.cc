@@ -27,9 +27,11 @@
 #include "userthread.h"
 #include "scheduler.h"
 #include "synch.h"
+#ifdef CHANGED
 #include "directory.h"
 #include "filesys.h"
-
+#include "userprocess.h"
+#endif
 //----------------------------------------------------------------------
 // UpdatePC : Increments the Program Counter register in order to resume
 // the user program immediately after the "syscall" instruction.
@@ -152,26 +154,7 @@ ExceptionHandler (ExceptionType which)
            switch (type) {
             case SC_Exit: 
             {
-              currentThread->space->decreaseUserProcesses();
-            
-              DEBUG('t', "Thread '%s' sends EXIT Signal\n", currentThread->getName());
-              DEBUG('t', "Number of UserThread: %d\n", currentThread->space->getNumberOfUserProcesses() );
-              
-              //busy waiting
-              /*
-              while (currentThread->space->getNumberOfUserProcesses() != 0) {
-                currentThread->space->ExitForMain->V();
-                currentThread->Yield();
-              }
-              */
-              
-              while (currentThread->space->getNumberOfUserProcesses() != 0) {
-                currentThread->space->ExitForMain->P();  
-              }
-
-              int value = machine->ReadRegister(4);          
-              DEBUG('a', "Exit program, return value: %d.\n", value);
-              interrupt->Halt();
+              do_UserProcessExit();
               break;
             }
             case SC_Halt: 
@@ -202,8 +185,6 @@ ExceptionHandler (ExceptionType which)
               {
                    if (opentable->PushOpenFile(temp->filedescriptor()) == -1) res = -1;
                    if ((res = currentThread->space->PushTable(temp)) == -1) res = -1;
-            //       else res = opentable->PushOpenFile(temp); //used to push a new openfile object into a global array
-//;-1 fail/0 success
               }
               machine->WriteRegister (2, res);
               break;
@@ -236,10 +217,8 @@ ExceptionHandler (ExceptionType which)
               for (int i=0;i<rg5;i++) {
                 ch = buffer[i];
                 if (ch == EOF) break;
-                else {
+                else 
                    machine->WriteMem(rg4+i,1,ch);
-                   //if (ch == '\n' || ch == '\0') break;
-                }
               }
               machine->WriteRegister (2, res);
               break;
@@ -253,13 +232,10 @@ ExceptionHandler (ExceptionType which)
               int size = 0,round = 0;
               OpenFile *file = currentThread->space->OpenSearch(rg6);
               char buffer[MAX_STRING_SIZE] = {};
-              //copyStringFromMachine(rg4,buffer,rg5);
-              //file->Write(buffer,rg5);
               bool status = false;
               do {
                if(rg5 >= MAX_STRING_SIZE)
                   if((size = copyStringFromMachine(rg4+MAX_STRING_SIZE*round,buffer,rg5)) == MAX_STRING_SIZE) {
-                      //currentThread->space->FetchTable(currentThread->space->SearchTable(file))->Write(buffer,MAX_STRING_SIZE);
                       file->Write(buffer,MAX_STRING_SIZE);
                       rg5 = rg5 - MAX_STRING_SIZE;
                       round++;
@@ -267,13 +243,11 @@ ExceptionHandler (ExceptionType which)
                   else {
                       status = true;
                       if(size != 0)
-                         //currentThread->space->FetchTable(currentThread->space->SearchTable(file))->Write(buffer,rg5);
                          file->Write(buffer,rg5);
                   }
                else {
                   status = true;
                   copyStringFromMachine(rg4+MAX_STRING_SIZE*round,buffer,rg5);
-                  //currentThread->space->FetchTable(currentThread->space->SearchTable(file))->Write(buffer,rg5);
                   file->Write(buffer,rg5);
                }
               } while(status == false);
@@ -327,8 +301,8 @@ ExceptionHandler (ExceptionType which)
             }
             case SC_UserThreadJoin:
             {
-                int tid = machine->ReadRegister(4);
-                do_UserThreadJoin(tid);
+                int tid = machine->ReadRegister(4);                                                
+                machine->WriteRegister(2, do_UserThreadJoin(tid));
                 break;
             }
             case SC_GetChar:
@@ -370,6 +344,17 @@ ExceptionHandler (ExceptionType which)
             {
                 int val = synchconsole->SynchGetInt();
                 machine->WriteMem(machine->ReadRegister(4), 4, val);
+                break;
+            }
+            case SC_ForkExec:
+            {
+                int s = machine->ReadRegister(4);
+                
+                char str[100] = {};
+                copyStringFromMachine(s, str, 100);
+                // printf("New file name: %s\n", str);
+
+                do_UserProcessCreate(str);
                 break;
             }
             default: {

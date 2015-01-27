@@ -114,7 +114,6 @@ class FileSystem {
      void   ChangeDirectory(const  char* filename); 
      OpenFile *FreeMap();
      void DeleteDirectory (const char *name);
-     Directory *GetDirectoryByName(const char* dirname, int *store_sector);
   #endif
 
   private:
