@@ -62,18 +62,23 @@ extern PostOffice *postOffice;
 
 #ifdef CHANGED
 #include "openfile.h"
+
+//this class is used to store the filedescriptor value for all opened files
+typedef struct {
+  int fd;
+  int count;
+} tableentry;
+
 class OpenTable {
   public:
     OpenTable();
     ~OpenTable();
-    int PushOpenFile(OpenFile *file);
+    int PushOpenFile(int file);
     int PullOpenFile(int num);
-    OpenFile *GetOpenFile(int num);
-    int GetOpenNum(OpenFile *file);
+    int GetOpenNum(int file);
+    int GetOpenFile(int num);
   private:
-    int Count;
-    OpenFile *table[MAX_OPENFILES];
-    int tablecount[MAX_OPENFILES];
+    tableentry table[MAX_OPENFILES];
     Lock *binaryLock;
 };
 extern OpenTable *opentable;

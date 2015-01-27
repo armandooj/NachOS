@@ -237,3 +237,11 @@ OpenFile::Length()
 { 
     return hdr->FileLength(); 
 }
+
+#ifdef CHANGED
+int 
+OpenFile::filedescriptor()
+{
+    return 0;
+}
+#endif

@@ -181,6 +181,7 @@ ExceptionHandler (ExceptionType which)
                break;
             }
             case SC_Create: {
+              DEBUG('a', "Create, initiated by user program.\n");
               int res,rg4 = machine->ReadRegister (4);
               char buffer[FileNameMaxLen] = {};
               copyStringFromMachine(rg4,buffer,FileNameMaxLen);
@@ -190,6 +191,7 @@ ExceptionHandler (ExceptionType which)
             }
 
             case SC_Open: {
+              DEBUG('a', "Open, initiated by user program.\n");
               OpenFile *temp = NULL;
               int res, rg4 = machine->ReadRegister (4);
               char buffer[FileNameMaxLen] = {};
@@ -198,8 +200,9 @@ ExceptionHandler (ExceptionType which)
                    res = -1;
               else
               {
-                   if (currentThread->space->PushTable(temp) == -1) res = -1;
-                   else res = opentable->PushOpenFile(temp); //used to push a new openfile object into a global array
+                   if (opentable->PushOpenFile(temp->filedescriptor()) == -1) res = -1;
+                   if ((res = currentThread->space->PushTable(temp)) == -1) res = -1;
+            //       else res = opentable->PushOpenFile(temp); //used to push a new openfile object into a global array
 //;-1 fail/0 success
               }
               machine->WriteRegister (2, res);
@@ -207,59 +210,76 @@ ExceptionHandler (ExceptionType which)
             }
 
             case SC_Close: {
-              int res = 0,rg4 = machine->ReadRegister (4);
-              OpenFile *file = NULL;
-              if ((file = opentable->GetOpenFile(rg4)) == NULL)
-                   res = -1;
-              else
-                   if (currentThread->space->PullTable(currentThread->space->SearchTable(file)) == -1)
-                       res = -1;
-                   if (opentable->PullOpenFile(rg4) == -1)
-                       res = -1;
+              DEBUG('a', "Close, initiated by user program.\n");
+              int res = -1,rg4 = machine->ReadRegister (4);
+              OpenFile *temp = NULL;
+              if ((temp = currentThread->space->OpenSearch(rg4)) != NULL && rg4 >= 0 && rg4 < MAX_FILES)
+              {
+                   int fd = currentThread->space->SearchTable(temp);
+                   if (opentable->PullOpenFile(fd) != -1)
+                       if (currentThread->space->PullTable(rg4) != -1)
+                           res = 0;
+              }
               machine->WriteRegister (2, res);
               break;
             }
 
             case SC_Read: {
+              DEBUG('a', "Read, initiated by user program.\n");
               int rg4 = machine->ReadRegister (4);
               int rg5 = machine->ReadRegister (5);
               int rg6 = machine->ReadRegister (6);
-              char *buffer;
+              char *buffer = NULL,ch;
               buffer = &machine->mainMemory[rg4];
-              OpenFile *file = opentable->GetOpenFile(rg6);
-              int res = currentThread->space->FetchTable(currentThread->space->SearchTable(file))->Read(buffer,rg5);
+              OpenFile *file = currentThread->space->OpenSearch(rg6);
+              int res = file->Read(buffer,rg5);
+              for (int i=0;i<rg5;i++) {
+                ch = buffer[i];
+                if (ch == EOF) break;
+                else {
+                   machine->WriteMem(rg4+i,1,ch);
+                   //if (ch == '\n' || ch == '\0') break;
+                }
+              }
               machine->WriteRegister (2, res);
               break;
             }
 
             case SC_Write: {
+              DEBUG('a', "Write, initiated by user program.\n");
               int rg4 = machine->ReadRegister (4);
               int rg5 = machine->ReadRegister (5);
               int rg6 = machine->ReadRegister (6);
               int size = 0,round = 0;
-              OpenFile *file = opentable->GetOpenFile(rg6);
+              OpenFile *file = currentThread->space->OpenSearch(rg6);
               char buffer[MAX_STRING_SIZE] = {};
+              //copyStringFromMachine(rg4,buffer,rg5);
+              //file->Write(buffer,rg5);
               bool status = false;
               do {
                if(rg5 >= MAX_STRING_SIZE)
                   if((size = copyStringFromMachine(rg4+MAX_STRING_SIZE*round,buffer,rg5)) == MAX_STRING_SIZE) {
-                      currentThread->space->FetchTable(currentThread->space->SearchTable(file))->Write(buffer,MAX_STRING_SIZE);
+                      //currentThread->space->FetchTable(currentThread->space->SearchTable(file))->Write(buffer,MAX_STRING_SIZE);
+                      file->Write(buffer,MAX_STRING_SIZE);
                       rg5 = rg5 - MAX_STRING_SIZE;
                       round++;
                   }
                   else {
                       status = true;
                       if(size != 0)
-                         currentThread->space->FetchTable(currentThread->space->SearchTable(file))->Write(buffer,rg5);
+                         //currentThread->space->FetchTable(currentThread->space->SearchTable(file))->Write(buffer,rg5);
+                         file->Write(buffer,rg5);
                   }
                else {
                   status = true;
                   copyStringFromMachine(rg4+MAX_STRING_SIZE*round,buffer,rg5);
-                  currentThread->space->FetchTable(currentThread->space->SearchTable(file))->Write(buffer,rg5);
+                  //currentThread->space->FetchTable(currentThread->space->SearchTable(file))->Write(buffer,rg5);
+                  file->Write(buffer,rg5);
                }
               } while(status == false);
               break;
             }
+
             case SC_PutChar: 
             {  
                int int_c = machine->ReadRegister(4);

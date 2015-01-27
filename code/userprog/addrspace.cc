@@ -73,8 +73,11 @@ AddrSpace::AddrSpace (OpenFile *executable)
 
 #ifdef CHANGED
    for (int x = 0;x < MAX_FILES;x++)
-         table[x] = 0;
-    tablecount = 0;
+   {
+         table[x].file = NULL;
+         table[x].fd = 0;
+         table[x].vacant = TRUE;
+   }
 #endif
   executable->ReadAt ((char *) &noffH, sizeof (noffH), 0);
   if ((noffH.noffMagic != NOFFMAGIC) && (WordToHost (noffH.noffMagic) == NOFFMAGIC))
@@ -290,10 +293,42 @@ int AddrSpace::PushTable(OpenFile *file) {
     int res = -1;
     openLock->Acquire();
     for (int i = 0;i < MAX_FILES;i++)
-         if (table[i] == 0)
+         if (table[i].vacant == TRUE)
          {
-             tablecount++;
-             table[i] = file;
+             table[i].file = file;
+             table[i].fd = file->filedescriptor();
+             res = i;
+             table[i].vacant = FALSE;
+             break;
+         }
+    openLock->Release();
+    return res;
+}
+
+int AddrSpace::PullTable(int index) {
+    int res = -1;
+    OpenFile *temp = NULL;
+    openLock->Acquire();
+    if (index >= 0 && index < MAX_FILES)
+        if (table[index].vacant == FALSE)
+        {
+            temp = table[index].file;
+            delete temp;
+            table[index].file = NULL;
+            table[index].fd = 0;
+            table[index].vacant = TRUE;
+            res = 0;
+        }
+    openLock->Release();
+    return res;
+}
+
+int AddrSpace::IndexSearch(OpenFile *file) {
+    int res = -1;
+    openLock->Acquire();
+    for (int i=0;i<MAX_FILES;i++)
+         if (table[i].file == file && table[i].vacant == FALSE)
+         {
              res = i;
              break;
          }
@@ -301,41 +336,26 @@ int AddrSpace::PushTable(OpenFile *file) {
     return res;
 }
 
-int AddrSpace::PullTable(int num) {
-    int res = -1;
+OpenFile* AddrSpace::OpenSearch(int index) {
     OpenFile *temp = NULL;
     openLock->Acquire();
-    if (num < tablecount && num >= 0 && table[num] != 0)
-    {
-         temp = table[num];
-         delete temp;
-         table[num] = 0;
-         tablecount--;
-         res = 0;
-    }
+    if (index < MAX_FILES && index >= 0 && table[index].vacant == FALSE)
+        temp = table[index].file;
     openLock->Release();
-    return res;
+    return temp;
 }
 
 int AddrSpace::SearchTable(OpenFile *file) {
     int res = -1,i;
     openLock->Acquire();
     for(i=0;i<MAX_FILES;i++)
-        if (table[i] == file)
+        if (table[i].file == file && table[i].vacant == FALSE)
         {
-            res = i;
+            res = table[i].fd;
             break;
         }
     openLock->Release();
     return res;
-}
-
-OpenFile* AddrSpace::FetchTable(int num) {
-    OpenFile *temp = NULL;
-    openLock->Acquire();
-    temp = table[num];
-    openLock->Release();
-    return temp;
 }
 
 /*

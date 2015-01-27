@@ -104,8 +104,8 @@ typedef int OpenFileId;
 #define ConsoleInput	0
 #define ConsoleOutput	1
 
-/* Create a Nachos file, with "name" */
-void Create (char *name);
+/* Create a Nachos file, with "name" -1 failure,0 success */
+int Create (char *name);
 
 /* Open the Nachos file "name", and return an "OpenFileId" that can 
  * be used to read and write to the file.
@@ -123,8 +123,8 @@ void Write (char *buffer, int size, OpenFileId id);
  */
 int Read (char *buffer, int size, OpenFileId id);
 
-/* Close the file, we're done reading and writing to it. */
-void Close (OpenFileId id);
+/* Close the file, we're done reading and writing to it. -1 failure,0 success */
+int Close (OpenFileId id);
 
 
 

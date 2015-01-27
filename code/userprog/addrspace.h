@@ -63,9 +63,10 @@ class AddrSpace
     ListForJoin *activeLocks;
 
     int PushTable(OpenFile *file);
-    int PullTable(int num);
+    int PullTable(int index);
+    int IndexSearch(OpenFile *file);
     int SearchTable(OpenFile *file);
-    OpenFile *FetchTable(int num);
+    OpenFile *OpenSearch(int index);
 #endif   // END CHANGED
   private:
     TranslationEntry * pageTable;	// Assume linear page table translation
@@ -81,8 +82,13 @@ class AddrSpace
     Lock *stackBitMapLock;
     Lock *processCountLock;
 
-OpenFile *table[MAX_FILES];
-    int tablecount;
+    typedef struct {
+      OpenFile *file;
+      int fd;
+      bool vacant;
+    } OpenFileProcess;
+
+    OpenFileProcess table[MAX_FILES];
     Lock *openLock;
 
 #endif   // END CHANGED

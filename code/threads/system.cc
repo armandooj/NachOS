@@ -212,7 +212,7 @@ Cleanup ()
 
 #ifdef CHANGED
     delete synchconsole;
-    delete opentable;
+    //delete opentable;
 #endif
 
     delete timer;
@@ -226,11 +226,10 @@ Cleanup ()
 
 OpenTable::OpenTable()
 {
-    Count = 0;
     for (int i=0;i<MAX_OPENFILES;i++)
     {
-         table[i] = 0;
-         tablecount[i] = 0;
+         table[i].fd = 0;
+         table[i].count = 0;
     }
     binaryLock = new Lock("binary lock");
 }
@@ -241,70 +240,61 @@ OpenTable::~OpenTable()
 }
 
 int
-OpenTable::PushOpenFile (OpenFile *file)
+OpenTable::PushOpenFile (int fd)
 {
     int i,res = -1;
     binaryLock->Acquire();
-    if ((res = GetOpenNum(file)) == -1)
+    if ((res = GetOpenNum(fd)) == -1)
         for (i=0;i<MAX_OPENFILES;i++)
-            if (table[i] == 0)
+            if (table[i].count == 0 || table[i].fd == 0)
             {
-                Count++;
+                table[i].count++;
                 res = i;
-                table[i] = file;
-                tablecount[i]++;
+                table[i].fd = fd;
                 break;
             }
     else
-        tablecount[res]++;
+        table[res].count++;
     binaryLock->Release();
     return res;
 }
 
 int
-OpenTable::PullOpenFile (int num)
+OpenTable::PullOpenFile (int fd)
 {
     int res = -1;
-    OpenFile *temp;
     binaryLock->Acquire();
-    if (num < Count && num >= 0 && table[num] != 0)
-    {
-        tablecount[num]--;
-        if (tablecount[num] == 0)
-        {
-            temp = table[num];
-            delete temp;
-            table[num] = 0;
-            Count--;
-        }
-        res = 0;
-    }
+    if (fd > 0)
+        for(int i=0;i<MAX_OPENFILES;i++)
+            if (table[i].fd == fd)
+            {
+                table[i].count--;
+                if (table[i].count == 0)
+                    table[i].fd = 0;
+                res = 0;
+            }
     binaryLock->Release();
     return res;
 }
 
-OpenFile*
+int
 OpenTable::GetOpenFile (int num)
 {
-    OpenFile *temp = NULL;
-    binaryLock->Acquire();
-    temp = table[num];
-    binaryLock->Release();
+    int temp = -1;
+    temp = table[num].fd;
     return temp;
 }
 
 int
-OpenTable::GetOpenNum (OpenFile *openfile)
+OpenTable::GetOpenNum (int fd)
 {
     int res = -1,i;
-    binaryLock->Acquire();
     for (i=0;i<MAX_OPENFILES;i++)
-        if (table[i] == openfile)
+        if (table[i].fd == fd)
         {
             res = i;
             break;
         }
-    binaryLock->Release();
     return res;
 }
 
