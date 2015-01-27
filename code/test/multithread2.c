@@ -1,3 +1,4 @@
+
 #include "syscall.h"
 void print(void *c)
 {
@@ -19,7 +20,7 @@ int main() {
   ch = 'b';
 
   int i;
-  for (i = 0; i <= 4; i++) {
+  for (i = 0; i <= 10; i++) {
     id = UserThreadCreate(print, (void *) c);
 
     if (id > 0) {      

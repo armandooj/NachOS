@@ -6,6 +6,7 @@
 */
 
 #include "bitmap.h"
+#include "synch.h"
 
 class FrameProvider {
 
@@ -14,11 +15,12 @@ class FrameProvider {
     ~FrameProvider();
 
     int GetEmptyFrame();
-    void ReleaseFrame();
+    void ReleaseFrame(int frame);
     int NumAvailFrame();
 
   private:
-    BitMap *bitmap;
-  
+    BitMap *framesBitMap;
+    Lock *lock;  
 };
+
 #endif

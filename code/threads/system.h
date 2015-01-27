@@ -36,7 +36,9 @@ extern Timer *timer;		// the hardware alarm clock
 
 #ifdef CHANGED
 #include "synchconsole.h"
+#include "frameprovider.h"
 extern SynchConsole *synchconsole;
+extern FrameProvider *frameProvider;
 #endif
 
 #ifdef USER_PROGRAM
