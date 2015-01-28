@@ -249,6 +249,13 @@ ChangeDir:
 
 
 /* ----------------------*/
+ .globl PutCharCommand
+      .ent	PutCharCommand
+PutCharCommand:
+       addiu $2,$0,SC_PutCharCommand
+       syscall
+       j	$31
+       .end PutCharCommand
 
 
 

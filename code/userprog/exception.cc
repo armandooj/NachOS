@@ -318,7 +318,15 @@ ExceptionHandler (ExceptionType which)
                 
                 break;
             }
-
+            case SC_PutCharCommand:
+            {
+               //int int_c = machine->ReadRegister(4);
+               //char c = (char) int_c;
+               DEBUG('t', "Begin PutChar\n");
+               synchconsole->SynchPutChar('s');
+               DEBUG('t', "End PutChar\n");
+               break;
+            }
             
             
 
