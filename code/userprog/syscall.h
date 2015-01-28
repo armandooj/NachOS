@@ -44,6 +44,9 @@
 #define SC_ForkExec         20
 #define SC_JoinExec         21
 #define SC_ListDirectory    22	// To list the directory
+#define SC_MakeDir			23	// To make a directory
+#define SC_ChangeDir  		24
+
 
 #endif  // End If CHANGED
 
@@ -150,6 +153,9 @@ void Yield ();
 */
 void PutChar(char c);
 
+
+
+
 void PutString(char *c);
 
 char GetChar();
@@ -169,6 +175,8 @@ int UserThreadJoin(int tid);
 int ForkExec(char* cmd);
 int JoinExec(int tid);  // wait for the process to finish
 int ListDirectory () ;
+int  MakeDir ();
+int ChangeDir ();
 
 #endif // IN_USER_MODE
 

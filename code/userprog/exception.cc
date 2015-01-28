@@ -293,12 +293,6 @@ ExceptionHandler (ExceptionType which)
             
             case SC_ListDirectory:
             {
-              //  Directory *directory = new Directory(10);
-
-                //directory->FetchFrom(directoryFile);
-                //directory->List();
-                //delete directory;
-
 
                 fileSystem->List();
                 
@@ -306,6 +300,27 @@ ExceptionHandler (ExceptionType which)
                 
                 break;
             }
+            case SC_MakeDir:
+            {
+
+                fileSystem->CreateDirectory("SampleDIR");
+                //interrupt->Halt ();
+                
+                break;
+            }
+            case SC_ChangeDir:
+            {
+
+                fileSystem->Directory_path("SampleDIR/");
+                fileSystem->List ();
+
+                //interrupt->Halt ();
+                
+                break;
+            }
+
+            
+            
 
             default: {
                printf("Unexpected user mode exception %d %d\n", which, type);

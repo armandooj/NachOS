@@ -229,7 +229,23 @@ ListDirectory:
        syscall
        j	$31
        .end ListDirectory
+
 /* ----------------------*/
+      .globl MakeDir
+      .ent	MakeDir
+MakeDir:
+       addiu $2,$0,SC_MakeDir
+       syscall
+       j	$31
+       .end MakeDir
+/* ----------------------*/
+      .globl ChangeDir
+      .ent	ChangeDir
+ChangeDir:
+       addiu $2,$0,SC_ChangeDir
+       syscall
+       j	$31
+       .end ChangeDir
 
 
 /* ----------------------*/
