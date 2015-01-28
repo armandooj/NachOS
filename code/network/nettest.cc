@@ -47,16 +47,13 @@ void showExample(int farAddr) {
     outMailHdr.length = strlen(data) + 1;
 
     // Send the first message
-    postOffice->Send(outPktHdr, outMailHdr, data); 
-
-    printf("Begin get mail\n");
+    postOffice->ReliableSend(outPktHdr, outMailHdr, data); 
 
     // Wait for the first message from the other machine
-    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);
+    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);  // Stuck here
+
     printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
     fflush(stdout);
-
-    printf("Done get mail\n");
 
     // Send acknowledgement to the other machine (using "reply to" mailbox
     // in the message that just arrived
@@ -160,8 +157,56 @@ void ring3Machines(int farAddr) {
     interrupt->Halt();
 }
 
+void showExample2(int farAddr) {
+    PacketHeader outPktHdr, inPktHdr;
+    MailHeader outMailHdr, inMailHdr;
+    const char *data = "Hello there this is a very big message and I want to see what happens. I think the limit at the moment is 40 so this should be enough.";
+    //const char *data = "Hello there";
+    //const char *ack = "Got it!";
+    char buffer[MaxMailSize];
+
+    // construct packet, mail header for original message
+    // To: destination machine, mailbox 0
+    // From: our machine, reply to: mailbox 1
+    outPktHdr.to = farAddr;     
+    outMailHdr.to = 0;
+    outMailHdr.from = 1;
+    outMailHdr.length = strlen(data) + 1;
+
+    // Send the first message
+    postOffice->ReliableSend(outPktHdr, outMailHdr, data); 
+
+    // Wait for the first message from the other machine
+    postOffice->Receive(0, &inPktHdr, &inMailHdr, buffer);  // Stuck here
+
+    printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+    fflush(stdout);
+
+
+    // TODO The acknowledgement should be automatic
+
+    /*
+    // Send acknowledgement to the other machine (using "reply to" mailbox
+    // in the message that just arrived
+    outPktHdr.to = inPktHdr.from;
+    outMailHdr.to = inMailHdr.from;
+    outMailHdr.length = strlen(ack) + 1;
+    postOffice->Send(outPktHdr, outMailHdr, ack); 
+
+    // Wait for the ack from the other machine to the first message we sent.
+    postOffice->Receive(1, &inPktHdr, &inMailHdr, buffer);
+    printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
+    fflush(stdout);
+    */
+
+    printf("Finish here\n");
+
+    // Then we're done!
+    interrupt->Halt();
+}
+
 void
 MailTest(int farAddr)
 {
-    showExample(farAddr);
+    showExample2(farAddr);
 }

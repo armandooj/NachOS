@@ -28,6 +28,9 @@
 #ifndef POST_H
 #define POST_H
 
+#define MAXREEMISSIONS 3
+#define TEMPO 50000000
+
 #include "network.h"
 #include "synchlist.h"
 #include "thread.h"
@@ -44,8 +47,10 @@ class MailHeader {
   public:
     MailBoxAddress to;		// Destination mail box
     MailBoxAddress from;	// Mail box to reply to
-    unsigned length;		// Bytes of message data (excluding the 
+    unsigned length;		// Bytes of message data (excluding the
 				// mail header)
+    unsigned short remainingParts;
+    bool isAck;
 };
 
 // Maximum "payload" -- real data -- that can included in a single message
@@ -53,6 +58,9 @@ class MailHeader {
 
 #define MaxMailSize 	(MaxPacketSize - sizeof(MailHeader))
 
+#define TEMP0   5000    // The time a send wait for a response, if not then 
+                        // resend a new package
+#define MAXREEMISSIONS  3 // The number of resend a send will do.                        
 
 // The following class defines the format of an incoming/outgoing 
 // "Mail" message.  The message format is layered: 
@@ -69,6 +77,8 @@ class Mail {
      PacketHeader pktHdr;	// Header appended by Network
      MailHeader mailHdr;	// Header appended by PostOffice
      char data[MaxMailSize];	// Payload -- message data
+     int attempts;
+     int remainingParts;
 };
 
 // The following class defines a single mailbox, or temporary storage
@@ -87,6 +97,11 @@ class MailBox {
    				// Atomically get a message out of the 
 				// mailbox (and wait if there is no message 
 				// to get!)
+    
+    SynchList *postOfficeMessages; // It needs to access all the messages
+
+    bool isEmpty(); // check if the box has any message
+
   private:
     SynchList *messages;	// A mailbox is just a list of arrived messages
 };
@@ -112,6 +127,15 @@ class PostOffice {
     				// Send a message to a mailbox on a remote 
 				// machine.  The fromBox in the MailHeader is 
 				// the return box for ack's.
+
+#ifdef CHANGED
+    void ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char *data);
+
+    Mail *FindMail(Mail *mail);
+    
+    //testing
+    void doReliableSend2(PacketHeader pktHdr, MailHeader mailHdr, const char* data);
+#endif
     
     void Receive(int box, PacketHeader *pktHdr, 
 		MailHeader *mailHdr, char *data);
@@ -124,10 +148,15 @@ class PostOffice {
     void PacketSent();		// Interrupt handler, called when outgoing 
 				// packet has been put on network; next 
 				// packet can now be sent
+
+    void PacketConfirmed();
+
     void IncomingPacket();	// Interrupt handler, called when incoming
    				// packet has arrived and can be pulled
 				// off of network (i.e., time to call 
 				// PostalDelivery)
+
+    void chooseSleepOrSend();
 
   protected:
     Network *network;		// Physical network connection
@@ -136,17 +165,27 @@ class PostOffice {
     int numBoxes;		// Number of mail boxes
     Semaphore *messageAvailable;// V'ed when message has arrived from network
     Semaphore *messageSent;	// V'ed when next message can be sent to network
+    Semaphore *messageConfirmed; // V'ed when a part of a message is confirmed
     Lock *sendLock;		// Only one outgoing message at a time
-};
 
 #ifdef CHANGED
-class ReliableProtocol:PostOffice {
+  public:
+    SynchList *sentMessages; // A list of messages that need to be confirmed
+    
+    Mail *sendingMail;
+    int numberOfTries;
+#endif
+};
+
+/*
+#ifdef CHANGED
+class ReliablePostOffice:PostOffice {
     public:
                 
         void Receive(PacketHeader pktHdr, MailHeader mailHdr, const char *data);
     private:
 };
 #endif //End CHANGED
-
+*/
 
 #endif
