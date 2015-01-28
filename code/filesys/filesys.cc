@@ -355,7 +355,7 @@ FileSystem::Remove(const char *name)
     fileHdr->Deallocate(freeMap);
     #endif
 
-    //freeMap->Clear(sector);			// remove header block
+    freeMap->Clear(sector);			// remove header block
     directory->Remove(name);
 
     freeMap->WriteBack(freeMapFile);		// flush to disk
