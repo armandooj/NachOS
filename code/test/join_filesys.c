@@ -30,10 +30,22 @@ int main() {
   char ch = '2';
   char* c = &ch;
   int fd2 = -1,fd1 = -1;
+  if(Create("test") != -1)
+     PutString("create test\n");
+  if(Create("test12") != -1)
+     PutString("create test12\n");
+  if(Create("test10") != -1)
+     PutString("create test10\n");
+  if(Create("test11") != -1)
+     PutString("create test11\n");
+  if(Create("test13") != -1)
+     PutString("create test13\n");
+  if(Create("test14") != -1)
+     PutString("create test14\n");
   if ((fd1 = Open("test")) != -1)
        PutString("open test\n");
-//  if (Close(fd1) == 0)
- //      PutString("close test\n");
+  if (Close(fd1) == 0)
+       PutString("close test\n");
   if ((fd2 = Open("test12")) != -1)
        PutString("open test12\n");
 

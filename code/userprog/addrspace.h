@@ -20,7 +20,7 @@
 #ifdef CHANGED
 #include "synch.h"
 #include "list.h"
-#define MAX_FILES 5
+#define MAX_FILES 3
 #endif
 
 #define UserStackSize		2048	// increase this as necessary!
@@ -86,7 +86,7 @@ class AddrSpace
 /* OpenFileProcess is a openfile table on the process level, each threads inside the same process will add new openfile objects into this level table */
     typedef struct {
       OpenFile *file; //openfile object
-      int fd; //real file descriptor used to make a connection between openfile table on kernel level
+      int sector; //sector number return from openfile object used to make a connection between openfile table on kernel level
       bool vacant; //determine whether the cell is empty
     } OpenFileProcess;
 

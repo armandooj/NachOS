@@ -179,7 +179,7 @@ ExceptionHandler (ExceptionType which)
               int res = -1, rg4 = machine->ReadRegister (4);
               char buffer[FileNameMaxLen] = {};
               copyStringFromMachine(rg4,buffer,FileNameMaxLen);
-              if ((temp = fileSystem->Open(buffer)) != NULL && opentable->PushOpenFile(temp->filedescriptor()) != -1)
+              if ((temp = fileSystem->Open(buffer)) != NULL && opentable->PushOpenFile(temp->fileSector()) != -1)
                    res = currentThread->space->PushTable(temp);
               machine->WriteRegister (2, res);
               break;
@@ -191,8 +191,8 @@ ExceptionHandler (ExceptionType which)
               OpenFile *temp = NULL;
               if ((temp = currentThread->space->OpenSearch(rg4)) != NULL && rg4 >= 0 && rg4 < MAX_FILES)
               {
-                   int fd = currentThread->space->SearchTable(temp);
-                   if (opentable->PullOpenFile(fd) != -1 && currentThread->space->PullTable(rg4) != -1)
+                   int sector = currentThread->space->SearchTable(temp);
+                   if (opentable->PullOpenFile(sector) != -1 && currentThread->space->PullTable(rg4) != -1)
                        res = 0;
               }
               machine->WriteRegister (2, res);
