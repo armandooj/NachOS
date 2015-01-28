@@ -240,8 +240,8 @@ OpenFile::Length()
 
 #ifdef CHANGED
 int 
-OpenFile::filedescriptor()
+OpenFile::fileSector()
 {
-    return 0;
+    return Sector;
 }
 #endif

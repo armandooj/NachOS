@@ -52,9 +52,6 @@ class OpenFile {
 		}
 
     int Length() { Lseek(file, 0, 2); return Tell(file); }
-#ifdef CHANGED
-    int filedescriptor() { return file; }
-#endif
     
   private:
     int file;
@@ -89,7 +86,7 @@ class OpenFile {
 					// than the UNIX idiom -- lseek to 
 					// end of file, tell, lseek back 
 #ifdef CHANGED
-    int filedescriptor();
+    int fileSector();
 #endif
     
   private:
