@@ -49,16 +49,13 @@ class MailHeader {
     MailBoxAddress from;	// Mail box to reply to
     unsigned length;		// Bytes of message data (excluding the 
 				// mail header)
+    int remainingParts;
 };
 
 // Maximum "payload" -- real data -- that can included in a single message
 // Excluding the MailHeader and the PacketHeader
 
-#define MaxMailSize 	(MaxPacketSize - sizeof(MailHeader))
-
-#define TEMP0   5000    // The time a send wait for a response, if not then 
-                        // resend a new package
-#define MAXREEMISSIONS  3 // The number of resend a send will do.                        
+#define MaxMailSize 	(MaxPacketSize - sizeof(MailHeader))                
 
 // The following class defines the format of an incoming/outgoing 
 // "Mail" message.  The message format is layered: 
@@ -132,7 +129,7 @@ class PostOffice {
     Mail *FindMail(Mail *mail);
 
     void ReliableReceive(int box, PacketHeader *pktHdr, 
-    MailHeader *mailHdr, char *data);
+    MailHeader *mailHdr, char *data, char *bigBuffer);
     
     //testing
     void doReliableSend2(PacketHeader pktHdr, MailHeader mailHdr, const char* data);
