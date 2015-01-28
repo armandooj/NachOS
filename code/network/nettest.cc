@@ -160,8 +160,8 @@ void ring3Machines(int farAddr) {
 void showExample2(int farAddr) {
     PacketHeader outPktHdr, inPktHdr;
     MailHeader outMailHdr, inMailHdr;
-    const char *data = "Hello there this is a very big message and I want to see what happens. I think the limit at the moment is 40 so this should be enough.";
-    //const char *data = "Hello there";
+    //const char *data = "Hello there this is a very big message and I want to see what happens. I think the limit at the moment is 40 so this should be enough.";
+    const char *data = "Hello there";
     const char *ack = "Got it!";
     char buffer[MaxMailSize];
 

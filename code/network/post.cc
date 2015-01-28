@@ -390,11 +390,11 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
         
         int i;
         for (i = 0; i < pieces; i++) {
-            printf("Sending chunk %d\n", i);
+            printf("Scheduling a chunk %d\n", i);
             // Take a Chunk of the data
-            char chunk[MaxMailSize];
+            char chunk[MaxMailSize + 1];
             memcpy(chunk, &data[i * MaxMailSize], MaxMailSize);
-            chunk[MaxMailSize - 1] = '\0';
+            chunk[MaxMailSize] = '\0';
 
             // Update the size
             mailHdr.length = MaxMailSize; // +1?
@@ -403,7 +403,7 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
             Mail *mail = new Mail(pktHdr, mailHdr, NULL);
             strncpy(mail->data, (char *) chunk, MaxMailSize);
             mail->remainingParts = pieces;
-            mail->attempts = 1;
+            mail->attempts = (i == 0) ? 1 : 0;
 
             printf("data %s\n", mail->data);
             
@@ -411,18 +411,17 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
             sentMessages->Append(mail);
          
             // Wait for confirmation
-            Send(pktHdr, mailHdr, data);
+            // Send(pktHdr, mailHdr, data);
 
             // Trigger an interrupt
             // interrupt->Schedule(TimeOutHandler, (int) this, TEMPO, NetworkSendInt);
 
             // Now wait for confirmation before sending the next one!
             // messageConfirmed->P();     // This blocks the receive!, TODO DEBUG
-
-
-            printf("GET THE HELL OUT OF HERE\n");
             //return;
         }
+
+        TimeOutHandler((int) this);
 
     } else {
         // Now, backup the Message so that we can confirm it's reception later
