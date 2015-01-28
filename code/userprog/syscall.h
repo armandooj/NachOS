@@ -42,6 +42,7 @@
 #define SC_UserThreadExit   18
 #define SC_UserThreadJoin   19
 #define SC_ForkExec         20
+#define SC_JoinExec         21
 
 #endif  // End If CHANGED
 
@@ -164,7 +165,8 @@ void UserThreadExit();
 int UserThreadJoin(int tid);
 
 // Process creation
-int ForkExec(char* s);
+int ForkExec(char* cmd);
+int JoinExec(int tid);  // wait for the process to finish
 
 #endif // IN_USER_MODE
 

@@ -166,6 +166,8 @@ AddrSpace::~AddrSpace ()
   delete stackBitMapLock;
   delete threadsCountLock;
   delete processesCountLock;
+  delete activeThreads;
+  delete activeLocks;
 
   // TODO Test this more
   unsigned int i;

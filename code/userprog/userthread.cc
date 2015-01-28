@@ -56,7 +56,7 @@ int do_UserThreadCreate(int f, int arg, int ret_function) {
   
   // put increase counter here for synchonization problem
   currentThread->space->increaseUserThreads();
-  int location = newThread->SetStackLocation(currentThread->space);
+  int location = newThread->SetStackLocation(currentThread->space); //TODO BUG: DO NOTHIGN HERE 
 
   if (location < 0) {
     // Thread limit reached!
@@ -66,12 +66,12 @@ int do_UserThreadCreate(int f, int arg, int ret_function) {
   
   // Add to active list
   currentThread->space->activeThreads->AppendTraverse(NULL, newThread->GetPID());
-  DEBUG('l', "Add new thread: %d\n", newThread->GetPID());
-  DEBUG('l', "Thread list: \n");
-  currentThread->space->activeThreads->PrintContent();                          
-
+  
   newThread->Fork(StartUserThread, (int) threadParam);
   
+  //debug
+  int stack = machine->ReadRegister(StackReg);
+  DEBUG('l', "Stack position: %d\n", stack);
   return newThread->GetPID();
 }
 

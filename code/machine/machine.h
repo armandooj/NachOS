@@ -196,8 +196,11 @@ class Machine {
 
 #ifdef CHANGED
     int numberOfProcesses;
-
-    Lock *processCountLock;
+   Lock *processCountLock;
+    
+    // Variable for Join functionality
+    ListForJoin *activeProcess;
+    ListForJoin *activeProcessLocks;
 #endif
 
   private:

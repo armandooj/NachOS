@@ -214,6 +214,13 @@ ForkExec:
        j	$31
        .end ForkExec
 
+      .globl JoinExec
+      .ent	JoinExec
+JoinExec:
+       addiu $2,$0,SC_JoinExec
+       syscall
+       j	$31
+       .end JoinExec
 
 #endif
 

@@ -77,6 +77,10 @@ Machine::Machine(bool debug)
     
     PIDseed = 100;
     PIDseedLock = new Lock("PID seed lock");
+    
+    //For Join Functionality
+    activeProcess = new ListForJoin();
+    activeProcessLocks = new ListForJoin();
 #endif
 
     singleStep = debug;
@@ -96,6 +100,8 @@ Machine::~Machine()
 #ifdef CHANGED
     delete processCountLock;
     delete PIDseedLock;
+    delete activeProcess;
+    delete activeProcessLocks;
 #endif
 }
 

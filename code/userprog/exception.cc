@@ -260,9 +260,17 @@ ExceptionHandler (ExceptionType which)
                 copyStringFromMachine(s, str, 100);
                 // printf("New file name: %s\n", str);
 
-                do_UserProcessCreate(str);
+                machine->WriteRegister(2, do_UserProcessCreate(str));
                 break;
             }
+            
+            case SC_JoinExec:
+            {
+                int pid = machine->ReadRegister(4);                                                
+                machine->WriteRegister(2, do_UserProcessJoin(pid));
+                break;
+            }
+            
             default: {
                printf("Unexpected user mode exception %d %d\n", which, type);
                ASSERT(FALSE);

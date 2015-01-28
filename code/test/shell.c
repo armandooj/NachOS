@@ -6,11 +6,13 @@ main ()
   SpaceId newProc;
   //OpenFileId input = ConsoleInput;
   //OpenFileId output = ConsoleOutput;
-  char prompt[2], buffer[60];
-  int i = 0 ;
+  char prompt[2], buffer[60], command[60];
+  int i = 0, j =0;
 
   prompt[0] = '>';
   prompt[1] = ' ';
+
+  PutString("\nTeam 1 Nachos OS Beta Version 0.0.0.[...].0.1 :P\n\n");
 
   while (1)
   {
@@ -27,16 +29,25 @@ main ()
 
     buffer[--i] = '\0';
 
+    //clear the command array
+    for (j = 0; j < 60; j++) {
+        command[j] = 0;
+    }
+
     if (i > 0)
     {
-      // newProc = Exec (buffer);
-      // Join (newProc);
-      // PutString(buffer);
-      // PutChar('\n');
-      newProc = ForkExec(buffer);
-
+      
+      //Parse space
+      for (j = 0; j < i; j++ ) {
+        if (buffer[j] != ' ')
+            command[j] = buffer[j];
+      }
+      command[j] = '\0';
+      
+      newProc = ForkExec(command);
+      JoinExec(newProc);
     }
-    break;
+    PutChar('\n');
   }
   return 0;
 }
