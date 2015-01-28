@@ -52,6 +52,7 @@
 #define SC_GetStringCommand        28
 #define SC_PutIntCommand           29
 #define SC_GetIntCommand           30
+#define SC_DeleteDirectory        31
 
 
 #endif  // End If CHANGED
@@ -192,6 +193,7 @@ int GetCharCommand ();
 int GetStringCommand        ();
 int PutIntCommand           ();
 int GetIntCommand           ();
+int DeleteDirectory ();
 
 #endif // IN_USER_MODE
 

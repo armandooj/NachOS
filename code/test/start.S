@@ -301,7 +301,13 @@ GetIntCommand:
        j	$31
        .end GetIntCommand
 /* ----------------------*/
-
+.globl DeleteDirectory
+      .ent	DeleteDirectory
+DeleteDirectory:
+       addiu $2,$0,SC_DeleteDirectory
+       syscall
+       j	$31
+       .end DeleteDirectory
 
 
 /* ----------------------*/

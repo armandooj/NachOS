@@ -391,6 +391,12 @@ ExceptionHandler (ExceptionType which)
                DEBUG('t', "End PutChar\n");
                break;
             }
+              case SC_DeleteDirectory:
+            {
+               fileSystem->DeleteDirectory("Pdir");
+               break;
+            }
+            
             
             
             
