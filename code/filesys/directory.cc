@@ -196,10 +196,10 @@ Directory::List()
             FileHeader *fileheader = new FileHeader;
             fileheader->FetchFrom(table[i].sector);
             printf("Name: %s Size: %dbytes", table[i].name,fileheader->FileLength());
-            if(table[i].isFile == TRUE)
-                printf("   File \n");
-            else 
-                printf("   Directory \n");
+            //if(table[i].isFile == TRUE)
+              //  printf("   File \n");
+            //else 
+              //  printf("   Directory \n");
             //printf("%s\n", table[i].name);
             delete fileheader;
         }
