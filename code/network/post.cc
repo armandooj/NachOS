@@ -523,6 +523,7 @@ PostOffice::Receive(int box, PacketHeader *pktHdr,
     ASSERT(mailHdr->length <= MaxMailSize);
 }
 
+#ifdef CHANGED
 void
 PostOffice::ReliableReceive(int box, PacketHeader *pktHdr, 
                 MailHeader *mailHdr, char *data, char *bigBuffer)
@@ -565,6 +566,8 @@ PostOffice::ReliableReceive(int box, PacketHeader *pktHdr,
 
     ASSERT(mailHdr->length <= MaxMailSize);
 }
+
+#endif
 
 //----------------------------------------------------------------------
 // PostOffice::IncomingPacket

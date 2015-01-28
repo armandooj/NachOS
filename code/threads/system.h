@@ -19,7 +19,7 @@
 #ifdef CHANGED
 #define MAX_STRING_SIZE 256
 #define MAX_INT_SIZE 9 // lenght(2^32)
-#define MAX_OPENFILES 10
+#define MAX_OPENFILES 5
 #endif
 
 // Initialization and cleanup routines
@@ -67,7 +67,7 @@ extern PostOffice *postOffice;
 
 //this class is used to store the filedescriptor value for all opened files
 typedef struct {
-  int fd; //real file descriptor return from linux syscall
+  int sector; //sector number return from openfile object
   int count; //increase when multiple threads/processes accessing the same file
 } tableentry;
 
@@ -76,9 +76,9 @@ class OpenTable {
   public:
     OpenTable();
     ~OpenTable();
-    int PushOpenFile(int file); //push new file object into openfiles table
-    int PullOpenFile(int num);  //remove closed file object from openfiles table
-    int GetOpenNum(int file);
+    int PushOpenFile(int sector); //push new file object into openfiles table
+    int PullOpenFile(int sector);  //remove closed file object from openfiles table
+    int GetOpenNum(int sector);
     int GetOpenFile(int num);
   private:
     tableentry table[MAX_OPENFILES];

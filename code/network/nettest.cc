@@ -157,7 +157,11 @@ void ring3Machines(int farAddr) {
     interrupt->Halt();
 }
 
-void sendTest(int farAddr) {
+
+#ifdef CHANGED
+void 
+sendTest(int farAddr) {
+
     PacketHeader outPktHdr;
     MailHeader outMailHdr;
     const char *data = "Hello there this is a very big message and I want to see what happens. I think the limit at the moment is 40 so this should be enough.";
@@ -195,7 +199,7 @@ waitTest(int farAddr) {
 }
 
 void
-MailTest(int farAddr)                                                                                                                                                                                                                                                                                                       
+MailSend(int farAddr)                                                                                                                                                                                                                                                                                                       
 {
     sendTest(farAddr);
 }
@@ -205,4 +209,13 @@ MailWait(int farAddr)
 {
     waitTest(farAddr);
 }
+
+#endif
+
+void
+MailTest(int farAddr)                                                                                                                                                                                                                                                                                                       
+{
+    showExample(farAddr);
+}
+
 

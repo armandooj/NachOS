@@ -75,7 +75,7 @@ AddrSpace::AddrSpace (OpenFile *executable)
    for (int x = 0;x < MAX_FILES;x++)
    {
          table[x].file = NULL;
-         table[x].fd = 0;
+         table[x].sector = 0;
          table[x].vacant = TRUE;
    }
 #endif
@@ -323,7 +323,7 @@ int AddrSpace::PushTable(OpenFile *file) {
          if (table[i].vacant == TRUE)
          {
              table[i].file = file;
-             table[i].fd = file->filedescriptor();
+             table[i].sector = file->fileSector();
              res = i;
              table[i].vacant = FALSE;
              break;
@@ -342,7 +342,7 @@ int AddrSpace::PullTable(int index) {
             temp = table[index].file;
             delete temp;
             table[index].file = NULL;
-            table[index].fd = 0;
+            table[index].sector = 0;
             table[index].vacant = TRUE;
             res = 0;
         }
@@ -378,7 +378,7 @@ int AddrSpace::SearchTable(OpenFile *file) {
     for(i=0;i<MAX_FILES;i++)
         if (table[i].file == file && table[i].vacant == FALSE)
         {
-            res = table[i].fd;
+            res = table[i].sector;
             break;
         }
     openLock->Release();
