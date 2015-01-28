@@ -98,48 +98,125 @@ Semaphore::V ()
     (void) interrupt->SetLevel (oldLevel);
 }
 
-// Dummy functions -- so we can compile our later assignments 
+#ifdef CHANGED
 // Note -- without a correct implementation of Condition::Wait(), 
 // the test case in the network assignment won't work!
 Lock::Lock (const char *debugName)
 {
     name = debugName;
     lock = new Semaphore("Lock semaphore", 1);
+    
+    internalLock = new Semaphore("Internal Lock", 1);
+    owner = -1;
 }
 
 Lock::~Lock ()
 {
     delete lock;
 }
+
 void
 Lock::Acquire ()
 {
     lock->P();
+    
+    internalLock->P();
+    
+    if (owner == -1)
+        owner = currentThread->GetPID();
+    else 
+        lock->V();
+            
+    internalLock->V();
 }
+
 void
 Lock::Release ()
 {
-    lock->V();
+    internalLock->P();
+    
+    if (currentThread->GetPID() == owner){
+        owner = -1;
+        lock->V();
+    }
+        
+    internalLock->V();
 }
 
 Condition::Condition (const char *debugName)
 {
+    name = debugName;
+    CV_sleep = new Semaphore("Sleeper", 0);
+    internalLock = new Semaphore("Internal Lock", 1);
+    num_sleepers = 0;
 }
 
 Condition::~Condition ()
 {
+    delete internalLock;
 }
+
+//reference: https://www.cs.umd.edu/users/hollings/cs412/s96/synch/locks.html
 void
 Condition::Wait (Lock * conditionLock)
 {
-    ASSERT (FALSE);
+    DEBUG('l', "Wait in condition with thread %d\n", currentThread->GetPID() );
+    
+    internalLock->P();
+ 
+    num_sleepers ++;
+    conditionLock->Release();
+
+    internalLock->V();
+    
+    CV_sleep->P(); //sleep
+    conditionLock->Acquire();
 }
 
 void
 Condition::Signal (Lock * conditionLock)
 {
+    internalLock->P();
+    
+    if (num_sleepers > 0) {
+        CV_sleep->V(); // wake up 1
+        num_sleepers --;
+    }
+    
+    internalLock->V();
 }
+
 void
 Condition::Broadcast (Lock * conditionLock)
 {
+    internalLock->P();
+    
+    while (num_sleepers > 0) {
+        CV_sleep->V(); // wake up 1
+        num_sleepers --;
+    }
+    
+    internalLock->V();
 }
+
+#else // Just leave the methods empty
+
+Lock::Lock (const char *debugName) {}
+
+Lock::~Lock () {}
+
+void Lock::Acquire () {}
+
+void Lock::Release () {}
+
+Condition::Condition (const char *debugName) {}
+
+Condition::~Condition () {}
+
+void Condition::Wait (Lock * conditionLock) {}
+
+void Condition::Signal (Lock * conditionLock) {}
+
+void Condition::Broadcast (Lock * conditionLock) {}
+
+#endif

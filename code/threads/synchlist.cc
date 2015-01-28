@@ -82,6 +82,28 @@ SynchList::Remove ()
 }
 
 //----------------------------------------------------------------------
+// SynchList::GetFirst
+//      Get the first "item" from the beginning of the list. 
+// Returns:
+//      The item.
+//----------------------------------------------------------------------
+
+void *
+SynchList::GetFirst ()
+{
+    void *item;
+
+    lock->Acquire();       // enforce mutual exclusion
+    if (!list->IsEmpty())
+        item = list->GetFirst();
+    else
+        item = NULL;
+    lock->Release();
+    return item;
+}
+
+
+//----------------------------------------------------------------------
 // SynchList::Mapcar
 //      Apply function to every item on the list.  Obey mutual exclusion
 //      constraints.
@@ -95,4 +117,9 @@ SynchList::Mapcar (VoidFunctionPtr func)
     lock->Acquire ();
     list->Mapcar (func);
     lock->Release ();
+}
+
+bool 
+SynchList::isEmpty() {
+    return list->IsEmpty();
 }

@@ -52,6 +52,9 @@ class OpenFile {
 		}
 
     int Length() { Lseek(file, 0, 2); return Tell(file); }
+#ifdef CHANGED
+    int filedescriptor() { return file; }
+#endif
     
   private:
     int file;
@@ -85,6 +88,9 @@ class OpenFile {
 					// file (this interface is simpler 
 					// than the UNIX idiom -- lseek to 
 					// end of file, tell, lseek back 
+#ifdef CHANGED
+    int filedescriptor();
+#endif
     
   private:
     FileHeader *hdr;			// Header for this file 

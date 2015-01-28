@@ -62,7 +62,6 @@
 #include <string>
 #endif
 
-
 // External functions used by this file
 
 extern void ThreadTest (void), Copy (const char *unixFile, const char *nachosFile);
@@ -176,7 +175,7 @@ main (int argc, char **argv)
 		fileSystem->Remove (*(argv + 1));
 		argCount = 2;
 	    }
-	  else if (!strcmp (*argv, "-l"))
+	  else if (!strcmp (*argv, "-lr"))
 	    {			// list Nachos directory
 		fileSystem->List ();
 		interrupt->Halt ();
@@ -187,6 +186,13 @@ main (int argc, char **argv)
 	    else if (!strcmp (*argv, "-md"))
         {			// create Nachos directory
             fileSystem->CreateDirectory(*(argv + 1));
+            argCount = 2;
+            interrupt->Halt ();
+        }
+
+      else if (!strcmp (*argv, "-rm"))
+        {     // create Nachos directory
+            fileSystem->DeleteDirectory(*(argv + 1));
             argCount = 2;
             interrupt->Halt ();
         }

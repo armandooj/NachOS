@@ -241,6 +241,7 @@ bool FileSystem::Create(const char *name, FileHeader::FileType type) {
     FileHeader *hdr;
     int sector;
     bool success;
+    int index [1];
 
     directory = new Directory(NumDirEntries);
     directory->FetchFrom(directoryFile);
@@ -253,21 +254,27 @@ bool FileSystem::Create(const char *name, FileHeader::FileType type) {
         sector = freeMap->Find();	// find a sector to hold the file header
     	if (sector == -1) 		
             success = FALSE;		// no free block for file header 
-        else if (!directory->Add(name, sector))
+        else if (!directory->Add(name, sector,index))  // Here we return the address just that in case of a directory we change the table[index] to directory
+        
             success = FALSE;	// no space in directory
-	else {
+
+      	else {
     	    hdr = new FileHeader;
+//    	    printf("Index is %d \n ",index[0]);
 #ifndef CHANGED
-	    if (!hdr->Allocate(freeMap, initialSize))
+
+	    if (!hdr->Allocate(freeMap, initialSize)) // for create file
 #else
-            if (!hdr->Allocate(freeMap, 0))
+	    	directory->IsDirectory(index[0]); // needs checking
+            if (!hdr->Allocate(freeMap, 0)) // Directory
+
 #endif
             	success = FALSE;	// no space on disk for data
 	    else {	
 	    	success = TRUE;
 		// everthing worked, flush all changes back to disk
         #ifdef CHANGED
-                hdr->Type_Set(type);   //type = type;
+                hdr->Type_Set(type);   //type = type; // for Directory
         #endif
 
     	    	hdr->WriteBack(sector); 		
@@ -602,7 +609,7 @@ bool FileSystem::CreateDirectory(const char *name) {
 
     return true;
 }
-
+// To change a directory using path name
 void FileSystem::ChangeDirectory    ( const char* filename )
 {
          // Take into account current directory
@@ -690,8 +697,10 @@ void FileSystem:: DeleteDirectory (const char *name)
     }
     else 
         printf("Can't delete as directory is not empty \n");
-}
 
+// /return success;
+
+}
 OpenFile *
 FileSystem::FreeMap()
 {

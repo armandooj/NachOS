@@ -19,6 +19,8 @@ Statistics *stats;		// performance metrics
 Timer *timer;			// the hardware timer device,
 					// for invoking context switches
 
+bool randomYield;
+
 #ifdef FILESYS_NEEDED
 FileSystem *fileSystem;
 #endif
@@ -37,6 +39,10 @@ FrameProvider *frameProvider;
 
 #ifdef NETWORK
 PostOffice *postOffice;
+#endif
+
+#ifdef CHANGED
+OpenTable *opentable;
 #endif
 
 
@@ -64,8 +70,11 @@ extern void Cleanup ();
 static void
 TimerInterruptHandler (int dummy)
 {
-    if (interrupt->getStatus () != IdleMode)
-	interrupt->YieldOnReturn ();
+    if (randomYield)
+        if (interrupt->getStatus () != IdleMode)
+	       interrupt->YieldOnReturn ();
+
+    // printf("%lld\n", stats->totalTicks);
 }
 
 //----------------------------------------------------------------------
@@ -83,7 +92,7 @@ Initialize (int argc, char **argv)
 {
     int argCount;
     const char *debugArgs = "";
-    bool randomYield = FALSE;
+    randomYield = FALSE;
 
 #ifdef USER_PROGRAM
     bool debugUserProg = FALSE;	// single step user program
@@ -147,7 +156,7 @@ Initialize (int argc, char **argv)
     stats = new Statistics ();	// collect statistics
     interrupt = new Interrupt;	// start up interrupt handling
     scheduler = new Scheduler ();	// initialize the ready queue
-    if (randomYield)		// start the timer (if needed)
+    // if (randomYield)		// start the timer (if needed)
 	timer = new Timer (TimerInterruptHandler, 0, randomYield);
 
     threadToBeDestroyed = NULL;
@@ -167,6 +176,7 @@ Initialize (int argc, char **argv)
 
 #ifdef CHANGED
     synchconsole = new SynchConsole(NULL, NULL);
+    opentable = new OpenTable;
     frameProvider = new FrameProvider(NumPhysPages);
 #endif
 
@@ -218,3 +228,81 @@ Cleanup ()
 
     Exit (0);
 }
+
+#ifdef CHANGED
+
+OpenTable::OpenTable()
+{
+    for (int i=0;i<MAX_OPENFILES;i++)
+    {
+         table[i].fd = 0;
+         table[i].count = 0;
+    }
+    binaryLock = new Lock("binary lock");
+}
+
+OpenTable::~OpenTable()
+{
+    delete binaryLock;
+}
+
+int
+OpenTable::PushOpenFile (int fd)
+{
+    int i,res = -1;
+    binaryLock->Acquire();
+    if ((res = GetOpenNum(fd)) == -1)
+        for (i=0;i<MAX_OPENFILES;i++)
+            if (table[i].count == 0)
+            {
+                table[i].count++;
+                res = i;
+                table[i].fd = fd;
+                break;
+            }
+    else
+        table[res].count++;
+    binaryLock->Release();
+    return res;
+}
+
+int
+OpenTable::PullOpenFile (int fd)
+{
+    int res = -1;
+    binaryLock->Acquire();
+    if (fd > 0)
+        for(int i=0;i<MAX_OPENFILES;i++)
+            if (table[i].fd == fd)
+            {
+                table[i].count--;
+                if (table[i].count == 0)
+                    table[i].fd = 0;
+                res = 0;
+            }
+    binaryLock->Release();
+    return res;
+}
+
+int
+OpenTable::GetOpenFile (int num)
+{
+    int temp = -1;
+    temp = table[num].fd;
+    return temp;
+}
+
+int
+OpenTable::GetOpenNum (int fd)
+{
+    int res = -1,i;
+    for (i=0;i<MAX_OPENFILES;i++)
+        if (table[i].fd == fd)
+        {
+            res = i;
+            break;
+        }
+    return res;
+}
+
+#endif

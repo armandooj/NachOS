@@ -260,6 +260,11 @@ List::SortedRemove (long long *keyPtr)
     return thing;
 }
 
+void *
+List::GetFirst() {
+    return first->item;
+}
+
 #ifdef CHANGED
 
 void 
