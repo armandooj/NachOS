@@ -30,14 +30,16 @@ int main() {
   
   char ch = '2';
   char* c = &ch;
-  char buffer[4] = {};
-  char *buf = "test";
+  //char buffer[4] = {};
+  char *buf = "testisgood";
   int fd1 = -1;
+  Create("test");
   if ((fd1 = Open("test")) != -1)
        PutString("open test\n");
-  if (Read(buffer,4,fd1) == 4)
-      PutString(buffer);
-  Write(buf,4,fd1);
+  //if (Read(buffer,4,fd1) == 4)
+   //   PutString(buffer);
+  int num = Write(buf,10,fd1);
+  PutInt(num);
   int t1 = UserThreadCreate(thread1, (void *) c);
   
   UserThreadJoin(t1);

@@ -235,7 +235,7 @@ OpenTable::OpenTable()
 {
     for (int i=0;i<MAX_OPENFILES;i++)
     {
-         table[i].fd = 0;
+         table[i].sector = 0;
          table[i].count = 0;
     }
     binaryLock = new Lock("binary lock");
@@ -247,17 +247,17 @@ OpenTable::~OpenTable()
 }
 
 int
-OpenTable::PushOpenFile (int fd)
+OpenTable::PushOpenFile (int sector)
 {
     int i,res = -1;
     binaryLock->Acquire();
-    if ((res = GetOpenNum(fd)) == -1)
+    if ((res = GetOpenNum(sector)) == -1)
         for (i=0;i<MAX_OPENFILES;i++)
             if (table[i].count == 0)
             {
                 table[i].count++;
                 res = i;
-                table[i].fd = fd;
+                table[i].sector = sector;
                 break;
             }
     else
@@ -267,17 +267,17 @@ OpenTable::PushOpenFile (int fd)
 }
 
 int
-OpenTable::PullOpenFile (int fd)
+OpenTable::PullOpenFile (int sector)
 {
     int res = -1;
     binaryLock->Acquire();
-    if (fd > 0)
+    if (sector > 1)
         for(int i=0;i<MAX_OPENFILES;i++)
-            if (table[i].fd == fd)
+            if (table[i].sector == sector)
             {
                 table[i].count--;
                 if (table[i].count == 0)
-                    table[i].fd = 0;
+                    table[i].sector = 0;
                 res = 0;
             }
     binaryLock->Release();
@@ -288,16 +288,16 @@ int
 OpenTable::GetOpenFile (int num)
 {
     int temp = -1;
-    temp = table[num].fd;
+    temp = table[num].sector;
     return temp;
 }
 
 int
-OpenTable::GetOpenNum (int fd)
+OpenTable::GetOpenNum (int sector)
 {
     int res = -1,i;
     for (i=0;i<MAX_OPENFILES;i++)
-        if (table[i].fd == fd)
+        if (table[i].sector == sector)
         {
             res = i;
             break;
