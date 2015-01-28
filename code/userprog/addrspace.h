@@ -20,6 +20,7 @@
 #ifdef CHANGED
 #include "synch.h"
 #include "list.h"
+#define MAX_FILES 5
 #endif
 
 #define UserStackSize		2048	// increase this as necessary!
@@ -61,6 +62,11 @@ class AddrSpace
     ListForJoin *activeThreads;
     ListForJoin *activeLocks;
 
+    int PushTable(OpenFile *file);
+    int PullTable(int index);
+    int IndexSearch(OpenFile *file);
+    int SearchTable(OpenFile *file);
+    OpenFile *OpenSearch(int index);
 #endif   // END CHANGED
   private:
     TranslationEntry * pageTable;	// Assume linear page table translation
@@ -76,6 +82,16 @@ class AddrSpace
     Lock *stackBitMapLock;
     Lock *threadsCountLock;
     Lock *processesCountLock;
+
+/* OpenFileProcess is a openfile table on the process level, each threads inside the same process will add new openfile objects into this level table */
+    typedef struct {
+      OpenFile *file; //openfile object
+      int fd; //real file descriptor used to make a connection between openfile table on kernel level
+      bool vacant; //determine whether the cell is empty
+    } OpenFileProcess;
+
+    OpenFileProcess table[MAX_FILES];
+    Lock *openLock;
 
 #endif   // END CHANGED
 

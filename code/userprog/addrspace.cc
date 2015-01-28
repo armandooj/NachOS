@@ -71,7 +71,15 @@ AddrSpace::AddrSpace (OpenFile *executable)
   NoffHeader noffH;
   unsigned int i, size;
 
-  executable->ReadAt((char *) &noffH, sizeof (noffH), 0);
+#ifdef CHANGED
+   for (int x = 0;x < MAX_FILES;x++)
+   {
+         table[x].file = NULL;
+         table[x].fd = 0;
+         table[x].vacant = TRUE;
+   }
+#endif
+  executable->ReadAt ((char *) &noffH, sizeof (noffH), 0);
   if ((noffH.noffMagic != NOFFMAGIC) && (WordToHost (noffH.noffMagic) == NOFFMAGIC))
     SwapHeader (&noffH);
   ASSERT (noffH.noffMagic == NOFFMAGIC);
@@ -143,6 +151,7 @@ AddrSpace::AddrSpace (OpenFile *executable)
   processesCountLock = new Lock("Processes Count Lock");
   numberOfUserThreads = 1;    // counting the main thread 
   ExitForMain = new Semaphore("Exit for Main", 1);
+  openLock = new Lock("lock for openfile table");
 
   //For Join Functionality
   activeThreads = new ListForJoin();
@@ -164,8 +173,9 @@ AddrSpace::~AddrSpace ()
 #ifdef CHANGED  
   delete stackBitMap;
   delete stackBitMapLock;
-  delete threadsCountLock;
   delete processesCountLock;
+  delete openLock;
+  delete threadsCountLock;
 
   // TODO Test this more
   unsigned int i;
@@ -300,6 +310,75 @@ int AddrSpace::decreaseUserThreads() {
     int count = --numberOfUserThreads;
     threadsCountLock->Release();
     return count;
+}
+
+int AddrSpace::PushTable(OpenFile *file) {
+    int res = -1;
+    openLock->Acquire();
+    for (int i = 0;i < MAX_FILES;i++)
+         if (table[i].vacant == TRUE)
+         {
+             table[i].file = file;
+             table[i].fd = file->filedescriptor();
+             res = i;
+             table[i].vacant = FALSE;
+             break;
+         }
+    openLock->Release();
+    return res;
+}
+
+int AddrSpace::PullTable(int index) {
+    int res = -1;
+    OpenFile *temp = NULL;
+    openLock->Acquire();
+    if (index >= 0 && index < MAX_FILES)
+        if (table[index].vacant == FALSE)
+        {
+            temp = table[index].file;
+            delete temp;
+            table[index].file = NULL;
+            table[index].fd = 0;
+            table[index].vacant = TRUE;
+            res = 0;
+        }
+    openLock->Release();
+    return res;
+}
+
+int AddrSpace::IndexSearch(OpenFile *file) {
+    int res = -1;
+    openLock->Acquire();
+    for (int i=0;i<MAX_FILES;i++)
+         if (table[i].file == file && table[i].vacant == FALSE)
+         {
+             res = i;
+             break;
+         }
+    openLock->Release();
+    return res;
+}
+
+OpenFile* AddrSpace::OpenSearch(int index) {
+    OpenFile *temp = NULL;
+    openLock->Acquire();
+    if (index < MAX_FILES && index >= 0 && table[index].vacant == FALSE)
+        temp = table[index].file;
+    openLock->Release();
+    return temp;
+}
+
+int AddrSpace::SearchTable(OpenFile *file) {
+    int res = -1,i;
+    openLock->Acquire();
+    for(i=0;i<MAX_FILES;i++)
+        if (table[i].file == file && table[i].vacant == FALSE)
+        {
+            res = table[i].fd;
+            break;
+        }
+    openLock->Release();
+    return res;
 }
 
 int AddrSpace::getNumberOfUserThreads() {

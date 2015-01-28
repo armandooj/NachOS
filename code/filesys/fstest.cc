@@ -33,7 +33,10 @@ Copy(const char *from, const char *to)
 {
     FILE *fp;
     OpenFile* openFile;
-    int amountRead, fileLength;
+    int amountRead;
+#ifndef CHANGED
+    int fileLength;
+#endif
     char *buffer;
 
 // Open UNIX file
@@ -44,12 +47,22 @@ Copy(const char *from, const char *to)
 
 // Figure out length of UNIX file
     fseek(fp, 0, 2);		
+#ifndef CHANGED
     fileLength = ftell(fp);
+#endif
     fseek(fp, 0, 0);
 
 // Create a Nachos file of the same length
+#ifndef CHANGED
     DEBUG('f', "Copying file %s, size %d, to file %s\n", from, fileLength, to);
-    if (!fileSystem->Create(to, fileLength)) {	 // Create Nachos file
+#else
+    DEBUG('f', "Copying file %s to file %s\n",from, to);
+#endif
+#ifndef CHANGED
+    if (!fileSystem->Create(to,fileLength)) {	 // Create Nachos file
+#else
+    if (!fileSystem->Create(to)) {
+#endif
 	printf("Copy: couldn't create output file %s\n", to);
 	fclose(fp);
 	return;
@@ -111,7 +124,7 @@ Print(char *name)
 #define FileName 	"TestFile"
 #define Contents 	"1234567890"
 #define ContentSize 	strlen(Contents)
-#define FileSize 	((int)(ContentSize * 5000))
+#define FileSize 	((int)(ContentSize * 11000))
 
 static void 
 FileWrite()
@@ -121,7 +134,11 @@ FileWrite()
 
     printf("Sequential write of %d byte file, in %zd byte chunks\n", 
 	FileSize, ContentSize);
-    if (!fileSystem->Create(FileName, 0)) {
+#ifndef CHANGED
+    if (!fileSystem->Create(FileName,0)) {
+#else
+    if (!fileSystem->Create(FileName)) {
+#endif
       printf("Perf test: can't create %s\n", FileName);
       return;
     }
@@ -183,3 +200,36 @@ PerformanceTest()
     stats->Print();
 }
 
+#ifdef CHANGED
+void nachcopy(const char *file1, const char *file2)
+{
+    OpenFile *fopen1 = NULL;
+    if((fopen1 = fileSystem->Open(file1)) == NULL) {
+     printf("fail to open file1 %s !\n",file1);
+     return;
+    }
+
+    int amountRead;
+    char *buffer = new char[TransferSize];
+    fopen1->Seek(0);
+
+    OpenFile *fopen2 = NULL;
+    if((fopen2 = fileSystem->Open(file2)) == NULL) {
+     printf("creating a new file %s\n",file2);
+     ASSERT(fileSystem->Create(file2));
+    }
+    if((fopen2 = fileSystem->Open(file2)) == NULL) {
+     printf("fail to open file2 %s !\n",file2);
+     return;
+    }
+    fopen2->Seek(0);
+    char *buffer2 = new char[TransferSize];
+    while((amountRead = fopen1->Read(buffer, TransferSize)) > 0)
+     fopen2->Write(buffer, amountRead);
+    printf("finish copy");
+    printf("\n------------------------\n");
+    delete [] buffer2;
+
+    return;
+}
+#endif

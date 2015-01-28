@@ -41,6 +41,10 @@ FrameProvider *frameProvider;
 PostOffice *postOffice;
 #endif
 
+#ifdef CHANGED
+OpenTable *opentable;
+#endif
+
 
 // External definition, to allow us to take a pointer to this function
 extern void Cleanup ();
@@ -129,6 +133,8 @@ Initialize (int argc, char **argv)
 #ifdef FILESYS_NEEDED
 	  if (!strcmp (*argv, "-f"))
 	      format = TRUE;
+            
+      
 #endif
 #ifdef NETWORK
 	  if (!strcmp (*argv, "-l"))
@@ -170,6 +176,7 @@ Initialize (int argc, char **argv)
 
 #ifdef CHANGED
     synchconsole = new SynchConsole(NULL, NULL);
+    opentable = new OpenTable;
     frameProvider = new FrameProvider(NumPhysPages);
 #endif
 
@@ -221,3 +228,81 @@ Cleanup ()
 
     Exit (0);
 }
+
+#ifdef CHANGED
+
+OpenTable::OpenTable()
+{
+    for (int i=0;i<MAX_OPENFILES;i++)
+    {
+         table[i].fd = 0;
+         table[i].count = 0;
+    }
+    binaryLock = new Lock("binary lock");
+}
+
+OpenTable::~OpenTable()
+{
+    delete binaryLock;
+}
+
+int
+OpenTable::PushOpenFile (int fd)
+{
+    int i,res = -1;
+    binaryLock->Acquire();
+    if ((res = GetOpenNum(fd)) == -1)
+        for (i=0;i<MAX_OPENFILES;i++)
+            if (table[i].count == 0)
+            {
+                table[i].count++;
+                res = i;
+                table[i].fd = fd;
+                break;
+            }
+    else
+        table[res].count++;
+    binaryLock->Release();
+    return res;
+}
+
+int
+OpenTable::PullOpenFile (int fd)
+{
+    int res = -1;
+    binaryLock->Acquire();
+    if (fd > 0)
+        for(int i=0;i<MAX_OPENFILES;i++)
+            if (table[i].fd == fd)
+            {
+                table[i].count--;
+                if (table[i].count == 0)
+                    table[i].fd = 0;
+                res = 0;
+            }
+    binaryLock->Release();
+    return res;
+}
+
+int
+OpenTable::GetOpenFile (int num)
+{
+    int temp = -1;
+    temp = table[num].fd;
+    return temp;
+}
+
+int
+OpenTable::GetOpenNum (int fd)
+{
+    int res = -1,i;
+    for (i=0;i<MAX_OPENFILES;i++)
+        if (table[i].fd == fd)
+        {
+            res = i;
+            break;
+        }
+    return res;
+}
+
+#endif
