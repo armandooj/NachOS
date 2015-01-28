@@ -266,7 +266,7 @@ bool FileSystem::Create(const char *name, FileHeader::FileType type) {
 	    if (!hdr->Allocate(freeMap, initialSize)) // for create file
 #else
 	    	directory->IsDirectory(index[0]); // needs checking
-            if (!hdr->Allocate(freeMap, 100)) // Directory
+            if (!hdr->Allocate(freeMap, 0)) // Directory
 
 #endif
             	success = FALSE;	// no space on disk for data
