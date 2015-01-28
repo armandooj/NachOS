@@ -43,6 +43,7 @@
 #define SC_UserThreadJoin   19
 #define SC_ForkExec         20
 #define SC_JoinExec         21
+#define SC_ListDirectory    22	// To list the directory
 
 #endif  // End If CHANGED
 
@@ -167,6 +168,7 @@ int UserThreadJoin(int tid);
 // Process creation
 int ForkExec(char* cmd);
 int JoinExec(int tid);  // wait for the process to finish
+int ListDirectory () ;
 
 #endif // IN_USER_MODE
 

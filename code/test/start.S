@@ -213,7 +213,7 @@ ForkExec:
        syscall
        j	$31
        .end ForkExec
-
+/* ----------------------*/
       .globl JoinExec
       .ent	JoinExec
 JoinExec:
@@ -221,6 +221,26 @@ JoinExec:
        syscall
        j	$31
        .end JoinExec
+/* ----------------------*/
+      .globl ListDirectory
+      .ent	ListDirectory
+ListDirectory:
+       addiu $2,$0,SC_ListDirectory
+       syscall
+       j	$31
+       .end ListDirectory
+/* ----------------------*/
+
+
+/* ----------------------*/
+
+
+
+/* ----------------------*/
+
+
+
+/* ----------------------*/
 
 #endif
 

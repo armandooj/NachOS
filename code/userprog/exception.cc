@@ -21,6 +21,15 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation 
 // of liability and disclaimer of warranty provisions.
 
+
+
+#include "copyright.h"
+
+
+
+
+
+
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
@@ -28,6 +37,22 @@
 #include "scheduler.h"
 #include "synch.h"
 #include "userprocess.h"
+
+#ifdef CHANGED
+#include "system.h"
+#include "../filesys/filesys.h"
+#include <dirent.h>
+#include <fstream>
+#include <iostream>
+#include <unistd.h>
+#include <string>
+#include "disk.h"
+#include "bitmap.h"
+#include "directory.h"
+#include "filehdr.h"
+#include "openfile.h"
+#endif
+
 
 //----------------------------------------------------------------------
 // UpdatePC : Increments the Program Counter register in order to resume
@@ -271,6 +296,22 @@ ExceptionHandler (ExceptionType which)
                 break;
             }
             
+            case SC_ListDirectory:
+            {
+              //  Directory *directory = new Directory(10);
+
+                //directory->FetchFrom(directoryFile);
+                //directory->List();
+                //delete directory;
+
+
+                fileSystem->List ();
+                
+                //interrupt->Halt ();
+                
+                break;
+            }
+
             default: {
                printf("Unexpected user mode exception %d %d\n", which, type);
                ASSERT(FALSE);
