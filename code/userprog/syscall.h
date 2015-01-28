@@ -48,6 +48,11 @@
 #define SC_ChangeDir  		24
 #define SC_PutCharCommand   25
 #define SC_PutStringCommand 26
+#define SC_GetCharCommand          27
+#define SC_GetStringCommand        28
+#define SC_PutIntCommand           29
+#define SC_GetIntCommand           30
+
 
 #endif  // End If CHANGED
 
@@ -182,6 +187,11 @@ int ChangeDir ();
 int PutCharCommand ();
 
 int PutStringCommand();
+
+int GetCharCommand ();
+int GetStringCommand        ();
+int PutIntCommand           ();
+int GetIntCommand           ();
 
 #endif // IN_USER_MODE
 

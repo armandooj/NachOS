@@ -260,7 +260,36 @@ ExceptionHandler (ExceptionType which)
                 machine->WriteRegister(2, int(ch));
                 break;
             }
+            case SC_GetCharCommand:
+            {
+                char ch = synchconsole->SynchGetChar();
+                machine->WriteRegister(2, int(ch));
+                break;
+            }
             case SC_GetString:
+            {                
+                int phy_addr = machine->ReadRegister(4);
+                int size = machine->ReadRegister(5);
+
+                // Get char by char so that we can find the end of file.
+                int i, ch;
+                for (i = 0; i < size - 1; i++) {
+                    ch = synchconsole->SynchGetChar();
+                    if (ch == EOF) {
+                        break;
+                    } else {
+                        machine->WriteMem(phy_addr + i, 1, ch);
+                        if (ch == '\n' || ch == '\0') {
+                            break;
+                        }
+                    }
+                }
+
+                // End the String at the end
+                machine->WriteMem(phy_addr + i, 1, '\0');
+                break;
+            }
+            case SC_GetStringCommand:
             {                
                 int phy_addr = machine->ReadRegister(4);
                 int size = machine->ReadRegister(5);
@@ -289,7 +318,19 @@ ExceptionHandler (ExceptionType which)
                 synchconsole->SynchPutInt(val);
                 break;
             }
+            case SC_PutIntCommand:
+            {
+                int val = machine->ReadRegister(4);                
+                synchconsole->SynchPutInt(val);
+                break;
+            }
             case SC_GetInt:
+            {
+                int val = synchconsole->SynchGetInt();
+                machine->WriteMem(machine->ReadRegister(4), 4, val);
+                break;
+            }
+            case SC_GetIntCommand:
             {
                 int val = synchconsole->SynchGetInt();
                 machine->WriteMem(machine->ReadRegister(4), 4, val);

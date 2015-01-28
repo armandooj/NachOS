@@ -256,7 +256,7 @@ PutCharCommand:
        syscall
        j	$31
        .end PutCharCommand
-
+/* ----------------------*/
    .globl PutStringCommand
       .ent	PutStringCommand
 PutStringCommand:
@@ -264,6 +264,43 @@ PutStringCommand:
        syscall
        j	$31
        .end PutStringCommand
+
+/* ----------------------*/
+ .globl GetCharCommand
+      .ent	GetCharCommand
+GetCharCommand:
+       addiu $2,$0,SC_GetCharCommand
+       syscall
+       j	$31
+       .end GetCharCommand
+
+/* ----------------------*/
+
+ .globl GetStringCommand
+      .ent	GetStringCommand
+GetStringCommand:
+       addiu $2,$0,SC_GetStringCommand
+       syscall
+       j	$31
+       .end GetStringCommand
+/* ----------------------*/
+
+ .globl PutIntCommand
+      .ent	PutIntCommand
+PutIntCommand:
+       addiu $2,$0,SC_PutIntCommand
+       syscall
+       j	$31
+       .end PutIntCommand
+/* ----------------------*/
+ .globl GetIntCommand
+      .ent	GetIntCommand
+GetIntCommand:
+       addiu $2,$0,SC_GetIntCommand
+       syscall
+       j	$31
+       .end GetIntCommand
+/* ----------------------*/
 
 
 
