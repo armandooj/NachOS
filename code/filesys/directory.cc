@@ -44,7 +44,10 @@ Directory::Directory(int size)
     table = new DirectoryEntry[size];
     tableSize = size;
     for (int i = 0; i < tableSize; i++)
+    {
 	table[i].inUse = FALSE;
+    table[i].isFile=TRUE;
+    }
 }
 
 //----------------------------------------------------------------------
@@ -131,8 +134,9 @@ Directory::Find(const char *name)
 //	"newSector" -- the disk sector containing the added file's header
 //----------------------------------------------------------------------
 
+
 bool
-Directory::Add(const char *name, int newSector)
+Directory::Add(const char *name, int newSector, int *Index)
 { 
     if (FindIndex(name) != -1)
 	return FALSE;
@@ -142,9 +146,18 @@ Directory::Add(const char *name, int newSector)
             table[i].inUse = TRUE;
             strncpy(table[i].name, name, FileNameMaxLen); 
             table[i].sector = newSector;
+            *Index=i;
         return TRUE;
 	}
     return FALSE;	// no space.  Fix when we have extensible files.
+}
+// It is a directory 
+
+void 
+Directory::IsDirectory(int x)
+{
+
+    table[x].isFile=FALSE;
 }
 
 //----------------------------------------------------------------------
@@ -182,7 +195,11 @@ Directory::List()
         {
             FileHeader *fileheader = new FileHeader;
             fileheader->FetchFrom(table[i].sector);
-            printf("Name: %s Size: %dbytes\n", table[i].name,fileheader->FileLength());
+            printf("Name: %s Size: %dbytes", table[i].name,fileheader->FileLength());
+            if(table[i].isFile == TRUE)
+                printf("   File \n");
+            else 
+                printf("   Directory \n");
             //printf("%s\n", table[i].name);
             delete fileheader;
         }

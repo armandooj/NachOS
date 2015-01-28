@@ -241,6 +241,7 @@ bool FileSystem::Create(const char *name, FileHeader::FileType type) {
     FileHeader *hdr;
     int sector;
     bool success;
+    int index [1];
 
     directory = new Directory(NumDirEntries);
     directory->FetchFrom(directoryFile);
@@ -253,21 +254,27 @@ bool FileSystem::Create(const char *name, FileHeader::FileType type) {
         sector = freeMap->Find();	// find a sector to hold the file header
     	if (sector == -1) 		
             success = FALSE;		// no free block for file header 
-        else if (!directory->Add(name, sector))
+        else if (!directory->Add(name, sector,index))  // Here we return the address just that in case of a directory we change the table[index] to directory
+        
             success = FALSE;	// no space in directory
-	else {
+
+      	else {
     	    hdr = new FileHeader;
+//    	    printf("Index is %d \n ",index[0]);
 #ifndef CHANGED
-	    if (!hdr->Allocate(freeMap, initialSize))
+
+	    if (!hdr->Allocate(freeMap, initialSize)) // for create file
 #else
-            if (!hdr->Allocate(freeMap, 0))
+	    	directory->IsDirectory(index[0]); // needs checking
+            if (!hdr->Allocate(freeMap, 0)) // Directory
+
 #endif
             	success = FALSE;	// no space on disk for data
 	    else {	
 	    	success = TRUE;
 		// everthing worked, flush all changes back to disk
         #ifdef CHANGED
-                hdr->Type_Set(type);   //type = type;
+                hdr->Type_Set(type);   //type = type; // for Directory
         #endif
 
     	    	hdr->WriteBack(sector); 		
@@ -690,67 +697,10 @@ void FileSystem:: DeleteDirectory (const char *name)
     }
     else 
         printf("Can't delete as directory is not empty \n");
-<<<<<<< HEAD
 
 // /return success;
 
 }
- // Get the current directory
-Directory *FileSystem::GetDirectoryByName(const char* dirname, int *store_sector)
-{
-    Directory *current = new Directory(NumDirEntries);
-    int sector = 0;
-    char *cpy = new char[strlen(dirname) + 1];
-    strcpy(cpy, dirname);
-
-    char *name = strtok(cpy, "/");
-
-    // Init first directory
-    current->FetchFrom(directoryFile);
-
-    // If root, just return current
-    if (strcmp(cpy, "/") == 0 || strcmp(cpy, ".") == 0)
-    {
-        if (store_sector != NULL)
-            *store_sector = DirectorySector;
-        delete [] cpy;
-        return current;
-    }
-
-    // Search following inside current directory
-    sector = current->Find(name);
-    while(sector >= 0)
-    {
-        name = strtok(NULL, "/");
-
-        if (name == NULL)
-        {
-            if (store_sector != NULL)
-                *store_sector = sector;
-
-            delete current;
-
-            current = Directory::ReadAtSector(sector);
-            delete [] cpy;
-            return current;
-        }
-
-        delete current;
-        current = Directory::ReadAtSector(sector);
-        sector = current->Find(name);
-    }
-
-    if (store_sector != NULL)
-        *store_sector = -1;
-    delete [] cpy;
-    delete current;
-
-    return NULL;
-
-=======
->>>>>>> 1090915c3018b7e6d10294ea98079ba3e014d95f
-}
-
 OpenFile *
 FileSystem::FreeMap()
 {
