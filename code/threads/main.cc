@@ -60,7 +60,7 @@ extern void Print (char *file), PerformanceTest (void);
 extern void StartProcess (char *file), ConsoleTest (char *in, char *out);
 extern void SynchConsoleTest (char *in, char *out);
 extern void MailTest (int networkID);
-
+extern void MailWait (int networkID);
 //----------------------------------------------------------------------
 // main
 //      Bootstrap the operating system kernel.  
@@ -175,6 +175,15 @@ if (!strcmp (*argv, "-cp"))
     		// start up another nachos
     		MailTest (atoi (*(argv + 1)));
     		argCount = 2;
+      }
+      if (!strcmp (*argv, "-w"))
+      {
+        ASSERT (argc > 1);
+        Delay (2);  // delay for 2 seconds
+        // to give the user time to 
+        // start up another nachos
+        MailWait (atoi (*(argv + 1)));
+        argCount = 2;
       }
 #endif // NETWORK
     }

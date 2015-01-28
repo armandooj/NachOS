@@ -378,11 +378,6 @@ void TimeOutHandler2(int arg) {
 void
 PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* data)
 {
-    if (DebugIsEnabled('n')) {
-        printf("\nPost reliable send: ");
-        PrintHeader(pktHdr, mailHdr);
-    }
-    
     if (strlen(data) > MaxMailSize) {
         // Too big, break it into smaller pieces
         int pieces = divRoundUp(strlen(data), MaxMailSize - 1);
@@ -414,6 +409,12 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
         TimeOutHandler((int) this);
 
     } else {
+        
+        if (DebugIsEnabled('n')) {
+            printf("\nPost reliable send: ");
+            PrintHeader(pktHdr, mailHdr);
+        }
+    
         // Now, backup the Message so that we can confirm it's reception later
         Mail *mail = new Mail(pktHdr, mailHdr, NULL);
         strncpy(mail->data, (char *) data, MaxMailSize);
@@ -436,10 +437,18 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
             }
         }
 
-        Send(pktHdr, mailHdr, data);
+        Send(pktHdr, mailHdr, data);        
 
         // Trigger an interrupt
         interrupt->Schedule(TimeOutHandler, (int) this, TEMPO, NetworkSendInt);
+
+        // Wait for the ack from the other machine to the first message we sent.
+        PacketHeader inPktHdr;
+        MailHeader inMailHdr;
+        char buffer[MaxMailSize];
+
+
+        Receive(1, &inPktHdr, &inMailHdr, buffer);
     }
 }
 
@@ -510,6 +519,38 @@ PostOffice::Receive(int box, PacketHeader *pktHdr,
     ASSERT((box >= 0) && (box < numBoxes));
 
     boxes[box].Get(pktHdr, mailHdr, data);
+
+    ASSERT(mailHdr->length <= MaxMailSize);
+}
+
+void
+PostOffice::ReliableReceive(int box, PacketHeader *pktHdr, 
+                MailHeader *mailHdr, char* data)
+{
+    ASSERT((box >= 0) && (box < numBoxes));
+
+    // Receive
+    boxes[box].Get(pktHdr, mailHdr, data);
+
+    PrintHeader(*pktHdr, *mailHdr);
+
+    // Send acknowledgement to the other machine (using "reply to" mailbox
+    // in the message that just arrived
+    PacketHeader outPktHdr;
+    MailHeader outMailHdr;
+    const char *ack = "Got it!";
+
+    outPktHdr.to = pktHdr->from;
+    outPktHdr.from = pktHdr->to;
+    outMailHdr.to = mailHdr->from;
+    outMailHdr.from = mailHdr->to;
+    outMailHdr.length = strlen(ack) + 1;
+
+    int i;
+    for (i = 0; i < 4; i++) {
+        postOffice->Send(outPktHdr, outMailHdr, ack);
+        Delay(1);
+    }
 
     ASSERT(mailHdr->length <= MaxMailSize);
 }

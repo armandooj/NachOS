@@ -130,6 +130,9 @@ class PostOffice {
     void ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char *data);
 
     Mail *FindMail(Mail *mail);
+
+    void ReliableReceive(int box, PacketHeader *pktHdr, 
+    MailHeader *mailHdr, char *data);
     
     //testing
     void doReliableSend2(PacketHeader pktHdr, MailHeader mailHdr, const char* data);
