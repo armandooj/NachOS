@@ -171,98 +171,91 @@ main (int argc, char **argv)
 
 #ifdef FILESYS
 
-        if (!strcmp (*argv, "-cp"))
-	    {			// copy from UNIX to Nachos
-		ASSERT (argc > 2);
-		Copy (*(argv + 1), *(argv + 2));
-		argCount = 3;
-		interrupt->Halt ();
-	    }
+    if (!strcmp (*argv, "-cp"))
+    {			// copy from UNIX to Nachos
+  		ASSERT (argc > 2);
+  		Copy (*(argv + 1), *(argv + 2));
+  		argCount = 3;
+  		interrupt->Halt ();
+    }
         
 	  else if (!strcmp (*argv, "-p"))
-	    {			// print a Nachos file
-		ASSERT (argc > 1);
-		Print (*(argv + 1));
-		argCount = 2;
-		interrupt->Halt ();
-	    }
+    {			// print a Nachos file
+  		ASSERT (argc > 1);
+  		Print (*(argv + 1));
+  		argCount = 2;
+  		interrupt->Halt ();
+    }
 	  else if (!strcmp (*argv, "-r"))
-	    {			// remove Nachos file
-		ASSERT (argc > 1);
-		fileSystem->Remove (*(argv + 1));
-		argCount = 2;
-		interrupt->Halt ();
-	    }
+    {			// remove Nachos file
+  		ASSERT (argc > 1);
+  		fileSystem->Remove (*(argv + 1));
+  		argCount = 2;
+  		interrupt->Halt ();
+    }
 	  else if (!strcmp (*argv, "-lr"))
-	    {			// list Nachos directory
-		fileSystem->List ();
-		interrupt->Halt ();
-	    }
+    {			// list Nachos directory
+  		fileSystem->List ();
+  		interrupt->Halt ();
+    }
 		
-		#ifdef CHANGED
+#ifdef CHANGED
 
-	    else if (!strcmp (*argv, "-md"))
-        {			// create Nachos directory
-            fileSystem->CreateDirectory(*(argv + 1));
-            argCount = 2;
-            interrupt->Halt ();
-        }
-
-      else if (!strcmp (*argv, "-rm"))
-        {     // create Nachos directory
-            fileSystem->DeleteDirectory(*(argv + 1));
-            argCount = 2;
-            interrupt->Halt ();
-        }
-        else if(!strcmp (*argv, "-ncp"))
-        {
-        ASSERT (argc > 2);
-        nachcopy (*(argv + 1), *(argv + 2));
-        argCount = 3;
-        interrupt->Halt ();
-        }
-            else if (!strcmp (*argv, "-cd"))
-        {			// create Nachos directory
-            //fileSystem->Directory_path();
-            fileSystem->Directory_path((std::string(*(argv + 1)) + "/").c_str());
-            fileSystem->List ();
-            argCount = 2;
-            interrupt->Halt ();
-        }
-        else if (!strcmp(*argv, "-ftest")) {
+    else if (!strcmp (*argv, "-md"))
+    {
+      fileSystem->CreateDirectory(*(argv + 1));
+      argCount = 2;
+      interrupt->Halt ();
+    }
+    else if (!strcmp (*argv, "-rm"))
+    {
+      fileSystem->DeleteDirectory(*(argv + 1));
+      argCount = 2;
+      interrupt->Halt ();
+    }
+    else if(!strcmp (*argv, "-ncp"))
+    {
+      ASSERT (argc > 2);
+      nachcopy (*(argv + 1), *(argv + 2));
+      argCount = 3;
+      interrupt->Halt ();
+    }
+    else if (!strcmp (*argv, "-cd"))
+    {
+      fileSystem->Directory_path((std::string(*(argv + 1)) + "/").c_str());
+      fileSystem->List ();
+      argCount = 2;
+      interrupt->Halt ();
+    }
+    else if (!strcmp(*argv, "-ftest")) {
 			Test_FileSystem();
 			argCount =2;
 			interrupt->Halt ();
 		}
 		else if (!strcmp (*argv, "-test"))
-	    {
-	    	Test_FileSystem2();
+	  {
+	    Test_FileSystem2();
 			argCount =2;
 			interrupt->Halt ();
-
-		interrupt->Halt ();
 		}
 		else if (!strcmp (*argv, "-fremove"))
-	    {
-	    	Test_FileSystem3();
+	  {
+	    Test_FileSystem3();
 			argCount =2;
 			interrupt->Halt ();
-
-	   
-		interrupt->Halt ();
 		}
 		
-        #endif
+#endif
 
-	  else if (!strcmp (*argv, "-D"))
+	    else if (!strcmp (*argv, "-D"))
 	    {			// print entire filesystem
         fileSystem->Print ();
       }
       else if (!strcmp (*argv, "-t"))
 	    {			// performance test
 
-		PerformanceTest ();
-		interrupt->Halt ();
+		    PerformanceTest ();
+		    interrupt->Halt ();
 	    }
 	  
 #endif // FILESYS
@@ -273,7 +266,7 @@ main (int argc, char **argv)
 		    Delay (2);	// delay for 2 seconds
     		// to give the user time to 
     		// start up another nachos
-    		MailTest (atoi (*(argv + 1)));
+    		MailSend (atoi (*(argv + 1)));
     		argCount = 2;
       }
 #ifdef CHANGED      
@@ -283,7 +276,7 @@ main (int argc, char **argv)
         Delay (2);  // delay for 2 seconds
         // to give the user time to 
         // start up another nachos
-        MailSend (atoi (*(argv + 1)));
+        MailWait (atoi (*(argv + 1)));
         argCount = 2;
       }
 #endif

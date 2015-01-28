@@ -158,7 +158,9 @@ void ring3Machines(int farAddr) {
 }
 
 #ifdef CHANGED
-void showExample2(int farAddr) {
+
+void sendTest(int farAddr) {
+
     PacketHeader outPktHdr;
     MailHeader outMailHdr;
     const char *data = "Hello there this is a very big message and I want to see what happens. I think the limit at the moment is 40 so this should be enough.";
@@ -166,7 +168,8 @@ void showExample2(int farAddr) {
     // construct packet, mail header for original message
     // To: destination machine, mailbox 0
     // From: our machine, reply to: mailbox 1
-    outPktHdr.to = farAddr;     
+    outPktHdr.to = farAddr;
+    outPktHdr.from = 0;     
     outMailHdr.to = 0;
     outMailHdr.from = 1;
     outMailHdr.length = strlen(data) + 1;
@@ -185,11 +188,11 @@ waitTest(int farAddr) {
     PacketHeader inPktHdr;
     MailHeader inMailHdr;
     //const char *ack = "Got it!";
-    char buffer[MaxMailSize];
-    char bigBuffer[200];
+    char buffer[MaxMailSize] = {0};
+    char bigBuffer[200] = {0};
     // Wait for the first message from the other machine
     postOffice->ReliableReceive(0, &inPktHdr, &inMailHdr, buffer, bigBuffer); 
-    Delay(5);
+    // Delay(5);
     
     interrupt->Halt();
 }
@@ -197,7 +200,7 @@ waitTest(int farAddr) {
 void
 MailSend(int farAddr)                                                                                                                                                                                                                                                                                                       
 {
-    showExample2(farAddr);
+    sendTest(farAddr);
 }
 
 void                                                                                                                                                                                                                                                                                                                                                
