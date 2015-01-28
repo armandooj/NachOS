@@ -376,7 +376,7 @@ void TimeOutHandler2(int arg) {
 //
 //  This will sleep a package 
 void
-PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* data)
+PostOffice::doReliableSend2(PacketHeader pktHdr, MailHeader mailHdr, const char* data)
 {
     if (DebugIsEnabled('n')) {
         printf("\nPost reliable send: ");
@@ -388,6 +388,7 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
         int pieces = divRoundUp(strlen(data), MaxMailSize - 1);
         
         int i;
+        int remainingParts = pieces - 1;
         for (i = 0; i < pieces; i++) {
             printf("Scheduling a chunk %d\n", i);
             // Take a Chunk of the data
@@ -395,8 +396,10 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
             memcpy(chunk, &data[i * (MaxMailSize - 1)], MaxMailSize - 1);
             chunk[MaxMailSize - 1] = '\0';
 
-            // Update the size
+            // Update the header
             mailHdr.length = MaxMailSize; // +1?
+            mailHdr.remainingParts = remainingParts--;
+            mailHdr.isAck = false;
 
             // Make a mail with it
             Mail *mail = new Mail(pktHdr, mailHdr, NULL);

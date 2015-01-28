@@ -162,7 +162,7 @@ void showExample2(int farAddr) {
     MailHeader outMailHdr, inMailHdr;
     const char *data = "Hello there this is a very big message and I want to see what happens. I think the limit at the moment is 40 so this should be enough.";
     //const char *data = "Hello there";
-    const char *ack = "Got it!";
+    //const char *ack = "Got it!";
     char buffer[MaxMailSize];
 
     // construct packet, mail header for original message
@@ -185,7 +185,7 @@ void showExample2(int farAddr) {
 
     // TODO The acknowledgement should be automatic
 
-
+    /*
     // Send acknowledgement to the other machine (using "reply to" mailbox
     // in the message that just arrived
     outPktHdr.to = inPktHdr.from;
@@ -197,6 +197,7 @@ void showExample2(int farAddr) {
     postOffice->Receive(1, &inPktHdr, &inMailHdr, buffer);
     printf("Got \"%s\" from %d, box %d\n",buffer,inPktHdr.from,inMailHdr.from);
     fflush(stdout);
+    */
 
     printf("Finish here\n");
 
