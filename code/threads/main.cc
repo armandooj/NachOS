@@ -110,49 +110,50 @@ main (int argc, char **argv)
 #endif
      
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount)
-      {
-	  argCount = 1;
-	  if (!strcmp (*argv, "-z"))	// print copyright
-	      printf ("%s", copyright);
+    {
+      argCount = 1;
+      if (!strcmp (*argv, "-z"))	// print copyright
+        printf ("%s", copyright);
 #ifdef USER_PROGRAM
 
-	  if (!strcmp (*argv, "-x"))
+      if (!strcmp (*argv, "-x"))
 	    {			// run a user program
-		ASSERT (argc > 1);
-
-		StartProcess (*(argv + 1));
-		argCount = 2;
-	    }
-	  else if (!strcmp (*argv, "-c"))
+        ASSERT (argc > 1);
+        StartProcess (*(argv + 1));
+        argCount = 2;
+      }
+      else if (!strcmp (*argv, "-c"))
 	    {			// test the console
-		if (argc == 1)
-		    ConsoleTest (NULL, NULL);
-		else
-		  {
-		      ASSERT (argc > 2);
-		      ConsoleTest (*(argv + 1), *(argv + 2));
-		      argCount = 3;
-		  }
-		interrupt->Halt ();	// once we start the console, then 
-		// Nachos will loop forever waiting 
-		// for console input
-	    }
-      #ifdef CHANGED
-        // Synch console
-        else if (!strcmp (*argv, "-sc")) 
+        if (argc == 1)
+          ConsoleTest (NULL, NULL);
+        else
         {
-          if (argc == 1)
-            SynchConsoleTest (NULL, NULL);
-          else
-    	    {
-    			  ASSERT (argc > 2);
-    			  SynchConsoleTest (*(argv + 1), *(argv + 2));
-    	      argCount = 3;
-    	    }
-          interrupt->Halt ();
+          ASSERT (argc > 2);
+          ConsoleTest (*(argv + 1), *(argv + 2));
+          argCount = 3;
         }
-      #endif
+		    interrupt->Halt ();	// once we start the console, then 
+  		  // Nachos will loop forever waiting 
+  		  // for console input
+        }
+
+#ifdef CHANGED
+      // Synch console
+      else if (!strcmp (*argv, "-sc")) 
+      {
+        if (argc == 1)
+          SynchConsoleTest (NULL, NULL);
+        else
+        {
+          ASSERT (argc > 2);
+          SynchConsoleTest (*(argv + 1), *(argv + 2));
+          argCount = 3;
+        }
+        interrupt->Halt ();
+      }
+#endif
 #endif // USER_PROGRAM
+
 #ifdef FILESYS
 
         if (!strcmp (*argv, "-cp"))
@@ -198,7 +199,8 @@ main (int argc, char **argv)
         }
             else if (!strcmp (*argv, "-cd"))
         {			// create Nachos directory
-            fileSystem->Directory_path(*(argv + 1));
+            //fileSystem->Directory_path();
+            fileSystem->Directory_path((std::string(*(argv + 1)) + "/").c_str());
             fileSystem->List ();
             argCount = 2;
             interrupt->Halt ();
@@ -233,29 +235,34 @@ main (int argc, char **argv)
 
 	  else if (!strcmp (*argv, "-D"))
 	    {			// print entire filesystem
-		fileSystem->Print ();
-	    }
-	  else if (!strcmp (*argv, "-t"))
+        fileSystem->Print ();
+      }
+      else if (!strcmp (*argv, "-t"))
 	    {			// performance test
+
 		PerformanceTest ();
 		interrupt->Halt ();
 	    }
 	  
 #endif // FILESYS
 #ifdef NETWORK
-	  if (!strcmp (*argv, "-o"))
-	    {
-		ASSERT (argc > 1);
-		Delay (2);	// delay for 2 seconds
-		// to give the user time to 
-		// start up another nachos
-		MailTest (atoi (*(argv + 1)));
-		argCount = 2;
-	    }
-#endif // NETWORK
+      if (!strcmp (*argv, "-o"))
+      {
+        ASSERT (argc > 1);
+		    Delay (2);	// delay for 2 seconds
+    		// to give the user time to 
+    		// start up another nachos
+    		MailTest (atoi (*(argv + 1)));
+    		argCount = 2;
       }
+#endif // NETWORK
+    }
 
+
+    printf("Finishing from Main Thread\n");
     currentThread->Finish ();	// NOTE: if the procedure "main" 
+    // do_UserProcessExit();
+
     // returns, then the program "nachos"
     // will exit (as any other normal program
     // would).  But there may be other

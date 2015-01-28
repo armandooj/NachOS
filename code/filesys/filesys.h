@@ -55,7 +55,11 @@ class FileSystem {
   public:
     FileSystem(bool format) {}
 
+#ifndef CHANGED
     bool Create(const char *name, int initialSize) { 
+#else
+    bool Create(const char *name) {
+#endif
 	int fileDescriptor = OpenForWrite(name);
 
 	if (fileDescriptor == -1) return FALSE;
@@ -110,7 +114,6 @@ class FileSystem {
      void   ChangeDirectory(const  char* filename); 
      OpenFile *FreeMap();
      void DeleteDirectory (const char *name);
-     Directory *GetDirectoryByName(const char* dirname, int *store_sector);
   #endif
 
   private:

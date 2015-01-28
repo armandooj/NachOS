@@ -75,6 +75,7 @@ class ListForJoin:List
         void *RemoveTraverse(int key);  
         void PrintContent();
         bool seek(int key);
+        bool isEmpty();
     private:
 };
 #endif

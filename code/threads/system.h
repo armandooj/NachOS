@@ -19,6 +19,7 @@
 #ifdef CHANGED
 #define MAX_STRING_SIZE 256
 #define MAX_INT_SIZE 9 // lenght(2^32)
+#define MAX_OPENFILES 10
 #endif
 
 // Initialization and cleanup routines
@@ -36,7 +37,9 @@ extern Timer *timer;		// the hardware alarm clock
 
 #ifdef CHANGED
 #include "synchconsole.h"
+#include "frameprovider.h"
 extern SynchConsole *synchconsole;
+extern FrameProvider *frameProvider;
 #endif
 
 #ifdef USER_PROGRAM
@@ -57,6 +60,31 @@ extern SynchDisk *synchDisk;
 #ifdef NETWORK
 #include "post.h"
 extern PostOffice *postOffice;
+#endif
+
+#ifdef CHANGED
+#include "openfile.h"
+
+//this class is used to store the filedescriptor value for all opened files
+typedef struct {
+  int fd; //real file descriptor return from linux syscall
+  int count; //increase when multiple threads/processes accessing the same file
+} tableentry;
+
+/* OpenTable is a new class used to store the openfiles table throughout the nachos system */
+class OpenTable {
+  public:
+    OpenTable();
+    ~OpenTable();
+    int PushOpenFile(int file); //push new file object into openfiles table
+    int PullOpenFile(int num);  //remove closed file object from openfiles table
+    int GetOpenNum(int file);
+    int GetOpenFile(int num);
+  private:
+    tableentry table[MAX_OPENFILES];
+    Lock *binaryLock;
+};
+extern OpenTable *opentable;
 #endif
 
 #endif // SYSTEM_H

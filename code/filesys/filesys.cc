@@ -600,7 +600,6 @@ bool FileSystem::CreateDirectory(const char *name) {
 
     Directory_path("../");
 
-
     return true;
 }
 // To change a directory using path name
@@ -612,6 +611,8 @@ void FileSystem::ChangeDirectory    ( const char* filename )
     
 
     char *cpy = new char[strlen(filename_s.c_str()) + 1];
+    //Directory *dir = new Directory(NumDirEntries);
+    //dir->FetchFrom(directoryFile); //directoryFile has the current directory.
    // char *saveptr = cpy;
 
     strcpy(cpy, filename_s.c_str());
@@ -627,12 +628,14 @@ void FileSystem::ChangeDirectory    ( const char* filename )
     while (name != NULL)
     {
          test = Directory_path(name);
+
+
+
+
         name = strtok(NULL, "/");
     }
-
-    // Construct string
-  
 }
+
  // Function to delete a directory
 void FileSystem:: DeleteDirectory (const char *name)
 {
@@ -687,6 +690,7 @@ void FileSystem:: DeleteDirectory (const char *name)
     }
     else 
         printf("Can't delete as directory is not empty \n");
+<<<<<<< HEAD
 
 // /return success;
 
@@ -743,8 +747,9 @@ Directory *FileSystem::GetDirectoryByName(const char* dirname, int *store_sector
 
     return NULL;
 
+=======
+>>>>>>> 1090915c3018b7e6d10294ea98079ba3e014d95f
 }
-
 
 OpenFile *
 FileSystem::FreeMap()

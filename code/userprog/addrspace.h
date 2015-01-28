@@ -20,6 +20,7 @@
 #ifdef CHANGED
 #include "synch.h"
 #include "list.h"
+#define MAX_FILES 5
 #endif
 
 #define UserStackSize		2048	// increase this as necessary!
@@ -45,21 +46,27 @@ class AddrSpace
     // Returns how many threads the system can handle
     int GetMaxNumThreads ();
 
-    // Get's and sets the first stack's free position
+#ifdef CHANGED
+        // Get's and sets the first stack's free position
     int GetAndSetFreeStackLocation ();
     // Free the given position
     void FreeStackLocation (int position);
 
-#ifdef CHANGED    
-    void increaseUserProcesses();
-    void decreaseUserProcesses();
-    int getNumberOfUserProcesses();
+    int increaseUserThreads();
+    int decreaseUserThreads();
+    int getNumberOfUserThreads();
     
     Semaphore *ExitForMain;    
     
-    //Variable for Join functionality
+    // Variable for Join functionality
     ListForJoin *activeThreads;
     ListForJoin *activeLocks;
+
+    int PushTable(OpenFile *file);
+    int PullTable(int index);
+    int IndexSearch(OpenFile *file);
+    int SearchTable(OpenFile *file);
+    OpenFile *OpenSearch(int index);
 #endif   // END CHANGED
   private:
     TranslationEntry * pageTable;	// Assume linear page table translation
@@ -68,15 +75,25 @@ class AddrSpace
     // address space
 
 #ifdef CHANGED
-    int numberOfUserProcesses;    
+    int numberOfUserThreads;
     
     // Available pages
     BitMap *stackBitMap;
     Lock *stackBitMapLock;
-    Lock *processCountLock;
+    Lock *threadsCountLock;
+    Lock *processesCountLock;
+
+/* OpenFileProcess is a openfile table on the process level, each threads inside the same process will add new openfile objects into this level table */
+    typedef struct {
+      OpenFile *file; //openfile object
+      int fd; //real file descriptor used to make a connection between openfile table on kernel level
+      bool vacant; //determine whether the cell is empty
+    } OpenFileProcess;
+
+    OpenFileProcess table[MAX_FILES];
+    Lock *openLock;
 
 #endif   // END CHANGED
-
 
 };
 

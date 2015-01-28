@@ -15,7 +15,9 @@
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
-#include "thread.h"
+#ifdef CHANGED
+#include "userthread.h"
+#endif
 #include "switch.h"
 #include "synch.h"
 #include "system.h"
@@ -108,14 +110,22 @@ Thread::Fork (VoidFunctionPtr func, int arg)
     StackAllocate (func, arg);
 
 #ifdef USER_PROGRAM
+#ifdef CHANGED
 
-    // LB: The addrspace should be tramsitted here, instead of later in
-    // StartProcess, so that the pageTable can be restored at
-    // launching time. This is crucial if the thread is launched with
-    // an already running program, as in the "fork" Unix system call. 
-    
-    // LB: Observe that currentThread->space may be NULL at that time.
+    ThreadParam *threadParam = (ThreadParam *) arg;
+    if (!threadParam->isProcess) {
+      // LB: The addrspace should be tramsitted here, instead of later in
+      // StartProcess, so that the pageTable can be restored at
+      // launching time. This is crucial if the thread is launched with
+      // an already running program, as in the "fork" Unix system call. 
+      
+      // LB: Observe that currentThread->space may be NULL at that time.
+      this->space = currentThread->space;
+    }
+
+#else
     this->space = currentThread->space;
+#endif
 
 #endif // USER_PROGRAM
 
@@ -124,6 +134,7 @@ Thread::Fork (VoidFunctionPtr func, int arg)
     // are disabled!
     (void) interrupt->SetLevel (oldLevel);
 }
+
 
 //----------------------------------------------------------------------
 // Thread::CheckOverflow
@@ -214,11 +225,10 @@ Thread::Yield ()
     DEBUG ('t', "Yielding thread \"%s\"\n", getName ());
 
     nextThread = scheduler->FindNextToRun ();
-    if (nextThread != NULL)
-      {
-	  scheduler->ReadyToRun (this);
-	  scheduler->Run (nextThread);
-      }
+    if (nextThread != NULL) {
+      scheduler->ReadyToRun (this);
+      scheduler->Run (nextThread);
+    }
     (void) interrupt->SetLevel (oldLevel);
 }
 
@@ -254,7 +264,7 @@ Thread::Sleep ()
     status = BLOCKED;
     
     while ((nextThread = scheduler->FindNextToRun ()) == NULL)
-	interrupt->Idle ();	// no one to run, wait for an interrupt
+      interrupt->Idle ();	// no one to run, wait for an interrupt
 
     scheduler->Run (nextThread);	// returns when we've been signalled
 }
@@ -416,8 +426,8 @@ Thread::SaveUserState ()
 void
 Thread::RestoreUserState ()
 {
-    for (int i = 0; i < NumTotalRegs; i++)
-	machine->WriteRegister (i, userRegisters[i]);
+  for (int i = 0; i < NumTotalRegs; i++)
+    machine->WriteRegister (i, userRegisters[i]);
 }
 #endif
 
@@ -426,23 +436,27 @@ Thread::RestoreUserState ()
 
 // Stack BitMap
 
-void
-Thread::FreeTid() {
-  space->FreeStackLocation(tid - 1);
-}
-
-int
-Thread::GetTid() {
-  return tid;
-}
-
-void
-Thread::SetTid(AddrSpace *thisThreadSpace) {
+int Thread::SetStackLocation(AddrSpace *thisThreadSpace) {
   // WARNING: We need to set it's address space first so that we can access the stack!
-  tid = thisThreadSpace->GetAndSetFreeStackLocation();
-  // Since main is the thread 0, we don't wan't user threads to start from 0. Make them start from 1
-  // except when something went wrong
-  tid = tid >= 0 ? tid + 1 : -1;
+  stackLocation = thisThreadSpace->GetAndSetFreeStackLocation();
+  return stackLocation;
+}
+
+void Thread::FreeStackLocation() {
+  space->FreeStackLocation(stackLocation);
+}
+
+int Thread::GetStackLocation() {
+  return stackLocation;
+}
+
+// Function to get ID
+int Thread::GetPID() {
+  return PID;
+}
+
+void Thread::SetPID() {
+    PID = machine->GetPIDSeed();
 }
 
 #endif
