@@ -79,6 +79,7 @@ extern void nachcopy (const char* from, const char* to);
 #endif
 
 extern void MailWait (int networkID);
+extern void MailSend (int networkID);
 #endif
 
 //----------------------------------------------------------------------
@@ -260,15 +261,17 @@ main (int argc, char **argv)
     		MailTest (atoi (*(argv + 1)));
     		argCount = 2;
       }
+#ifdef CHANGED      
       if (!strcmp (*argv, "-w"))
       {
         ASSERT (argc > 1);
         Delay (2);  // delay for 2 seconds
         // to give the user time to 
         // start up another nachos
-        MailWait (atoi (*(argv + 1)));
+        MailSend (atoi (*(argv + 1)));
         argCount = 2;
       }
+#endif
 #endif // NETWORK
     }
 

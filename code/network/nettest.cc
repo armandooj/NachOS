@@ -157,6 +157,7 @@ void ring3Machines(int farAddr) {
     interrupt->Halt();
 }
 
+#ifdef CHANGED
 void showExample2(int farAddr) {
     PacketHeader outPktHdr;
     MailHeader outMailHdr;
@@ -194,7 +195,7 @@ waitTest(int farAddr) {
 }
 
 void
-MailTest(int farAddr)                                                                                                                                                                                                                                                                                                       
+MailSend(int farAddr)                                                                                                                                                                                                                                                                                                       
 {
     showExample2(farAddr);
 }
@@ -204,4 +205,13 @@ MailWait(int farAddr)
 {
     waitTest(farAddr);
 }
+
+#endif
+
+void
+MailTest(int farAddr)                                                                                                                                                                                                                                                                                                       
+{
+    showExample(farAddr);
+}
+
 
