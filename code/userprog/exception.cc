@@ -40,12 +40,7 @@
 
 #ifdef CHANGED
 #include "system.h"
-#include "../filesys/filesys.h"
-#include <dirent.h>
-#include <fstream>
-#include <iostream>
-#include <unistd.h>
-#include <string>
+#include "filesys.h"
 #include "disk.h"
 #include "bitmap.h"
 #include "directory.h"
@@ -305,7 +300,7 @@ ExceptionHandler (ExceptionType which)
                 //delete directory;
 
 
-                fileSystem->List ();
+                fileSystem->List();
                 
                 //interrupt->Halt ();
                 
