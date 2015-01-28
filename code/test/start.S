@@ -257,6 +257,14 @@ PutCharCommand:
        j	$31
        .end PutCharCommand
 
+   .globl PutStringCommand
+      .ent	PutStringCommand
+PutStringCommand:
+       addiu $2,$0,SC_PutStringCommand
+       syscall
+       j	$31
+       .end PutStringCommand
+
 
 
 /* ----------------------*/

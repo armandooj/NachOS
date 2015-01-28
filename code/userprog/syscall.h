@@ -46,10 +46,8 @@
 #define SC_ListDirectory    22	// To list the directory
 #define SC_MakeDir			23	// To make a directory
 #define SC_ChangeDir  		24
- #define SC_PutCharCommand  25
-
-
-
+#define SC_PutCharCommand   25
+#define SC_PutStringCommand 26
 
 #endif  // End If CHANGED
 
@@ -180,7 +178,10 @@ int JoinExec(int tid);  // wait for the process to finish
 int ListDirectory () ;
 int  MakeDir ();
 int ChangeDir ();
+
 int PutCharCommand ();
+
+int PutStringCommand();
 
 #endif // IN_USER_MODE
 

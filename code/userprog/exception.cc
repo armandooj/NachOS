@@ -210,7 +210,30 @@ ExceptionHandler (ExceptionType which)
                     iteration ++;
                 } while (!stop);
                 break;            
-            }            
+            }   
+             case SC_PutStringCommand: 
+            {                          
+                int startPosition = machine->ReadRegister(4);                
+                bool stop = false;
+                char buffer[MAX_STRING_SIZE] = {};
+                int iteration = 0;
+                do {
+                    unsigned int bytesRead = copyStringFromMachine(
+                                                    startPosition + (MAX_STRING_SIZE-1) * iteration,
+                                                    buffer, MAX_STRING_SIZE);
+
+                    // check condition to stop. Maximum read size is Max_size_length - 1. 
+                    // The last item must be \0
+                    if (bytesRead < MAX_STRING_SIZE - 1) {
+                        stop = true;
+                    }
+
+                    synchconsole->SynchPutString("Hi, MoSIG Ppl");
+                    iteration ++;
+                } while (!stop);
+                break;            
+            } 
+
             case SC_UserThreadCreate: 
             {
                 int f = machine->ReadRegister(4);
@@ -327,6 +350,7 @@ ExceptionHandler (ExceptionType which)
                DEBUG('t', "End PutChar\n");
                break;
             }
+            
             
             
 
