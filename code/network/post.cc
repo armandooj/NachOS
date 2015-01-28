@@ -376,7 +376,7 @@ void TimeOutHandler2(int arg) {
 //
 //  This will sleep a package 
 void
-PostOffice::doReliableSend2(PacketHeader pktHdr, MailHeader mailHdr, const char* data)
+PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* data)
 {
     if (DebugIsEnabled('n')) {
         printf("\nPost reliable send: ");
