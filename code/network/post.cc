@@ -317,6 +317,7 @@ PostOffice::Send(PacketHeader pktHdr, MailHeader mailHdr, const char* data)
     if (DebugIsEnabled('n')) {
 	   printf("Post send: ");
 	   PrintHeader(pktHdr, mailHdr);
+       printf("Data: %s\n", data);
     }
     ASSERT(mailHdr.length <= MaxMailSize);
     ASSERT(0 <= mailHdr.to && mailHdr.to < numBoxes);
@@ -378,23 +379,21 @@ void
 PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* data)
 {
     if (DebugIsEnabled('n')) {
-        printf("Post reliable send: ");
+        printf("\nPost reliable send: ");
         PrintHeader(pktHdr, mailHdr);
     }
-
-    printf("-> %d %d\n", strlen(data), MaxMailSize);
     
     if (strlen(data) > MaxMailSize) {
         // Too big, break it into smaller pieces
-        int pieces = divRoundUp(strlen(data), MaxMailSize);
+        int pieces = divRoundUp(strlen(data), MaxMailSize - 1);
         
         int i;
         for (i = 0; i < pieces; i++) {
             printf("Scheduling a chunk %d\n", i);
             // Take a Chunk of the data
-            char chunk[MaxMailSize + 1];
-            memcpy(chunk, &data[i * MaxMailSize], MaxMailSize);
-            chunk[MaxMailSize] = '\0';
+            char chunk[MaxMailSize];
+            memcpy(chunk, &data[i * (MaxMailSize - 1)], MaxMailSize - 1);
+            chunk[MaxMailSize - 1] = '\0';
 
             // Update the size
             mailHdr.length = MaxMailSize; // +1?
@@ -403,24 +402,15 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
             Mail *mail = new Mail(pktHdr, mailHdr, NULL);
             strncpy(mail->data, (char *) chunk, MaxMailSize);
             mail->remainingParts = pieces;
-            mail->attempts = (i == 0) ? 1 : 0;
+            mail->attempts = 0;
 
             printf("data %s\n", mail->data);
             
             // It cannot be on the sentMessages list before this. Add it
             sentMessages->Append(mail);
-         
-            // Wait for confirmation
-            // Send(pktHdr, mailHdr, data);
-
-            // Trigger an interrupt
-            // interrupt->Schedule(TimeOutHandler, (int) this, TEMPO, NetworkSendInt);
-
-            // Now wait for confirmation before sending the next one!
-            // messageConfirmed->P();     // This blocks the receive!, TODO DEBUG
-            //return;
         }
 
+        // Send the first one
         TimeOutHandler((int) this);
 
     } else {
@@ -452,7 +442,6 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
         interrupt->Schedule(TimeOutHandler, (int) this, TEMPO, NetworkSendInt);
     }
 }
-
 
 void 
 PostOffice::chooseSleepOrSend() {
