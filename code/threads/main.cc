@@ -77,6 +77,8 @@ extern void Test_FileSystem2();
 extern void Test_FileSystem3();
 extern void nachcopy (const char* from, const char* to);
 #endif
+
+extern void MailWait (int networkID);
 #endif
 
 //----------------------------------------------------------------------
@@ -222,7 +224,6 @@ main (int argc, char **argv)
 			argCount =2;
 			interrupt->Halt ();
 
-	   
 		interrupt->Halt ();
 		}
 		else if (!strcmp (*argv, "-fremove"))
@@ -234,9 +235,7 @@ main (int argc, char **argv)
 	   
 		interrupt->Halt ();
 		}
-
 		
-	    
         #endif
 
 	  else if (!strcmp (*argv, "-D"))
@@ -261,9 +260,17 @@ main (int argc, char **argv)
     		MailTest (atoi (*(argv + 1)));
     		argCount = 2;
       }
+      if (!strcmp (*argv, "-w"))
+      {
+        ASSERT (argc > 1);
+        Delay (2);  // delay for 2 seconds
+        // to give the user time to 
+        // start up another nachos
+        MailWait (atoi (*(argv + 1)));
+        argCount = 2;
+      }
 #endif // NETWORK
     }
-
 
     printf("Finishing from Main Thread\n");
     currentThread->Finish ();	// NOTE: if the procedure "main" 
