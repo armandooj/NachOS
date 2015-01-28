@@ -175,15 +175,4 @@ class PostOffice {
 #endif
 };
 
-/*
-#ifdef CHANGED
-class ReliablePostOffice:PostOffice {
-    public:
-                
-        void Receive(PacketHeader pktHdr, MailHeader mailHdr, const char *data);
-    private:
-};
-#endif //End CHANGED
-*/
-
 #endif

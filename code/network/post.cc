@@ -384,7 +384,6 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
         int remainingParts = pieces - 1;
         int i;
         for (i = 0; i < pieces; i++) {
-            printf("Scheduling a chunk %d\n", i);
             // Take a Chunk of the data
             char chunk[MaxMailSize];
             memcpy(chunk, &data[i * (MaxMailSize - 1)], MaxMailSize - 1);
@@ -399,7 +398,7 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
             mail->remainingParts = remainingParts--;
             mail->attempts = 0;
 
-            printf("data %s\n", mail->data);
+            printf("Scheduling a chunk %d: %s\n", i, mail->data);
             
             // It cannot be on the sentMessages list before this. Add it
             sentMessages->Append(mail);
@@ -411,8 +410,7 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
     } else {
         
         if (DebugIsEnabled('n')) {
-            printf("\nPost reliable send: ");
-            PrintHeader(pktHdr, mailHdr);
+            printf("\nReliable send.\n");
         }
     
         // Now, backup the Message so that we can confirm it's reception later
@@ -527,7 +525,7 @@ PostOffice::Receive(int box, PacketHeader *pktHdr,
 
 void
 PostOffice::ReliableReceive(int box, PacketHeader *pktHdr, 
-                MailHeader *mailHdr, char* data, char *bigBuffer)
+                MailHeader *mailHdr, char *data, char *bigBuffer)
 {
     ASSERT((box >= 0) && (box < numBoxes));
 
@@ -535,7 +533,7 @@ PostOffice::ReliableReceive(int box, PacketHeader *pktHdr,
     boxes[box].Get(pktHdr, mailHdr, data);
     
     strcat(bigBuffer, data);
-    printf("String so far: %s\n", bigBuffer);
+    printf("Got: %s\n", data);
 
     // Send acknowledgement to the other machine (using "reply to" mailbox
     // in the message that just arrived
@@ -561,6 +559,8 @@ PostOffice::ReliableReceive(int box, PacketHeader *pktHdr,
     if (mailHdr->remainingParts > 0) {
         printf("\nReceive again..");
         ReliableReceive(box, pktHdr, mailHdr, data, bigBuffer);
+    } else {
+        printf("Message: %s\n", bigBuffer);
     }
 
     ASSERT(mailHdr->length <= MaxMailSize);
