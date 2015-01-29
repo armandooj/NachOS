@@ -46,6 +46,13 @@
 #define FreeMapSector     0
 #define DirectorySector   1
 
+#ifdef CHANGED
+typedef struct {
+  char *name;
+  int sector;
+} Program;
+#endif
+
 
 
 #ifdef FILESYS_STUB 		// Temporarily implement file system calls as 
@@ -121,6 +128,9 @@ class FileSystem {
 					// represented as a file
    OpenFile* directoryFile;		// "Root" directory -- list of 
 					// file names, represented as a file
+#ifdef CHANGED
+    Program programs[10];
+#endif
 };
 
 #endif // FILESYS

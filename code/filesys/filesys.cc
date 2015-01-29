@@ -198,6 +198,24 @@ FileSystem::FileSystem(bool format)
         freeMapFile = new OpenFile(FreeMapSector);
         directoryFile = new OpenFile(DirectorySector);
     }
+
+#ifdef CHANGED
+
+    const char *names[] = {"ls", "mkdir", "cd", "rm", "GetInt", "PutChar", "PutString"};
+    Directory *directory = new Directory(NumDirEntries);
+    int sector;
+    directory->FetchFrom(directoryFile);
+
+    int i;
+    for (i = 0; i < 7; i++) {
+        sector = directory->Find(names[i]);
+        if (sector > 0) {
+            programs[i].name = const_cast<char *>(names[i]);
+            programs[i].sector = sector;
+        }
+    }
+
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -313,6 +331,21 @@ FileSystem::Open(const char *name)
     if (sector >= 0) {
 	   openFile = new OpenFile(sector);	// name was found in directory 
     }
+
+#ifdef CHANGED
+    else {
+        int i;
+        for (i = 0; i < 7; i++) {
+            if (strcmp(name, programs[i].name) == 0) {
+                // printf("%s %d\n", programs[i].name, programs[i].sector);
+                openFile = new OpenFile(programs[i].sector);
+                break;
+            }
+        }
+    }
+#endif
+
+
     delete directory;
     return openFile;				// return NULL if not found
 }
