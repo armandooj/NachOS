@@ -28,7 +28,7 @@
 #ifndef POST_H
 #define POST_H
 
-#define MAXREEMISSIONS 3
+#define MAXREEMISSIONS 6
 #define TEMPO 50000000
 
 #include "network.h"
@@ -50,6 +50,8 @@ class MailHeader {
     unsigned length;		// Bytes of message data (excluding the 
 				// mail header)
     int remainingParts;
+    int id;
+    bool isAck;
 };
 
 // Maximum "payload" -- real data -- that can included in a single message
@@ -74,6 +76,8 @@ class Mail {
      char data[MaxMailSize];	// Payload -- message data
      int attempts;
      int remainingParts;
+     int id;
+     bool isAck;
 };
 
 // The following class defines a single mailbox, or temporary storage
@@ -96,6 +100,10 @@ class MailBox {
     SynchList *postOfficeMessages; // It needs to access all the messages
 
     bool isEmpty(); // check if the box has any message
+
+    void *GetFirst();
+
+    int lastAck;
 
   private:
     SynchList *messages;	// A mailbox is just a list of arrived messages
@@ -171,7 +179,7 @@ class PostOffice {
     SynchList *sentMessages; // A list of messages that need to be confirmed
     
     Mail *sendingMail;
-    int numberOfTries;
+    int messageCount;
 #endif
 };
 

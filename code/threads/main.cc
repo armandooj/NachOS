@@ -268,7 +268,7 @@ main (int argc, char **argv)
         Delay (2);  // delay for 2 seconds
         // to give the user time to 
         // start up another nachos
-        MailSend (atoi (*(argv + 1)));
+        MailWait (atoi (*(argv + 1)));
         argCount = 2;
       }
 #endif

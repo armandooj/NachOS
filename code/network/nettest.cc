@@ -198,12 +198,6 @@ waitTest(int farAddr) {
     interrupt->Halt();
 }
 
-void
-MailSend(int farAddr)                                                                                                                                                                                                                                                                                                       
-{
-    sendTest(farAddr);
-}
-
 void                                                                                                                                                                                                                                                                                                                                                
 MailWait(int farAddr)
 {
@@ -215,7 +209,7 @@ MailWait(int farAddr)
 void
 MailTest(int farAddr)                                                                                                                                                                                                                                                                                                       
 {
-    showExample(farAddr);
+    sendTest(farAddr);
 }
 
 

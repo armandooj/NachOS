@@ -139,7 +139,7 @@ void TimerHandler(int arg) {
 void 
 MailBox::Get(PacketHeader *pktHdr, MailHeader *mailHdr, char *data) 
 { 
-    DEBUG('n', "Waiting for mail in mailbox\n");
+    DEBUG('n', "Waiting for mail in mailbox.\n");
     
     Mail *mail = (Mail *) messages->Remove();	// remove message from list;
 						    // will wait if list is empty
@@ -155,9 +155,11 @@ MailBox::Get(PacketHeader *pktHdr, MailHeader *mailHdr, char *data)
 
     // Check if it's a confirmation of a message that we sent before
     Mail *sentMessage = (Mail *) postOfficeMessages->GetFirst();
+    printf("-> %d %d\n", postOffice->messageCount, mailHdr->id);
+
     // TODO we should check through all the list
     if (sentMessage != NULL) {
-        if (sentMessage->mailHdr.from == mail->mailHdr.to) {
+        if ((sentMessage->mailHdr.from == mail->mailHdr.to) && (mailHdr->id == sentMessage->id)) {
             DEBUG('n', "Mail confirmed. Deleting it from the list\n");
             // Do this properly
             postOfficeMessages->Remove();
@@ -171,6 +173,11 @@ MailBox::Get(PacketHeader *pktHdr, MailHeader *mailHdr, char *data)
 					// the caller's buffer
     delete mail;			// we've copied out the stuff we
 					// need, we can now discard the message
+}
+
+void *
+MailBox::GetFirst() {
+    return messages->GetFirst();
 }
 
 //----------------------------------------------------------------------
@@ -237,7 +244,10 @@ PostOffice::PostOffice(NetworkAddress addr, double reliability, int nBoxes)
     // I'm not sure this is the best way to do it but for now it'll do the job
     for (int i = 0; i < nBoxes; ++i){
         boxes[i].postOfficeMessages = sentMessages;
+        boxes[i].lastAck = -1;
     }
+
+    messageCount = 0;
 
 #endif
 
@@ -257,6 +267,10 @@ PostOffice::~PostOffice()
     delete messageSent;
     delete messageConfirmed;
     delete sendLock;
+
+#ifdef CHANGED
+    delete sentMessages;
+#endif    
 }
 
 
@@ -290,8 +304,46 @@ PostOffice::PostalDelivery()
         ASSERT(0 <= mailHdr.to && mailHdr.to < numBoxes);
         ASSERT(mailHdr.length <= MaxMailSize);
 
+
+#ifdef CHANGED
+
+        
+        if (mailHdr.isAck) {
+            if (boxes[mailHdr.to].lastAck != mailHdr.id) {
+                printf("Put!\n");
+                boxes[mailHdr.to].Put(pktHdr, mailHdr, buffer + sizeof(MailHeader));
+            }
+            boxes[mailHdr.to].lastAck = mailHdr.id;
+        } else {
+            boxes[mailHdr.to].Put(pktHdr, mailHdr, buffer + sizeof(MailHeader));
+        }
+
+
+    /*
+    Mail *mail = (Mail *) boxes[mailHdr.to].GetFirst();
+    if (mail != NULL) {
+        if (mail->id != mailHdr.id) {
+            printf("put 1\n");
+            PacketConfirmed();
+            // put into mailbox
+            boxes[mailHdr.to].Put(pktHdr, mailHdr, buffer + sizeof(MailHeader));
+        }
+    } else {
+        printf("put 2\n");
         // put into mailbox
         boxes[mailHdr.to].Put(pktHdr, mailHdr, buffer + sizeof(MailHeader));
+    }
+    */
+
+        //boxes[mailHdr.to].lastMessageId = mailHdr.id;
+
+  
+
+#else
+        printf("Put!\n");
+        // put into mailbox
+        boxes[mailHdr.to].Put(pktHdr, mailHdr, buffer + sizeof(MailHeader));
+#endif
     }
 }
 
@@ -350,9 +402,19 @@ void TimeOutHandler(int arg) {
     if (!office->sentMessages->isEmpty()) {
         printf("Trying again!...\n");
         Mail *mail = (Mail *) office->sentMessages->GetFirst();
+
+        // TODO
+        /*
+        if (mail->attempts >= 3 && mail->isAck) {
+            printf("Enough!\n");
+            office->sentMessages->Remove();
+            office->PacketConfirmed();
+        } */
+
         office->ReliableSend(mail->pktHdr, mail->mailHdr, mail->data);
     } else {
         printf("Nothing failed.\n");
+        interrupt->Halt();
     }
 }
 
@@ -366,11 +428,13 @@ PostOffice::FindMail(Mail *mail) {
     return NULL;
 }
 
+/*
 void TimeOutHandler2(int arg) {
     PostOffice *office = (PostOffice *) arg;
     printf("Hola.\n");
     office->chooseSleepOrSend();
 }
+*/
 
 // TODO Send a package, even in unreliable condition
 //
@@ -391,12 +455,14 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
 
             // Update the size
             mailHdr.length = MaxMailSize; // +1?
+            mailHdr.id = messageCount++;
 
             // Make a mail with it
             Mail *mail = new Mail(pktHdr, mailHdr, NULL);
             strncpy(mail->data, (char *) chunk, MaxMailSize);
             mail->remainingParts = remainingParts--;
             mail->attempts = 0;
+            mail->id = mailHdr.id;
 
             printf("Scheduling a chunk %d: %s\n", i, mail->data);
             
@@ -416,6 +482,7 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
         // Now, backup the Message so that we can confirm it's reception later
         Mail *mail = new Mail(pktHdr, mailHdr, NULL);
         mail->remainingParts = 0;
+        mail->isAck = mailHdr.isAck;
         strncpy(mail->data, (char *) data, MaxMailSize);
 
         // Only add it once
@@ -423,6 +490,7 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
         if (sentMail == NULL) {
             // Add it to the list
             mail->attempts = 1;
+            mail->id = messageCount++;
             sentMessages->Append(mail);
             printf("Backing up the Mail\n");
         } else {
@@ -438,20 +506,25 @@ PostOffice::ReliableSend(PacketHeader pktHdr, MailHeader mailHdr, const char* da
         }
 
         mailHdr.remainingParts = mail->remainingParts;
+        mailHdr.id = mail->id;
         Send(pktHdr, mailHdr, data);        
 
         // Trigger an interrupt
         interrupt->Schedule(TimeOutHandler, (int) this, TEMPO, NetworkSendInt);
 
-        // Wait for the ack from the other machine to the first message we sent.
-        PacketHeader inPktHdr;
-        MailHeader inMailHdr;
-        char buffer[MaxMailSize];
+        // If we're sending an ack we do not need to wait for a response
+        if (!mail->isAck) {
+            // Wait for the ack from the other machine to the first message we sent.
+            PacketHeader inPktHdr;
+            MailHeader inMailHdr;
+            char buffer[MaxMailSize];
 
-        Receive(1, &inPktHdr, &inMailHdr, buffer);
+            Receive(1, &inPktHdr, &inMailHdr, buffer);
+        }
     }
 }
 
+/*
 void 
 PostOffice::chooseSleepOrSend() {
     
@@ -494,6 +567,7 @@ PostOffice::doReliableSend2(PacketHeader pktHdr, MailHeader mailHdr, const char*
     
     chooseSleepOrSend();    
 }
+*/
 
 #endif
 
@@ -534,7 +608,7 @@ PostOffice::ReliableReceive(int box, PacketHeader *pktHdr,
     boxes[box].Get(pktHdr, mailHdr, data);
     
     strcat(bigBuffer, data);
-    printf("Got: %s\n", data);
+    printf("Got (%d): %s\n", mailHdr->id, data);
 
     // Send acknowledgement to the other machine (using "reply to" mailbox
     // in the message that just arrived
@@ -544,21 +618,21 @@ PostOffice::ReliableReceive(int box, PacketHeader *pktHdr,
 
     outPktHdr.to = pktHdr->from;
     outPktHdr.from = pktHdr->to;
+    outMailHdr.id = mailHdr->id;
     outMailHdr.to = mailHdr->from;
     outMailHdr.from = mailHdr->to;
     outMailHdr.length = strlen(ack) + 1;
     outMailHdr.remainingParts = 0;
+    outMailHdr.isAck = true;
 
-    // TODO ack fails?
-    //int i;
-    //for (i = 0; i < 4; i++) {
-        postOffice->Send(outPktHdr, outMailHdr, ack);
-        Delay(1);
-    //}
+    postOffice->Send(outPktHdr, outMailHdr, ack);
+
+    // TODO We shouldn't be "receiving" if we haven't sent the ack
+    // messageConfirmed->P();
     
     PrintHeader(*pktHdr, *mailHdr);
     if (mailHdr->remainingParts > 0) {
-        printf("\nReceive again..");
+        printf("\nReceive again.. ");
         ReliableReceive(box, pktHdr, mailHdr, data, bigBuffer);
     } else {
         printf("Message: %s\n", bigBuffer);
