@@ -77,7 +77,7 @@
 // supports extensible files, the directory size sets the maximum number 
 // of files that can be loaded onto the disk.
 #define FreeMapFileSize 	(NumSectors / BitsInByte)
-#define NumDirEntries 		10
+#define NumDirEntries 		1000
 #define DirectoryFileSize 	(sizeof(DirectoryEntry) * NumDirEntries)
 
 //----------------------------------------------------------------------
@@ -308,9 +308,11 @@ FileSystem::Open(const char *name)
 
     DEBUG('f', "Opening file %s\n", name);
     directory->FetchFrom(directoryFile);
-    sector = directory->Find(name); 
-    if (sector >= 0) 		
-	openFile = new OpenFile(sector);	// name was found in directory 
+    sector = directory->Find(name);
+
+    if (sector >= 0) {
+	   openFile = new OpenFile(sector);	// name was found in directory 
+    }
     delete directory;
     return openFile;				// return NULL if not found
 }
@@ -655,7 +657,7 @@ void FileSystem:: DeleteDirectory (const char *name)
     //success= TRUE;
 
    
-        directory = new Directory(NumDirEntries);
+    directory = new Directory(NumDirEntries);
     directory->FetchFrom(directoryFile);
      Directory_path((std::string(name) + "/").c_str());
 
@@ -668,11 +670,12 @@ void FileSystem:: DeleteDirectory (const char *name)
          BitMap *freeMap;
     FileHeader *fileHdr;
     int sector;
-            sector = directory->Find(name);
+    sector = directory->Find(name);
     if (sector == -1) {
        delete directory;
-       printf("Error in deleting as it can't be found \n");
-           }
+       printf("cannot rm '%s': No such file or directory\n", name);
+       return;
+    }
     fileHdr = new FileHeader;
     fileHdr->FetchFrom(sector);
 

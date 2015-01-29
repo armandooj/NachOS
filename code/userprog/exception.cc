@@ -387,7 +387,7 @@ ExceptionHandler (ExceptionType which)
             case SC_PutIntCommand:
             {
                 char *buffer = currentThread->space->getExtraArg();
-                int val = atoi (buffer);
+                int val = atoi(buffer);
                 synchconsole->SynchPutInt(val);
                 break;
             }
@@ -400,6 +400,7 @@ ExceptionHandler (ExceptionType which)
             case SC_GetIntCommand:
             {
                 int val = synchconsole->SynchGetInt();
+                printf("-> %d\n", val);
                 machine->WriteMem(machine->ReadRegister(4), 4, val);
                 break;
             }
@@ -448,6 +449,7 @@ ExceptionHandler (ExceptionType which)
             case SC_ChangeDir:
             {
                 char *buffer = currentThread->space->getExtraArg();
+                strcat(buffer, "/");
                 fileSystem->Directory_path(buffer);
 
                 break;
@@ -468,7 +470,6 @@ ExceptionHandler (ExceptionType which)
                fileSystem->DeleteDirectory(buffer);
                break;
             }
-            
             
             default: {
                printf("Unexpected user mode exception %d %d\n", which, type);
