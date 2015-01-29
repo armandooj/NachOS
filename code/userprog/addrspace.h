@@ -67,6 +67,10 @@ class AddrSpace
     int IndexSearch(OpenFile *file);
     int SearchTable(OpenFile *file);
     OpenFile *OpenSearch(int index);
+    
+    void setExtraArg(char *newArg);
+    char* getExtraArg();
+    
 #endif   // END CHANGED
   private:
     TranslationEntry * pageTable;	// Assume linear page table translation
@@ -93,6 +97,9 @@ class AddrSpace
     OpenFileProcess table[MAX_FILES];
     Lock *openLock;
 
+    //extra variables for passing new variable in ForkExec
+    bool hasArg; 
+    char *arg;  // This is the 
 #endif   // END CHANGED
 
 };

@@ -3,8 +3,8 @@
 int main() {
 
   int fd8 = -1,fd7 = -1,fd5 = -1,fd6 = -1;
-  ForkExec("filesys1");
-  ForkExec("filesys11"); 
+  ForkExec("filesys1", 0);
+  ForkExec("filesys11", 0); 
   if((fd5 = Open("test13")) != -1)
       PutString("open test13 success\n");
   if(Close(fd5) == 0)
