@@ -7,4 +7,7 @@
 ./nachos-final -cp PutCharCommand PutChar
 ./nachos-final -cp PutStringCommand PutString
 ./nachos-final -cp shell shell
+./nachos-final -cp fork fork-test
+./nachos-final -cp userpages0 userpages0-test
+./nachos-final -cp join_multithread join_multithread-test
 clear
