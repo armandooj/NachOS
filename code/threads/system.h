@@ -19,7 +19,7 @@
 #ifdef CHANGED
 #define MAX_STRING_SIZE 256
 #define MAX_INT_SIZE 9 // lenght(2^32)
-#define MAX_OPENFILES 5
+#define MAX_OPENFILES 10
 #endif
 
 // Initialization and cleanup routines

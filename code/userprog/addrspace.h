@@ -20,7 +20,7 @@
 #ifdef CHANGED
 #include "synch.h"
 #include "list.h"
-#define MAX_FILES 3
+#define MAX_FILES 5
 #endif
 
 #define UserStackSize		2048	// increase this as necessary!
