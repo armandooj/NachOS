@@ -439,14 +439,15 @@ ExceptionHandler (ExceptionType which)
             }
             case SC_MakeDir:
             {
-                fileSystem->CreateDirectory("SampleDIR");
+                char *buffer = currentThread->space->getExtraArg();
+                fileSystem->CreateDirectory(buffer);
                 
                 break;
             }
             case SC_ChangeDir:
             {
-                fileSystem->Directory_path("SampleDIR/");
-                fileSystem->List ();
+                char *buffer = currentThread->space->getExtraArg();
+                fileSystem->Directory_path(buffer);
 
                 break;
             }
@@ -462,7 +463,8 @@ ExceptionHandler (ExceptionType which)
             }
               case SC_DeleteDirectory:
             {
-               fileSystem->DeleteDirectory("Pdir");
+               char *buffer = currentThread->space->getExtraArg();
+               fileSystem->DeleteDirectory(buffer);
                break;
             }
             

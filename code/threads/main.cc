@@ -76,6 +76,7 @@ extern void 	Test_FileSystem();
 extern void Test_FileSystem2();
 extern void Test_FileSystem3();
 extern void nachcopy (const char* from, const char* to);
+extern void formatfilesys ();
 #endif
 
 extern void MailWait (int networkID);
@@ -116,6 +117,18 @@ main (int argc, char **argv)
       argCount = 1;
       if (!strcmp (*argv, "-z"))	// print copyright
         printf ("%s", copyright);
+#ifdef CHANGED
+#ifdef FILESYS_NEEDED
+      if (!strcmp (*argv, "-f"))
+	    {			// print a Nachos file
+		ASSERT (argc == 1);
+		formatfilesys();
+		argCount = 1;
+		interrupt->Halt ();
+	    }
+#endif
+#endif
+      
 #ifdef USER_PROGRAM
 
       if (!strcmp (*argv, "-x"))
@@ -171,12 +184,14 @@ main (int argc, char **argv)
 		ASSERT (argc > 1);
 		Print (*(argv + 1));
 		argCount = 2;
+		interrupt->Halt ();
 	    }
 	  else if (!strcmp (*argv, "-r"))
 	    {			// remove Nachos file
 		ASSERT (argc > 1);
 		fileSystem->Remove (*(argv + 1));
 		argCount = 2;
+		interrupt->Halt ();
 	    }
 	  else if (!strcmp (*argv, "-lr"))
 	    {			// list Nachos directory

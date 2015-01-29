@@ -56,7 +56,7 @@ bool
 FileHeader::Allocate(BitMap *freeMap, int Size)
 { 
 #ifdef CHANGED
-    if (Size == 0) return TRUE;
+    //if (Size == 0) return TRUE;
     int i, j, k;
 
 //calculate required number of sectors
