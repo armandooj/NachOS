@@ -156,6 +156,10 @@ AddrSpace::AddrSpace (OpenFile *executable)
   //For Join Functionality
   activeThreads = new ListForJoin();
   activeLocks = new ListForJoin();
+  
+  //Initialization of extra variable for Shell
+  hasArg = false;
+  arg = new char[30];
 #endif   // END CHANGED
 }
 
@@ -393,26 +397,6 @@ int AddrSpace::getNumberOfUserThreads() {
 Virtual Memory
 */
 
-// static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, int position, 
-//   TranslationEntry *pageTable, unsigned numPages) {
-
-//     // Start by reading from the physical memory into a temporary buffer
-//     char temp_buffer[numBytes];
-//     int read_bytes = executable->ReadAt(temp_buffer, numBytes, position);
-
-//     // Now change the machine to pageTable and proceed to write
-//     machine->pageTable = pageTable;
-//     machine->pageTableSize = numPages;
-
-//     // int physicalAddress;
-//     // machine->Translate(position, &physicalAddress, 1, FALSE);
-//     // printf("-> %d, %d, %d\n", physicalAddress, physicalAddress + numBytes, machine->ReadRegister(PCReg));
-
-//     for (int i = 0; i < read_bytes; i++) {
-//         machine->WriteMem(virtualaddr + i, 1, temp_buffer[i]);
-//     }
-// }
-
 static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, int position, 
   TranslationEntry *pageTable, unsigned numPages) {
 
@@ -446,6 +430,18 @@ static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, i
     // Go back
     machine->pageTable = old_table;
     machine->pageTableSize = old_size;
+}
+
+void AddrSpace::setExtraArg(char *newArg) {
+    hasArg = true;
+    
+    for (int i = 0; i < 30; i++) {
+        arg[i] = newArg[i];
+    }    
+}
+
+char* AddrSpace::getExtraArg() {
+    return arg;
 }
 
 #endif   // END CHANGED

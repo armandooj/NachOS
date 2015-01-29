@@ -4,6 +4,6 @@ int main() {
 
   PutString("Hola");
   PutChar('Y');
-  ForkExec("putchar"); 
+  ForkExec("putchar", 0);   // NULL pointer
   return 0;
 }

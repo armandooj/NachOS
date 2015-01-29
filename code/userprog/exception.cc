@@ -292,26 +292,12 @@ ExceptionHandler (ExceptionType which)
                 break;            
             }   
              case SC_PutStringCommand: 
-            {                          
-                int startPosition = machine->ReadRegister(4);                
-                bool stop = false;
-                char buffer[MAX_STRING_SIZE] = {};
-                int iteration = 0;
-                do {
-                    unsigned int bytesRead = copyStringFromMachine(
-                                                    startPosition + (MAX_STRING_SIZE-1) * iteration,
-                                                    buffer, MAX_STRING_SIZE);
-
-                    // check condition to stop. Maximum read size is Max_size_length - 1. 
-                    // The last item must be \0
-                    if (bytesRead < MAX_STRING_SIZE - 1) {
-                        stop = true;
-                    }
-
-                    synchconsole->SynchPutString("Hi, MoSIG Ppl");
-                    iteration ++;
-                } while (!stop);
-                break;            
+            {   
+                char *buffer = currentThread->space->getExtraArg();
+                //printf("%s", buffer);
+                
+                synchconsole->SynchPutString(buffer);
+                break;
             } 
 
             case SC_UserThreadCreate: 
@@ -419,12 +405,23 @@ ExceptionHandler (ExceptionType which)
             case SC_ForkExec:
             {
                 int s = machine->ReadRegister(4);
+                int s2 = machine->ReadRegister(5);
                 
-                char str[100] = {};
-                copyStringFromMachine(s, str, 100);
-                // printf("New file name: %s\n", str);
+                char cmd[30] = {};
+                copyStringFromMachine(s, cmd, 30);
+                // printf("New file name: %s\n", cmd);
 
-                machine->WriteRegister(2, do_UserProcessCreate(str));
+                char arg[30] = {};  //could be overrided here :(
+                
+                if (s2 != 0) {
+                    copyStringFromMachine(s2, arg, 30);
+                    //printf("\nNew Argument: %s \n ", arg);
+                    machine->WriteRegister(2, do_UserProcessCreate(cmd, arg));
+                } else {
+                    machine->WriteRegister(2, do_UserProcessCreate(cmd, 0));
+                }
+                
+
                 break;
             }
             
@@ -437,37 +434,29 @@ ExceptionHandler (ExceptionType which)
             
             case SC_ListDirectory:
             {
-
                 fileSystem->List();
-                
-                //interrupt->Halt ();
-                
                 break;
             }
             case SC_MakeDir:
             {
-
                 fileSystem->CreateDirectory("SampleDIR");
-                //interrupt->Halt ();
                 
                 break;
             }
             case SC_ChangeDir:
             {
-
                 fileSystem->Directory_path("SampleDIR/");
                 fileSystem->List ();
 
-                //interrupt->Halt ();
-                
                 break;
             }
             case SC_PutCharCommand:
             {
-               //int int_c = machine->ReadRegister(4);
-               //char c = (char) int_c;
+               char *str = currentThread->space->getExtraArg();               
+               char c = str[0];
+               
                DEBUG('t', "Begin PutChar\n");
-               synchconsole->SynchPutChar('s');
+               synchconsole->SynchPutChar(c);
                DEBUG('t', "End PutChar\n");
                break;
             }
@@ -478,9 +467,6 @@ ExceptionHandler (ExceptionType which)
             }
             
             
-            
-            
-
             default: {
                printf("Unexpected user mode exception %d %d\n", which, type);
                ASSERT(FALSE);

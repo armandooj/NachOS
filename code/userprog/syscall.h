@@ -162,7 +162,6 @@ void PutChar(char c);
 
 
 
-
 void PutString(char *c);
 
 char GetChar();
@@ -179,7 +178,7 @@ void UserThreadExit();
 int UserThreadJoin(int tid);
 
 // Process creation
-int ForkExec(char* cmd);
+int ForkExec(char* cmd, char *arg);
 int JoinExec(int tid);  // wait for the process to finish
 int ListDirectory () ;
 int  MakeDir ();

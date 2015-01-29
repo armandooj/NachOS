@@ -12,16 +12,10 @@ static void StartProcess(int dummy) {
   currentThread->space->InitRegisters();
   //currentThread->space->RestoreState();
     
-    
-  //WRITE TEST 123 to stack
-  //int stackPointer = machine->ReadRegister(StackReg);
-  // write to stack
-  // machine->WriteMem(stackPointer, 1, 'h');
-
   machine->Run();
 }
 
-int do_UserProcessCreate(char *filename) {
+int do_UserProcessCreate(char *filename, char *arg) {
 
 // NO STACK INITIALIZATION
   OpenFile *executable = fileSystem->Open(filename);
@@ -38,7 +32,12 @@ int do_UserProcessCreate(char *filename) {
   Thread *newThread = new Thread(filename);
   newThread->space = space;
   newThread->SetPID();  // Set new ID
-
+  
+  //set extra variable here
+  if( arg != 0) { // if NULL, do nothing
+    newThread->space->setExtraArg(arg);   
+  }
+  
   machine->IncrementProcesses();
   machine->activeProcess->AppendTraverse(NULL, newThread->GetPID());
 

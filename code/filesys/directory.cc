@@ -195,7 +195,7 @@ Directory::List()
         {
             FileHeader *fileheader = new FileHeader;
             fileheader->FetchFrom(table[i].sector);
-            printf("Name: %s Size: %dbytes", table[i].name,fileheader->FileLength());
+            printf(" %-20s %8d bytes\n", table[i].name,fileheader->FileLength());
             //if(table[i].isFile == TRUE)
               //  printf("   File \n");
             //else 
