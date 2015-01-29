@@ -386,7 +386,8 @@ ExceptionHandler (ExceptionType which)
             }
             case SC_PutIntCommand:
             {
-                int val = machine->ReadRegister(4);                
+                char *buffer = currentThread->space->getExtraArg();
+                int val = atoi (buffer);
                 synchconsole->SynchPutInt(val);
                 break;
             }
