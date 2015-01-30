@@ -129,7 +129,7 @@ class FileSystem {
    OpenFile* directoryFile;		// "Root" directory -- list of 
 					// file names, represented as a file
 #ifdef CHANGED
-    Program programs[15];
+    Program programs[16];
 #endif
 };
 
