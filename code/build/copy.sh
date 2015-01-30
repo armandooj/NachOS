@@ -9,6 +9,7 @@
 ./nachos-final -cp shell shell
 ./nachos-final -cp fork fork-test
 ./nachos-final -cp userpages0 userpages0-test
+./nachos-final -cp userpages1 userpages1-test
 ./nachos-final -cp join_multithread join_multithread-test
 ./nachos-final -cp multopen multopen-test 
 ./nachos-final -cp mulpopen mulpopen-test

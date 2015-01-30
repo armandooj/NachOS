@@ -9,7 +9,7 @@ int main() {
   ForkExec("userpages1", 0); 
   PutChar('S');
   PutInt(182);
-  ForkExec("putstring", 0); 
+  //ForkExec("PutString", 0); 
  
   return 0;
 }

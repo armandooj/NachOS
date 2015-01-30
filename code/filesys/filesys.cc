@@ -201,13 +201,14 @@ FileSystem::FileSystem(bool format)
 
 #ifdef CHANGED
 
-    const char *names[] = {"ls", "mkdir", "cd", "rm", "GetInt", "PutChar", "PutString"};
+    const char *names[] = {"ls", "mkdir", "cd", "rm", "GetInt", "PutChar", "PutString", "fork-test", "userpages0-test", "userpages1-test",
+                            "join_multithread-test", "multopen-test", "mulpopen-test", "fork1-test", "fork2-test", "conopen-test"};
     Directory *directory = new Directory(NumDirEntries);
     int sector;
     directory->FetchFrom(directoryFile);
 
     int i;
-    for (i = 0; i < 7; i++) {
+    for (i = 0; i < 16; i++) {
         sector = directory->Find(names[i]);
         if (sector > 0) {
             programs[i].name = const_cast<char *>(names[i]);
@@ -335,11 +336,9 @@ FileSystem::Open(const char *name)
 #ifdef CHANGED
     else {
         int i;
-        for (i = 0; i < 7; i++) {
+        for (i = 0; i < 16; i++) {
             if (strcmp(name, programs[i].name) == 0) {
-                // printf("%s %d\n", programs[i].name, programs[i].sector);
                 openFile = new OpenFile(programs[i].sector);
-                break;
             }
         }
     }

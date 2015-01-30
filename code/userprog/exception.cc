@@ -294,8 +294,6 @@ ExceptionHandler (ExceptionType which)
              case SC_PutStringCommand: 
             {   
                 char *buffer = currentThread->space->getExtraArg();
-                //printf("%s", buffer);
-                
                 synchconsole->SynchPutString(buffer);
                 break;
             } 
@@ -400,7 +398,6 @@ ExceptionHandler (ExceptionType which)
             case SC_GetIntCommand:
             {
                 int val = synchconsole->SynchGetInt();
-                printf("-> %d\n", val);
                 machine->WriteMem(machine->ReadRegister(4), 4, val);
                 break;
             }

@@ -25,8 +25,8 @@ int main() {
    PutString("create test18\n");
   if(Create("test19") != -1) 
    PutString("create test19\n");
-  ForkExec("fork1", 0);
-  ForkExec("fork2", 0); 
+  ForkExec("fork1-test", 0);
+  ForkExec("fork2-test", 0); 
   if((fd5 = Open("test9")) != -1)
       PutString("process1 open test9 success\n");
   if((fd6 = Open("test10")) != -1)
